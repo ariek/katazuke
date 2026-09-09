@@ -104,10 +104,10 @@
   </header>
 
   <main class="main">
-    <section class="view" id="view-room" data-view="room">
+    <section class="view" id="view-room" data-view="room" hidden>
       <div class="room-grid" id="room-grid"></div>
     </section>
-    <section class="view" id="view-quests" data-view="quests" hidden>
+    <section class="view" id="view-quests" data-view="quests">
       <div class="chips" id="area-chips"></div>
       <div id="focus-quests"></div>
       <div id="quest-list"></div>
@@ -309,9 +309,9 @@
   </div>
 
   <nav class="tabbar" id="tabbar">
-    <button class="tab is-active" data-tab="room"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-house"/></svg></span>部屋</button>
-    <button class="tab" data-tab="quests"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span>クエスト</button>
+    <button class="tab is-active" data-tab="quests"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span>クエスト</button>
     <button class="tab" data-tab="timer"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-hourglass"/></svg></span>タイマー</button>
+    <button class="tab" data-tab="room"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-house"/></svg></span>部屋</button>
     <button class="tab" data-tab="log"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span>記録</button>
     <button class="tab" data-tab="settings"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span>設定</button>
   </nav>

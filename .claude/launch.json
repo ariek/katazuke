@@ -4,7 +4,10 @@
     {
       "name": "katazuke",
       "runtimeExecutable": "/usr/bin/python3",
-      "runtimeArgs": ["-m", "http.server", "8765"],
+      "runtimeArgs": [
+        "dev/server.py",
+        "8765"
+      ],
       "port": 8765
     }
   ]

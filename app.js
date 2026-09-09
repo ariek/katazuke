@@ -1,10 +1,12 @@
 // 状態管理、保存、画面切り替え
 
 const STORAGE_KEY = 'katazuke.v1';
+const LAST_TAB_KEY = 'katazuke.lastTab'; // 最後に見ていたタブ。エクスポートには含めない
+const TAB_NAMES = ['quests', 'timer', 'room', 'log', 'settings'];
 const DATA_VERSION = 1;
 
 let state = null;
-const ui = { tab: 'room', areaFilter: null, logMonth: null, logDay: null, todoOpen: false };
+const ui = { tab: 'quests', areaFilter: null, logMonth: null, logDay: null, todoOpen: false };
 
 // --- 保存 -------------------------------------------------------------
 
@@ -148,8 +150,8 @@ function renderRoom() {
     const c = areaCleanliness(area.id, state.tasks, now);
     const dots = Array.from({ length: 5 }, (_, i) =>
       `<span class="clean-dot ${i < Math.round(c.ratio * 5) ? 'is-on' : ''}"></span>`).join('');
-    const due = c.dueCount > 0
-      ? `<span class="room-card-due">やること ${c.dueCount}</span>`
+    const due = c.todoCount > 0
+      ? `<span class="room-card-due">やること ${c.todoCount}</span>`
       : '<span class="room-card-due is-zero">やること なし</span>';
     return `<button class="room-card" data-area="${area.id}" aria-label="${escapeHtml(area.name)}のクエストを見る">
       <div class="room-card-head">
@@ -179,6 +181,7 @@ function render() {
 
 function switchTab(tab) {
   ui.tab = tab;
+  try { localStorage.setItem(LAST_TAB_KEY, tab); } catch (err) { /* 保存できなくても続行 */ }
   document.querySelectorAll('.view').forEach((v) => { v.hidden = v.dataset.view !== tab; });
   document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('is-active', b.dataset.tab === tab));
   renderTimerMini();
@@ -210,7 +213,7 @@ function measureInsets() {
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.3.0';
+const APP_VERSION = 'v0.3.1';
 let waitingWorker = null;
 
 function registerServiceWorker() {
@@ -276,6 +279,10 @@ function init() {
   initBulk();
   initLog();
   initEffects();
+  // 前回見ていた画面から始める。なければクエスト
+  let lastTab = null;
+  try { lastTab = localStorage.getItem(LAST_TAB_KEY); } catch (err) { lastTab = null; }
+  switchTab(TAB_NAMES.includes(lastTab) ? lastTab : 'quests');
 
   document.getElementById('app-version').textContent = `片付けクエスト ${APP_VERSION}`;
   measureInsets();

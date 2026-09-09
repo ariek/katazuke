@@ -124,7 +124,7 @@ function renderSettings() {
     <span class="area-thumb">${renderRoomArt(a.kind, 'clean')}</span>
     <button class="area-body" data-area-edit="${a.id}">
       <span class="area-name">${escapeHtml(a.name)}</span>
-      <span class="area-meta">${ROOM_KINDS[a.kind] || '棚'}の絵 · クエスト ${taskCount[a.id] || 0} 件</span>
+      <span class="area-meta">クエスト ${taskCount[a.id] || 0} 件</span>
     </button>
     <span class="area-move">
       <button class="icon-btn" data-area-move="${a.id}" data-delta="-1" ${i === 0 ? 'disabled' : ''} aria-label="上へ">▲</button>

@@ -194,16 +194,8 @@ button {
 /* 部屋カード */
 .room-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
-}
-
-@media (min-width: 560px) {
-  .room-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (min-width: 860px) {
-  .room-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 .room-card {
@@ -298,6 +290,19 @@ button {
 
 .clean-dot.is-on { background: var(--mint); }
 
+/* スマホでは3列に収まるよう、カードの中身を小さくする */
+@media (max-width: 559px) {
+  .room-grid { gap: 8px; }
+  .room-card { padding: 8px 8px 8px; border-width: 2px; box-shadow: 2px 2px 0 var(--line); }
+  .room-card-head { flex-direction: column; align-items: flex-start; gap: 2px; margin-bottom: 2px; }
+  .room-card-name { font-size: 13px; line-height: 1.2; overflow-wrap: anywhere; }
+  .room-card-state { font-size: 10px; padding: 1px 7px; border-width: 1.6px; }
+  .room-card-art { margin: 2px 0 4px; }
+  .room-card-foot { font-size: 11px; }
+  .clean-dots { display: none; }
+  .room-card-due { font-size: 11px; }
+}
+
 /* タブバー */
 .tabbar {
   flex: none;
@@ -360,6 +365,11 @@ button {
   padding: 2px 2px 10px;
   margin-bottom: 6px;
   scrollbar-width: none;
+}
+
+/* スマホでは画面の端まで横スクロールできるよう、本文の余白をはみ出させる */
+@media (max-width: 559px) {
+  .chips { margin-left: -16px; margin-right: -16px; padding-left: 16px; padding-right: 16px; }
 }
 
 .chips::-webkit-scrollbar { display: none; }
