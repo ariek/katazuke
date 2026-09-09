@@ -25,15 +25,15 @@
 /* 全画面（ホーム画面から起動）のとき。メディアクエリが効かない端末向けに、JS で付ける印でも同じにする */
 @media (display-mode: standalone) {
   :root {
-    --tabbar-h: 56px;
-    --safe-bottom: max(0px, calc(var(--inset-bottom) - 20px));
+    --tabbar-h: 50px;
+    --safe-bottom: max(0px, calc(var(--inset-bottom) - 24px));
     --header-top: max(4px, calc(var(--inset-top) - 6px));
   }
 }
 
 :root.is-standalone {
-  --tabbar-h: 56px;
-  --safe-bottom: max(0px, calc(var(--inset-bottom) - 20px));
+  --tabbar-h: 50px;
+  --safe-bottom: max(0px, calc(var(--inset-bottom) - 24px));
   --header-top: max(4px, calc(var(--inset-top) - 6px));
 }
 
