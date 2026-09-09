@@ -15,14 +15,14 @@
   --messy: #f2a9a0;
   --radius-wobbly: 18px 22px 20px 24px / 24px 18px 22px 20px;
   --tabbar-h: 64px;
-  /* ホームインジケーターと重ならない分だけ空ける。全画面（ホーム画面から起動）では少し詰める */
+  /* ホームインジケーターと重ならない分だけ空ける。全画面（ホーム画面から起動）では詰める */
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @media (display-mode: standalone) {
   :root {
-    --tabbar-h: 58px;
-    --safe-bottom: max(0px, calc(env(safe-area-inset-bottom, 0px) - 14px));
+    --tabbar-h: 56px;
+    --safe-bottom: max(0px, calc(env(safe-area-inset-bottom, 0px) - 20px));
   }
 }
 
@@ -55,7 +55,8 @@ button {
   position: sticky;
   top: 0;
   z-index: 10;
-  padding: 14px 18px 10px;
+  /* 全画面ではステータスバーの下までヘッダーの色を伸ばす */
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 18px 10px;
   background: var(--bg);
   border-bottom: 2.5px solid var(--ink);
   border-image: none;
