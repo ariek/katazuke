@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#fbf6ee">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="片付け">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <title>片付けクエスト</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
@@ -126,6 +132,13 @@
       </section>
 
       <section class="settings-section">
+        <h2 class="settings-heading">アプリ</h2>
+        <p class="settings-help" id="app-version"></p>
+        <p class="settings-help">ホーム画面に追加すると、アプリのように全画面で開けます。iPhone は共有メニューの「ホーム画面に追加」、Android はブラウザのメニューの「アプリをインストール」から。</p>
+        <button class="btn" id="app-update">更新を確認</button>
+      </section>
+
+      <section class="settings-section">
         <h2 class="settings-heading">初期化</h2>
         <p class="settings-help">すべてのデータを削除して、最初の状態に戻します。</p>
         <button class="btn btn-danger" id="reset-all">すべてのデータを削除</button>
@@ -206,6 +219,10 @@
   </div>
 
   <div class="toast" id="toast" hidden></div>
+  <div class="update-bar" id="update-bar" hidden>
+    <span>新しい版があります</span>
+    <button class="btn btn-primary" id="update-reload">更新する</button>
+  </div>
   <div class="fx-layer" id="fx-layer" aria-hidden="true"></div>
 
   <div class="levelup" id="levelup" hidden role="dialog" aria-label="レベルアップ">

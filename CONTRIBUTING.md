@@ -55,6 +55,15 @@ feat: タスク追加フォームを実装
 fix: 日付が変わった直後にストリークが0になる問題を修正
 ```
 
+## リリース時の注意
+
+- アプリのファイル（HTML / CSS / JS / アイコン）を変更して `main` に取り込むときは、`sw.js` の `CACHE_VERSION` と `app.js` の `APP_VERSION` を同じ値に上げる。これが変わらないと、インストール済みの端末に更新通知が出ない。
+- アイコンを変えるときは `icons/icon.svg` を直し、PNG は次のコマンドで作り直す（macOS）。
+
+```bash
+cd icons && qlmanage -t -s 1024 -o . icon.svg && python3 -c "from PIL import Image; s=Image.open('icon.svg.png').convert('RGBA'); [s.resize((n,n), Image.LANCZOS).save(f) for f,n in [('icon-512.png',512),('icon-192.png',192)]]; bg=Image.new('RGBA',(180,180),'#fbf6ee'); bg.alpha_composite(s.resize((180,180), Image.LANCZOS)); bg.convert('RGB').save('apple-touch-icon.png')" && rm icon.svg.png
+```
+
 ## バージョン
 
 - 仕様書の版が上がる区切りで `main` にタグを打つ。`v0.1.0` のように 3 桁。
