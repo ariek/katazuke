@@ -25,14 +25,14 @@
 /* 全画面（ホーム画面から起動）のとき。メディアクエリが効かない端末向けに、JS で付ける印でも同じにする */
 @media (display-mode: standalone) {
   :root {
-    --tabbar-h: 50px;
+    --tabbar-h: 54px;
     --safe-bottom: max(0px, calc(var(--inset-bottom) - 24px));
     --header-top: max(4px, calc(var(--inset-top) - 6px));
   }
 }
 
 :root.is-standalone {
-  --tabbar-h: 50px;
+  --tabbar-h: 54px;
   --safe-bottom: max(0px, calc(var(--inset-bottom) - 24px));
   --header-top: max(4px, calc(var(--inset-top) - 6px));
 }
@@ -284,6 +284,7 @@ button {
 .tabbar {
   flex: none;
   height: calc(var(--tabbar-h) + var(--safe-bottom));
+  padding-top: 4px;
   padding-bottom: var(--safe-bottom);
   display: flex;
   background: var(--paper);
@@ -299,12 +300,14 @@ button {
   justify-content: center;
   gap: 2px;
   font-size: 11px;
+  line-height: 13px;
   color: var(--ink-soft);
 }
 
 .tab-icon {
   font-size: 20px;
-  line-height: 1;
+  height: 24px;
+  line-height: 24px;
   filter: grayscale(1) opacity(0.6);
   transition: transform 0.15s ease;
 }
