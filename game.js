@@ -65,16 +65,18 @@ function isDueStatus(status) {
 // エリアのきれい度: 期限内のタスク数 ÷ 有効なタスク数。タスクなしは 1
 function areaCleanliness(areaId, tasks, now = new Date()) {
   const active = tasks.filter((task) => task.areaId === areaId && !task.done);
-  if (active.length === 0) return { ratio: 1, state: 'clean', dueCount: 0, total: 0 };
+  if (active.length === 0) return { ratio: 1, state: 'clean', dueCount: 0, todoCount: 0, total: 0 };
   let fresh = 0;
-  let dueCount = 0;
+  let dueCount = 0; // 期限が来ているもの
+  let todoCount = 0; // やることに出るもの（期限切れ・今日・期限なし）
   for (const task of active) {
     const status = taskStatus(task, now);
-    if (isDueStatus(status)) dueCount += 1;
+    if (isDueStatus(status)) { dueCount += 1; todoCount += 1; }
+    else if (status === 'todo') { fresh += 1; todoCount += 1; }
     else fresh += 1;
   }
   const ratio = fresh / active.length;
-  return { ratio, state: cleanState(ratio), dueCount, total: active.length };
+  return { ratio, state: cleanState(ratio), dueCount, todoCount, total: active.length };
 }
 
 function cleanState(ratio) {
