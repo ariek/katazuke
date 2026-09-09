@@ -86,6 +86,7 @@ button {
 }
 
 .icon-flame { width: 1.15em; height: 1.15em; color: #e0704a; --icon-fill-a: var(--peach); }
+.icon-flame.icon-off { color: var(--ink-soft); --icon-fill-a: var(--line); }
 .icon-timer { --icon-fill-a: var(--sky); }
 .icon-sparkle { color: #c9a227; --icon-fill-a: var(--yellow); --icon-fill-b: var(--yellow); }
 
@@ -94,7 +95,7 @@ button {
   flex: none;
   z-index: 10;
   /* 全画面ではステータスバーの下までヘッダーの色を伸ばし、その分の上余白は小さくする */
-  padding: var(--header-top) 18px 10px;
+  padding: var(--header-top) 16px 10px;
   background: var(--bg);
   border-bottom: 2.5px solid var(--ink);
   border-image: none;
@@ -105,36 +106,35 @@ button {
   margin: 0 auto;
 }
 
-.header-top {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.logo {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .streak {
-  font-size: 14px;
+  flex: none;
+  margin-left: 4px;
+  padding-left: 10px;
+  border-left: 2px solid var(--line);
+  font-size: 13px;
   color: var(--ink-soft);
   white-space: nowrap;
 }
 
 .streak strong {
   color: var(--ink);
-  font-size: 16px;
+  font-size: 15px;
 }
 
 .level-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 8px;
 }
 
 .level-badge {
@@ -169,8 +169,9 @@ button {
   flex: none;
   font-size: 12px;
   color: var(--ink-soft);
-  min-width: 64px;
+  min-width: 56px;
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 /* メイン */
