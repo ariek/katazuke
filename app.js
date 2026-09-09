@@ -192,8 +192,10 @@ function measureInsets() {
   const top = parseFloat(cs.paddingTop) || 0;
   const bottom = parseFloat(cs.paddingBottom) || 0;
   probe.remove();
-  document.documentElement.style.setProperty('--inset-top', `${top}px`);
-  document.documentElement.style.setProperty('--inset-bottom', `${bottom}px`);
+  // 0 のときは上書きせず CSS の env() に任せる（iOS が起動直後に 0 を返すことがある）
+  const root = document.documentElement.style;
+  if (top > 0) root.setProperty('--inset-top', `${top}px`); else root.removeProperty('--inset-top');
+  if (bottom > 0) root.setProperty('--inset-bottom', `${bottom}px`); else root.removeProperty('--inset-bottom');
   const info = document.getElementById('screen-info');
   if (info) {
     const standalone = document.documentElement.classList.contains('is-standalone');
@@ -203,7 +205,7 @@ function measureInsets() {
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.2.4';
+const APP_VERSION = 'v0.2.5';
 let waitingWorker = null;
 
 function registerServiceWorker() {
@@ -271,7 +273,9 @@ function init() {
 
   document.getElementById('app-version').textContent = `片付けクエスト ${APP_VERSION}`;
   measureInsets();
+  setTimeout(measureInsets, 500);
   window.addEventListener('resize', measureInsets);
+  window.addEventListener('pageshow', measureInsets);
   window.addEventListener('orientationchange', () => setTimeout(measureInsets, 300));
   document.getElementById('update-reload').addEventListener('click', () => {
     if (waitingWorker) waitingWorker.postMessage('skipWaiting');
