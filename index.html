@@ -165,6 +165,16 @@
         <button class="btn" id="area-add-btn"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg> エリアを追加</button>
       </section>
 
+      <section class="settings-section">
+        <h2 class="settings-heading">クエストの一括追加</h2>
+        <p class="settings-help">1行に1つ、「エリア：タイトル」の形で貼り付けてください。「：」がない行は「どこでも」に入ります。ないエリアは自動で作られ、難易度は★1になります。</p>
+        <textarea class="json-area bulk-area" id="bulk-text" rows="6" placeholder="クローゼット：洋服を整理する&#10;机：書類を仕分ける&#10;郵便物を捨てる" spellcheck="false"></textarea>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="bulk-parse">読み込む</button>
+        </div>
+        <div class="bulk-result" id="bulk-result" hidden></div>
+      </section>
+
       <section class="settings-section" id="sample-section" hidden>
         <h2 class="settings-heading">サンプルデータ</h2>
         <p class="settings-help">いま入っているクエストはサンプルです。自分の部屋に合わせて登録し直すときに使ってください。</p>
@@ -311,6 +321,7 @@
   <script src="quests.js"></script>
   <script src="timer.js"></script>
   <script src="settings.js"></script>
+  <script src="bulk.js"></script>
   <script src="log.js"></script>
   <script src="effects.js"></script>
   <script src="app.js"></script>
