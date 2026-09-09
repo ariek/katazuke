@@ -25,7 +25,10 @@ const APP_SHELL = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)),
+    caches.open(CACHE_NAME).then((cache) =>
+      // ブラウザの HTTP キャッシュに残った古いファイルを拾わないよう、必ずサーバーから取り直す
+      cache.addAll(APP_SHELL.map((url) => new Request(url, { cache: 'reload' }))),
+    ),
   );
 });
 
@@ -57,7 +60,7 @@ self.addEventListener('fetch', (event) => {
   if (url.origin === self.location.origin) {
     event.respondWith(
       caches.match(request, { ignoreSearch: true }).then((cached) => {
-        const fetched = fetch(request).then((response) => {
+        const fetched = fetch(new Request(request, { cache: 'no-cache' })).then((response) => {
           if (response && response.ok) {
             caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
           }
