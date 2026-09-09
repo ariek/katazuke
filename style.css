@@ -15,24 +15,26 @@
   --messy: #f2a9a0;
   --radius-wobbly: 18px 22px 20px 24px / 24px 18px 22px 20px;
   --tabbar-h: 64px;
-  /* ホームインジケーターと重ならない分だけ空ける。全画面（ホーム画面から起動）では詰める */
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --header-top: calc(14px + env(safe-area-inset-top, 0px));
+  /* 端末の切り欠きやホームインジケーターの分。app.js が実測値（px）で上書きする */
+  --inset-top: env(safe-area-inset-top, 0px);
+  --inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-bottom: var(--inset-bottom);
+  --header-top: calc(14px + var(--inset-top));
 }
 
 /* 全画面（ホーム画面から起動）のとき。メディアクエリが効かない端末向けに、JS で付ける印でも同じにする */
 @media (display-mode: standalone) {
   :root {
     --tabbar-h: 56px;
-    --safe-bottom: max(0px, calc(env(safe-area-inset-bottom, 0px) - 20px));
-    --header-top: calc(env(safe-area-inset-top, 0px) + 4px);
+    --safe-bottom: max(0px, calc(var(--inset-bottom) - 20px));
+    --header-top: max(4px, calc(var(--inset-top) - 6px));
   }
 }
 
 :root.is-standalone {
   --tabbar-h: 56px;
-  --safe-bottom: max(0px, calc(env(safe-area-inset-bottom, 0px) - 20px));
-  --header-top: calc(env(safe-area-inset-top, 0px) + 4px);
+  --safe-bottom: max(0px, calc(var(--inset-bottom) - 20px));
+  --header-top: max(4px, calc(var(--inset-top) - 6px));
 }
 
 html { background: var(--paper); }
@@ -43,11 +45,22 @@ html { background: var(--paper); }
 
 html, body {
   margin: 0;
+  height: 100%;
   background: var(--bg);
   color: var(--ink);
   font-family: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", "Yu Gothic", sans-serif;
   font-weight: 500;
   -webkit-font-smoothing: antialiased;
+}
+
+/* ページ全体は固定し、本文（.main）だけをスクロールさせる。
+   こうするとヘッダーとタブバーが慣性スクロールで動かない */
+body {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 button {
@@ -61,8 +74,7 @@ button {
 
 /* ヘッダー */
 .header {
-  position: sticky;
-  top: 0;
+  flex: none;
   z-index: 10;
   /* 全画面ではステータスバーの下までヘッダーの色を伸ばし、その分の上余白は小さくする */
   padding: var(--header-top) 18px 10px;
@@ -146,9 +158,13 @@ button {
 
 /* メイン */
 .main {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 16px 16px calc(var(--tabbar-h) + var(--safe-bottom) + 24px);
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  /* 本文は 900px までで中央寄せ。左右の余白で中央に置く */
+  padding: 16px max(16px, calc((100% - 900px) / 2)) 96px;
 }
 
 .placeholder {
@@ -266,10 +282,7 @@ button {
 
 /* タブバー */
 .tabbar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  flex: none;
   height: calc(var(--tabbar-h) + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
   display: flex;

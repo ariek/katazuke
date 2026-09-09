@@ -177,12 +177,33 @@ function switchTab(tab) {
   document.querySelectorAll('.view').forEach((v) => { v.hidden = v.dataset.view !== tab; });
   document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('is-active', b.dataset.tab === tab));
   renderTimerMini();
-  window.scrollTo(0, 0);
+  document.querySelector('.main').scrollTo(0, 0);
+}
+
+// --- 端末の余白（セーフエリア）を実測して CSS に渡す ---------------------
+// iOS で env() を使った計算が効かないことがあるため、px の実数に置き換える
+
+function measureInsets() {
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;'
+    + 'padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);';
+  document.body.appendChild(probe);
+  const cs = getComputedStyle(probe);
+  const top = parseFloat(cs.paddingTop) || 0;
+  const bottom = parseFloat(cs.paddingBottom) || 0;
+  probe.remove();
+  document.documentElement.style.setProperty('--inset-top', `${top}px`);
+  document.documentElement.style.setProperty('--inset-bottom', `${bottom}px`);
+  const info = document.getElementById('screen-info');
+  if (info) {
+    const standalone = document.documentElement.classList.contains('is-standalone');
+    info.textContent = `画面 ${window.innerWidth}×${window.innerHeight} · 上の余白 ${top}px · 下の余白 ${bottom}px · 全画面 ${standalone ? 'はい' : 'いいえ'}`;
+  }
 }
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.2.2';
+const APP_VERSION = 'v0.2.3';
 let waitingWorker = null;
 
 function registerServiceWorker() {
@@ -249,6 +270,9 @@ function init() {
   initEffects();
 
   document.getElementById('app-version').textContent = `片付けクエスト ${APP_VERSION}`;
+  measureInsets();
+  window.addEventListener('resize', measureInsets);
+  window.addEventListener('orientationchange', () => setTimeout(measureInsets, 300));
   document.getElementById('update-reload').addEventListener('click', () => {
     if (waitingWorker) waitingWorker.postMessage('skipWaiting');
     else window.location.reload();
