@@ -10,6 +10,7 @@ const ROOM_KINDS = {
   bath: '洗面所・風呂',
   entrance: '玄関',
   shelf: '棚',
+  house: '家',
 };
 
 const C = {
@@ -345,6 +346,34 @@ const DRAW = {
     }
     return s;
   },
+};
+
+DRAW.house = function house(state) {
+  let s = `<rect x="0" y="0" width="200" height="130" fill="${C.sky}" opacity="0.35"/>` + floorBase(108);
+  // 家の本体と屋根
+  s += rect(56, 58, 88, 50, C.white, { rx: 3 });
+  s += path('M48,60 L100,22 L152,60 Z', C.peach);
+  s += rect(120, 30, 12, 22, C.lav, { rx: 2 }); // 煙突
+  s += rect(66, 70, 18, 16, C.sky, { rx: 2, thin: true }) + line(75, 70, 75, 86, true) + line(66, 78, 84, 78, true); // 窓
+  s += rect(116, 70, 18, 16, C.sky, { rx: 2, thin: true }) + line(125, 70, 125, 86, true) + line(116, 78, 134, 78, true);
+  s += rect(90, 78, 20, 30, C.wood, { rx: 3 }) + circle(106, 94, 1.6, C.ink, true); // ドア
+  if (state === 'clean') {
+    s += circle(28, 30, 10, C.yellow); // 太陽
+    s += path('M12,30 l-6,0 M28,14 l0,-6 M16,18 l-4,-4 M40,18 l4,-4', 'none', { thin: true });
+    s += plant(160, 104, 1) + plant(38, 104, 0.8);
+    s += sparkle(160, 40, 5) + sparkle(46, 76, 4) + sparkle(176, 72, 4);
+  } else if (state === 'normal') {
+    s += rect(150, 90, 20, 18, C.lav, { rx: 2 }); // 箱
+    s += path('M30,108 l8,-30', 'none') + path('M22,108 q8,-6 16,0', C.yellow, { thin: true }); // ほうき
+    s += path('M160,60 q6,-8 12,0', 'none', { thin: true }); // 鳥
+  } else {
+    s += rect(148, 92, 22, 16, C.lav, { rx: 2, rot: -8 }) + rect(166, 84, 18, 24, C.pink, { rx: 2, rot: 6 });
+    s += path('M20,108 q8,-22 22,0 Z', C.gray) + path('M8,108 q6,-16 16,0 Z', C.gray); // ごみ袋
+    s += path('M40,108 l4,-12 M46,108 l2,-10 M180,108 l3,-9 M186,108 l2,-7', 'none', { thin: true }); // 草
+    s += cloth(70, 104, C.yellow, -8) + crumple(134, 100) + paper(60, 40, -12);
+    s += path('M150,48 q8,-6 16,0 M158,44 q8,-6 16,0', 'none', { thin: true }); // 雲行き
+  }
+  return s;
 };
 
 function renderRoomArt(kind, state) {
