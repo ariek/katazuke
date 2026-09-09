@@ -72,6 +72,23 @@ button {
   cursor: pointer;
 }
 
+/* アイコン（index.html のスプライトを use で参照） */
+.icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.18em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+
+.icon-flame { width: 1.15em; height: 1.15em; color: #e0704a; --icon-fill-a: var(--peach); }
+.icon-timer { --icon-fill-a: var(--sky); }
+.icon-sparkle { color: #c9a227; --icon-fill-a: var(--yellow); --icon-fill-b: var(--yellow); }
+
 /* ヘッダー */
 .header {
   flex: none;
@@ -305,11 +322,17 @@ button {
 }
 
 .tab-icon {
-  font-size: 20px;
+  display: block;
   height: 24px;
-  line-height: 24px;
-  filter: grayscale(1) opacity(0.6);
   transition: transform 0.15s ease;
+}
+
+.tab-svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 1.8;
+  --icon-fill-a: var(--line);
+  --icon-fill-b: var(--paper);
 }
 
 .tab.is-active {
@@ -318,9 +341,15 @@ button {
 }
 
 .tab.is-active .tab-icon {
-  filter: none;
   transform: translateY(-2px) scale(1.1);
 }
+
+.tab.is-active .tab-svg { stroke-width: 2; }
+.tab.is-active[data-tab="room"] .tab-svg { --icon-fill-a: var(--peach); --icon-fill-b: var(--yellow); }
+.tab.is-active[data-tab="quests"] .tab-svg { --icon-fill-a: var(--yellow); --icon-fill-b: var(--peach); }
+.tab.is-active[data-tab="timer"] .tab-svg { --icon-fill-a: var(--sky); --icon-fill-b: var(--yellow); }
+.tab.is-active[data-tab="log"] .tab-svg { --icon-fill-a: var(--mint); --icon-fill-b: var(--ink); }
+.tab.is-active[data-tab="settings"] .tab-svg { --icon-fill-a: var(--lav); --icon-fill-b: var(--paper); }
 
 /* クエスト画面 */
 .chips {
@@ -477,13 +506,15 @@ button.task-check:active { transform: scale(0.9); }
   border: 2.5px solid var(--ink);
   border-radius: 50% 45% 50% 45%;
   background: var(--peach);
-  font-size: 28px;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   box-shadow: 3px 3px 0 var(--ink);
   z-index: 9;
 }
 
 .fab:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.fab-svg { width: 28px; height: 28px; stroke-width: 2.6; }
 
 /* シート（追加・編集） */
 .sheet-backdrop {
@@ -714,7 +745,10 @@ button.task-check:active { transform: scale(0.9); }
 }
 
 .timer-mini {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   width: 100%;
   margin-top: 8px;
   font-size: 12px;
@@ -876,7 +910,12 @@ button.task-check:active { transform: scale(0.9); }
   box-shadow: 3px 3px 0 var(--line);
 }
 
-.stat-icon { font-size: 16px; }
+.stat-icon { display: block; height: 22px; }
+.stat-svg { width: 22px; height: 22px; stroke-width: 1.8; }
+.stat-svg.i-flame { color: #e0704a; --icon-fill-a: var(--peach); }
+.stat-svg.i-medal { color: var(--ink); --icon-fill-a: var(--yellow); --icon-fill-b: var(--pink); }
+.stat-svg.i-check { color: var(--ink); --icon-fill-a: var(--mint); }
+.stat-svg.i-sparkle { color: var(--ink); --icon-fill-a: var(--yellow); --icon-fill-b: var(--yellow); }
 .stat-value { font-size: 20px; font-weight: 700; line-height: 1.1; }
 .stat-label { font-size: 10px; color: var(--ink-soft); white-space: nowrap; }
 

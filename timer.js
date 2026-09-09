@@ -152,7 +152,7 @@ function renderTimerMini() {
   const el = document.getElementById('timer-mini');
   const running = timerActive(state.timer);
   el.hidden = !running || ui.tab === 'timer';
-  if (running) el.textContent = `⏳ 残り ${formatClock(timerRemainingSec(state.timer))} · タイマー中は完了が 1.5 倍`;
+  if (running) el.innerHTML = `${iconHtml('i-timer', 'icon icon-timer')} 残り ${formatClock(timerRemainingSec(state.timer))} · タイマー中は完了が 1.5 倍`;
 }
 
 function initTimer() {

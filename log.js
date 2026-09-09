@@ -52,12 +52,12 @@ function renderLog() {
   const best = Math.max(state.player.bestStreak || 0, longestStreak(state.logs));
   const totalXp = state.logs.reduce((s, l) => s + l.xp, 0);
   document.getElementById('log-stats').innerHTML = [
-    ['🔥', streak, '連続日数'],
-    ['🏅', best, '最長連続'],
-    ['✅', state.logs.length, '達成数'],
-    ['✨', totalXp, '獲得XP'],
+    ['i-flame', streak, '連続日数'],
+    ['i-medal', best, '最長連続'],
+    ['i-check', state.logs.length, '達成数'],
+    ['i-sparkle', totalXp, '獲得XP'],
   ].map(([icon, value, label]) => `<div class="stat">
-    <span class="stat-icon">${icon}</span>
+    <span class="stat-icon">${iconHtml(icon, `icon stat-svg ${icon}`)}</span>
     <span class="stat-value">${value}</span>
     <span class="stat-label">${label}</span>
   </div>`).join('');
@@ -107,7 +107,7 @@ function renderLog() {
         <span class="log-time">${time}</span>
         <span class="log-body">
           <span class="log-title">${escapeHtml(titleOf(log))}</span>
-          <span class="log-meta">${escapeHtml(areaOf(log))}${log.inTimer ? ' · ⏳タイマー中' : ''}</span>
+          <span class="log-meta">${escapeHtml(areaOf(log))}${log.inTimer ? ` · ${iconHtml('i-timer', 'icon icon-timer')}タイマー中` : ''}</span>
         </span>
         <span class="log-xp">+${log.xp}</span>
       </li>`;
