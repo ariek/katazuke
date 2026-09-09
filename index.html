@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fbf6ee">
+  <title>片付けクエスト</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="wobble" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.2" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </svg>
+
+  <header class="header">
+    <div class="header-inner">
+    <div class="header-top">
+      <h1 class="logo">片付けクエスト</h1>
+      <div class="streak" id="streak" title="連続達成日数"></div>
+    </div>
+    <div class="level-row">
+      <span class="level-badge" id="level-badge"></span>
+      <div class="xp-bar" role="progressbar" aria-label="経験値">
+        <div class="xp-fill" id="xp-fill"></div>
+      </div>
+      <span class="xp-text" id="xp-text"></span>
+    </div>
+    <button class="timer-mini" id="timer-mini" hidden></button>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="view" id="view-room" data-view="room">
+      <div class="room-grid" id="room-grid"></div>
+    </section>
+    <section class="view" id="view-quests" data-view="quests" hidden>
+      <div class="chips" id="area-chips"></div>
+      <div id="focus-quests"></div>
+      <div id="quest-list"></div>
+      <button class="fab" id="add-task-btn" aria-label="クエストを追加">＋</button>
+    </section>
+    <section class="view" id="view-timer" data-view="timer" hidden>
+      <div class="timer">
+        <svg class="timer-ring" id="timer-ring" viewBox="0 0 130 130" aria-hidden="true">
+          <g filter="url(#wobble)">
+            <circle cx="65" cy="65" r="50" fill="#fffdf8" stroke="#e6dccd" stroke-width="8"/>
+            <circle id="timer-ring-fill" cx="65" cy="65" r="50" fill="none" stroke="#bfe3d0" stroke-width="8"
+              stroke-linecap="round" stroke-dasharray="314.159" stroke-dashoffset="0" transform="rotate(-90 65 65)"/>
+            <circle cx="65" cy="65" r="54" fill="none" stroke="#5b4a3f" stroke-width="2.4"/>
+            <circle cx="65" cy="65" r="46" fill="none" stroke="#5b4a3f" stroke-width="2.4"/>
+          </g>
+        </svg>
+        <div class="timer-clock" id="timer-clock">--:--</div>
+        <p class="timer-caption" id="timer-caption"></p>
+        <div class="timer-presets" id="timer-presets"></div>
+        <button class="btn btn-danger" id="timer-stop" hidden>やめる</button>
+        <p class="timer-session" id="timer-session" hidden></p>
+        <div class="focus-in-timer" id="focus-timer"></div>
+        <p class="timer-note">画面を閉じても、タイマーは進みます。終わると音とバイブでお知らせします。</p>
+      </div>
+    </section>
+    <section class="view" id="view-log" data-view="log" hidden>
+      <div class="log-stats" id="log-stats"></div>
+
+      <section class="log-section">
+        <div class="cal-head">
+          <button class="icon-btn cal-nav" id="log-prev" aria-label="前の月">‹</button>
+          <h2 class="log-heading" id="log-month-label"></h2>
+          <button class="icon-btn cal-nav" id="log-next" aria-label="次の月">›</button>
+          <button class="chip" id="log-today">今日</button>
+        </div>
+        <div class="calendar" id="log-calendar"></div>
+      </section>
+
+      <section class="log-section">
+        <h2 class="log-heading" id="log-day-title"></h2>
+        <ul class="log-list" id="log-day-list"></ul>
+      </section>
+
+      <section class="log-section">
+        <h2 class="log-heading">今週のまとめ <span class="log-sub" id="log-week-label"></span></h2>
+        <div class="week-stats" id="log-week-stats"></div>
+        <ul class="bar-list" id="log-week-areas"></ul>
+      </section>
+    </section>
+    <section class="view" id="view-settings" data-view="settings" hidden>
+      <section class="settings-section">
+        <h2 class="settings-heading">エリア</h2>
+        <p class="settings-help">名前をタップすると編集できます。▲▼で並び順を変えられます。</p>
+        <ul class="area-list" id="area-list"></ul>
+        <button class="btn" id="area-add-btn">＋ エリアを追加</button>
+      </section>
+
+      <section class="settings-section" id="sample-section" hidden>
+        <h2 class="settings-heading">サンプルデータ</h2>
+        <p class="settings-help">いま入っているクエストはサンプルです。自分の部屋に合わせて登録し直すときに使ってください。</p>
+        <button class="btn btn-danger" id="sample-clear">サンプルを消して自分で登録する</button>
+      </section>
+
+      <section class="settings-section">
+        <h2 class="settings-heading">データのエクスポート</h2>
+        <p class="settings-help" id="data-summary"></p>
+        <div class="btn-row">
+          <button class="btn" id="export-show">JSON を表示</button>
+          <button class="btn" id="export-copy">コピー</button>
+          <button class="btn" id="export-download">ダウンロード</button>
+        </div>
+        <div id="export-box" hidden>
+          <textarea class="json-area" id="export-text" rows="8" readonly spellcheck="false"></textarea>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <h2 class="settings-heading">データのインポート</h2>
+        <p class="settings-help">エクスポートした JSON を貼り付けるか、ファイルを選んでください。現在のデータは上書きされます。</p>
+        <textarea class="json-area" id="import-text" rows="5" placeholder='{"version": 1, ...}' spellcheck="false"></textarea>
+        <div class="btn-row">
+          <label class="btn file-btn">ファイルを選ぶ<input type="file" id="import-file" accept=".json,application/json" hidden></label>
+          <button class="btn btn-primary" id="import-run">読み込む</button>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <h2 class="settings-heading">初期化</h2>
+        <p class="settings-help">すべてのデータを削除して、最初の状態に戻します。</p>
+        <button class="btn btn-danger" id="reset-all">すべてのデータを削除</button>
+      </section>
+    </section>
+  </main>
+
+  <div class="sheet-backdrop" id="task-sheet" hidden>
+    <form class="sheet" id="task-form" autocomplete="off">
+      <h2 class="sheet-title" id="task-sheet-title">クエストを追加</h2>
+      <input type="hidden" name="id">
+      <label class="field">
+        <span class="field-label">タイトル</span>
+        <input type="text" name="title" maxlength="60" placeholder="例: 机の上の書類を仕分ける" required>
+      </label>
+      <label class="field">
+        <span class="field-label">エリア</span>
+        <select name="areaId"></select>
+      </label>
+      <div class="field">
+        <span class="field-label">難易度</span>
+        <div class="seg" role="radiogroup">
+          <label class="seg-item"><input type="radio" name="difficulty" value="1" checked><span>★ <small>5分</small></span></label>
+          <label class="seg-item"><input type="radio" name="difficulty" value="2"><span>★★ <small>15分</small></span></label>
+          <label class="seg-item"><input type="radio" name="difficulty" value="3"><span>★★★ <small>30分〜</small></span></label>
+        </div>
+      </div>
+      <label class="field">
+        <span class="field-label">繰り返し</span>
+        <select name="repeatType">
+          <option value="none">なし</option>
+          <option value="daily">毎日</option>
+          <option value="weekly">毎週</option>
+          <option value="days">N日ごと</option>
+        </select>
+      </label>
+      <label class="field" id="repeat-every-wrap" hidden>
+        <span class="field-label">何日ごと</span>
+        <input type="number" name="repeatEvery" min="1" max="365" value="3" inputmode="numeric">
+      </label>
+      <label class="field" id="deadline-wrap">
+        <span class="field-label">期限（任意）</span>
+        <input type="date" name="deadline">
+      </label>
+      <label class="field">
+        <span class="field-label">メモ（任意）</span>
+        <textarea name="note" rows="2" maxlength="200"></textarea>
+      </label>
+      <div class="sheet-actions">
+        <button type="button" class="btn btn-danger" id="task-delete" hidden>削除</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn" id="task-cancel">キャンセル</button>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="sheet-backdrop" id="area-sheet" hidden>
+    <form class="sheet" id="area-form" autocomplete="off">
+      <h2 class="sheet-title" id="area-sheet-title">エリアを追加</h2>
+      <input type="hidden" name="id">
+      <label class="field">
+        <span class="field-label">名前</span>
+        <input type="text" name="name" maxlength="20" placeholder="例: リビング" required>
+      </label>
+      <label class="field">
+        <span class="field-label">絵の種類</span>
+        <select name="kind"></select>
+      </label>
+      <div class="area-preview" id="area-preview"></div>
+      <div class="sheet-actions">
+        <button type="button" class="btn btn-danger" id="area-delete" hidden>削除</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn" id="area-cancel">キャンセル</button>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+  <div class="fx-layer" id="fx-layer" aria-hidden="true"></div>
+
+  <div class="levelup" id="levelup" hidden role="dialog" aria-label="レベルアップ">
+    <div class="levelup-card">
+      <div class="levelup-ribbon">レベルアップ！</div>
+      <div class="levelup-level" id="levelup-level">Lv.2</div>
+      <div class="levelup-title" id="levelup-title"></div>
+      <div class="levelup-hint">タップして閉じる</div>
+    </div>
+  </div>
+
+  <nav class="tabbar" id="tabbar">
+    <button class="tab is-active" data-tab="room"><span class="tab-icon">🏠</span>部屋</button>
+    <button class="tab" data-tab="quests"><span class="tab-icon">📜</span>クエスト</button>
+    <button class="tab" data-tab="timer"><span class="tab-icon">⏳</span>タイマー</button>
+    <button class="tab" data-tab="log"><span class="tab-icon">📅</span>記録</button>
+    <button class="tab" data-tab="settings"><span class="tab-icon">⚙️</span>設定</button>
+  </nav>
+
+  <script src="game.js"></script>
+  <script src="room.js"></script>
+  <script src="quests.js"></script>
+  <script src="timer.js"></script>
+  <script src="settings.js"></script>
+  <script src="log.js"></script>
+  <script src="effects.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
