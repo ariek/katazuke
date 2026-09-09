@@ -120,6 +120,11 @@ function sampleState(now = new Date()) {
 
 // --- 描画 -------------------------------------------------------------
 
+// スプライトのアイコンを埋め込む HTML
+function iconHtml(name, cls = 'icon') {
+  return `<svg class="${cls}" aria-hidden="true"><use href="#${name}"/></svg>`;
+}
+
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
@@ -131,7 +136,7 @@ function renderHeader() {
   document.getElementById('xp-fill').style.width = `${Math.round((info.xpInLevel / info.xpToNext) * 100)}%`;
   document.getElementById('xp-text').textContent = `${info.xpInLevel} / ${info.xpToNext}`;
   document.getElementById('streak').innerHTML = streak > 0
-    ? `🔥 <strong>${streak}</strong>日連続`
+    ? `${iconHtml('i-flame', 'icon icon-flame')} <strong>${streak}</strong>日連続`
     : '今日から始めよう';
 }
 
@@ -205,7 +210,7 @@ function measureInsets() {
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.2.6';
+const APP_VERSION = 'v0.2.7';
 let waitingWorker = null;
 
 function registerServiceWorker() {
