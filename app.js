@@ -182,7 +182,7 @@ function switchTab(tab) {
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.2.0';
+const APP_VERSION = 'v0.2.1';
 let waitingWorker = null;
 
 function registerServiceWorker() {
