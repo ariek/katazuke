@@ -136,8 +136,8 @@ function renderHeader() {
   document.getElementById('xp-fill').style.width = `${Math.round((info.xpInLevel / info.xpToNext) * 100)}%`;
   document.getElementById('xp-text').textContent = `${info.xpInLevel} / ${info.xpToNext}`;
   document.getElementById('streak').innerHTML = streak > 0
-    ? `${iconHtml('i-flame', 'icon icon-flame')} <strong>${streak}</strong>日連続`
-    : '今日から始めよう';
+    ? `${iconHtml('i-flame', 'icon icon-flame')} <strong>${streak}</strong>日`
+    : `${iconHtml('i-flame', 'icon icon-flame icon-off')} <strong>0</strong>日`;
 }
 
 function renderRoom() {
@@ -210,7 +210,7 @@ function measureInsets() {
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.2.7';
+const APP_VERSION = 'v0.2.8';
 let waitingWorker = null;
 
 function registerServiceWorker() {
