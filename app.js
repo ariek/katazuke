@@ -180,6 +180,47 @@ function switchTab(tab) {
   window.scrollTo(0, 0);
 }
 
+// --- PWA: サービスワーカーの登録と更新通知 ---------------------------
+
+const APP_VERSION = 'v0.2.0';
+let waitingWorker = null;
+
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.register('sw.js').then((reg) => {
+    if (reg.waiting && navigator.serviceWorker.controller) offerUpdate(reg.waiting);
+    reg.addEventListener('updatefound', () => {
+      const worker = reg.installing;
+      if (!worker) return;
+      worker.addEventListener('statechange', () => {
+        // 初回インストールではなく、すでに動いている版がある場合だけ知らせる
+        if (worker.state === 'installed' && navigator.serviceWorker.controller) offerUpdate(worker);
+      });
+    });
+    document.getElementById('app-update').addEventListener('click', async () => {
+      try {
+        await reg.update();
+        if (reg.waiting) offerUpdate(reg.waiting);
+        else showToast('最新の版です');
+      } catch (err) {
+        showToast('確認できませんでした（オフライン？）');
+      }
+    });
+  }).catch((err) => console.warn('サービスワーカーを登録できませんでした', err));
+
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloading) return;
+    reloading = true;
+    window.location.reload();
+  });
+}
+
+function offerUpdate(worker) {
+  waitingWorker = worker;
+  document.getElementById('update-bar').hidden = false;
+}
+
 // --- 起動 -------------------------------------------------------------
 
 function init() {
@@ -206,6 +247,13 @@ function init() {
   initSettings();
   initLog();
   initEffects();
+
+  document.getElementById('app-version').textContent = `片付けクエスト ${APP_VERSION}`;
+  document.getElementById('update-reload').addEventListener('click', () => {
+    if (waitingWorker) waitingWorker.postMessage('skipWaiting');
+    else window.location.reload();
+  });
+  registerServiceWorker();
 }
 
 document.addEventListener('DOMContentLoaded', init);
