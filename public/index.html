@@ -159,8 +159,8 @@
 
       <section class="settings-section">
         <h2 class="settings-heading">クエストの一括追加</h2>
-        <p class="settings-help">1行に1つ、「エリア：タイトル」の形で貼り付けてください。「：」がない行は「どこでも」に入ります。ないエリアは自動で作られ、難易度は★1になります。</p>
-        <textarea class="json-area bulk-area" id="bulk-text" rows="6" placeholder="クローゼット：洋服を整理する&#10;机：書類を仕分ける&#10;郵便物を捨てる" spellcheck="false"></textarea>
+        <p class="settings-help">1行に1つ、「エリア：タイトル：期限：難易度：メモ」の形で貼り付けてください。区切りは「：」かタブ。期限以降は省略できます（期限は 9/20 や 明日、難易度は 1〜3 か ★）。エリアがない行は「どこでも」に入り、ないエリアは自動で作られます。</p>
+        <textarea class="json-area bulk-area" id="bulk-text" rows="6" placeholder="クローゼット：洋服を整理する&#10;机：書類を仕分ける：9/20：2&#10;：郵便物を捨てる：明日&#10;キッチン：換気扇を洗う：：3：洗剤を買っておく" spellcheck="false"></textarea>
         <div class="btn-row">
           <button class="btn btn-primary" id="bulk-parse">読み込む</button>
         </div>
