@@ -477,6 +477,7 @@ button.task-check:active { transform: scale(0.9); }
 
 .task-check.is-done { background: var(--mint); }
 .task-check.is-wait { background: var(--line); border-style: dashed; }
+.task-check.is-todo { background: var(--paper); border-style: dotted; }
 .task-check.is-popping { background: var(--mint); transform: scale(1.25); }
 
 .task-body {
@@ -674,85 +675,6 @@ button.task-check:active { transform: scale(0.9); }
 @keyframes toast-pop {
   from { transform: translateX(-50%) translateY(10px) scale(0.9); opacity: 0; }
   to { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
-}
-
-/* タイマー */
-.timer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding-top: 12px;
-  text-align: center;
-}
-
-.timer-ring {
-  width: min(64vw, 260px);
-  height: auto;
-  overflow: visible;
-}
-
-.timer-ring.is-running #timer-ring-fill { transition: stroke-dashoffset 0.9s linear; }
-
-.timer-clock {
-  margin-top: -8px;
-  font-size: 40px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  font-variant-numeric: tabular-nums;
-}
-
-.timer-caption {
-  margin: 0;
-  font-size: 14px;
-  color: var(--ink-soft);
-}
-
-.timer-presets {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-top: 8px;
-}
-
-.preset {
-  width: 68px;
-  height: 68px;
-  border: 2.4px solid var(--ink);
-  border-radius: 50% 45% 50% 45%;
-  background: var(--sky);
-  font-size: 24px;
-  font-weight: 700;
-  box-shadow: 3px 3px 0 var(--ink);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-}
-
-.preset:nth-child(2) { background: var(--mint); }
-.preset:nth-child(3) { background: var(--yellow); }
-.preset:nth-child(4) { background: var(--peach); }
-
-.preset small { font-size: 11px; font-weight: 500; margin-top: 2px; }
-
-.preset:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
-
-.timer-session {
-  margin: 6px 0 0;
-  padding: 8px 14px;
-  border: 2px dashed var(--ink-soft);
-  border-radius: var(--radius-wobbly);
-  font-size: 14px;
-}
-
-.timer-note {
-  margin: 12px 0 0;
-  font-size: 12px;
-  color: var(--ink-soft);
-  max-width: 300px;
 }
 
 .timer-mini {
@@ -1061,6 +983,7 @@ button.task-check:active { transform: scale(0.9); }
 
 /* いまやる1つ */
 .focus-card {
+  position: relative;
   background: var(--paper);
   border: 2.5px solid var(--ink);
   border-radius: var(--radius-wobbly);
@@ -1111,23 +1034,6 @@ button.task-check:active { transform: scale(0.9); }
 
 .focus-empty { padding: 10px 0 6px; color: var(--ink-soft); }
 
-.focus-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 14px;
-}
-
-.focus-defer { flex: 1; }
-.focus-defer:disabled { opacity: 0.4; }
-
-.focus-done {
-  flex: 2;
-  font-size: 17px;
-  padding: 12px 16px;
-}
-
-.focus-in-timer { width: 100%; max-width: 420px; margin-top: 6px; }
-.focus-in-timer .focus-card { margin-bottom: 0; }
 
 /* 演出 */
 .fx-layer {
@@ -1184,89 +1090,16 @@ button.task-check:active { transform: scale(0.9); }
 .xp-bar.is-gaining, .level-badge.is-gaining { animation: xp-gain 0.8s ease-out; }
 .xp-bar.is-gaining .xp-fill { background: var(--yellow); }
 
-@keyframes focus-clear {
-  0% { transform: scale(1); opacity: 1; }
-  40% { transform: scale(1.04); opacity: 1; }
-  100% { transform: translateY(-16px) scale(0.92); opacity: 0; }
-}
-
-.focus-card.is-cleared { animation: focus-clear 0.32s ease-in forwards; }
-
-/* レベルアップ */
-.levelup {
-  position: fixed;
-  inset: 0;
-  z-index: 35;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(91, 74, 63, 0.45);
-  animation: levelup-in 0.25s ease-out;
-  cursor: pointer;
-}
-
-.levelup.is-leaving { animation: levelup-out 0.25s ease-in forwards; }
-
 @keyframes levelup-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes levelup-out { from { opacity: 1; } to { opacity: 0; } }
-
-.levelup-card {
-  position: relative;
-  min-width: 240px;
-  padding: 28px 32px 22px;
-  text-align: center;
-  background: var(--paper);
-  border: 3px solid var(--ink);
-  border-radius: 28px 34px 30px 36px / 36px 28px 34px 30px;
-  box-shadow: 6px 6px 0 var(--pink);
-  animation: levelup-card 0.6s cubic-bezier(0.2, 1.4, 0.4, 1);
-}
 
 @keyframes levelup-card {
   0% { transform: scale(0.4) rotate(-6deg); }
   100% { transform: scale(1) rotate(0deg); }
 }
 
-.levelup-ribbon {
-  position: absolute;
-  top: -16px;
-  left: 50%;
-  transform: translateX(-50%) rotate(-3deg);
-  padding: 4px 16px;
-  background: var(--pink);
-  border: 2.4px solid var(--ink);
-  border-radius: 14px 18px 16px 18px / 18px 14px 18px 16px;
-  font-size: 15px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.levelup-level {
-  margin-top: 8px;
-  font-size: 56px;
-  font-weight: 700;
-  line-height: 1.1;
-  background: linear-gradient(180deg, var(--ink) 0%, #8c6b52 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.levelup-title {
-  margin-top: 4px;
-  display: inline-block;
-  padding: 3px 14px;
-  font-size: 16px;
-  font-weight: 700;
-  background: var(--yellow);
-  border: 2.2px solid var(--ink);
-  border-radius: 14px 18px 16px 18px / 18px 14px 18px 16px;
-}
-
-.levelup-hint { margin-top: 14px; font-size: 11px; color: var(--ink-soft); }
-
 @media (prefers-reduced-motion: reduce) {
-  .levelup, .levelup-card, .focus-card.is-cleared, .xp-bar.is-gaining, .level-badge.is-gaining { animation: none; }
+  .modal, .clear-card, .xp-bar.is-gaining, .level-badge.is-gaining, .clear-num.is-boing { animation: none; }
 }
 
 /* 更新通知 */
@@ -1303,3 +1136,154 @@ button.task-check:active { transform: scale(0.9); }
 .bulk-result p { margin: 0 0 6px; }
 .bulk-skip { color: var(--ink-soft); font-size: 13px; }
 .bulk-result .btn-row { margin-top: 4px; }
+
+/* クエストのタイマー（いまやるカード） */
+.focus-combo {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 12px; font-weight: 700; padding: 2px 9px;
+  border: 2px solid var(--ink); border-radius: 12px 14px 12px 14px / 14px 12px 14px 12px;
+  background: var(--yellow);
+}
+.focus-combo.is-zero { background: var(--line); color: var(--ink-soft); }
+.focus-head-right { display: flex; align-items: center; gap: 8px; }
+
+.qt { position: relative; display: flex; flex-direction: column; align-items: center; margin: 12px 0 4px; }
+.qt-dial { position: relative; width: min(300px, 100%); aspect-ratio: 1; }
+.qt-ring { width: 100%; height: 100%; overflow: visible; display: block; }
+.qt-ring .qt-track { fill: var(--paper); stroke: #f1ece3; stroke-width: 9; }
+.qt-ring .qt-fill { fill: none; stroke: #7fcaa2; stroke-width: 9; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.25s linear; }
+.qt-ring .qt-edge { fill: none; stroke: var(--ink); stroke-width: 2.4; }
+.qt.is-paused .qt-fill { stroke: #ab98e0; }
+.qt.is-timeup .qt-fill { stroke: #e6887a; }
+.qt.is-break .qt-fill { stroke: #86b7e6; }
+.qt-center { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 22%; box-sizing: border-box; pointer-events: none; }
+.qt-seconds { height: 112px; display: flex; align-items: center; font-size: min(112px, 30vw); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+.qt.is-timeup .qt-seconds { color: #c85c4a; }
+.qt-slot { height: 40px; margin-top: 6px; display: flex; align-items: center; justify-content: center; }
+.qt-ctl { pointer-events: auto; width: 42px; height: 40px; display: flex; align-items: center; justify-content: center; border: 2.2px solid var(--ink); border-radius: 10px 12px 10px 12px / 12px 10px 12px 10px; background: var(--paper); color: var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+.qt-ctl .icon { width: 20px; height: 20px; --icon-fill-a: currentColor; }
+.qt-ctl:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--ink); }
+.qt-timeup { font-size: 13px; font-weight: 700; color: #c85c4a; padding: 2px 10px; border: 2px solid #c85c4a; border-radius: 12px 14px 12px 14px / 14px 12px 14px 12px; }
+
+.qt-actions { display: flex; flex-direction: column; align-items: center; gap: 24px; margin-top: 12px; }
+.qt-main { width: 78%; font-size: 20px; padding: 14px 16px; }
+.qt-main.is-start { background: var(--peach); }
+.qt-main:disabled { opacity: 0.4; box-shadow: none; }
+.qt-subrow { display: flex; justify-content: center; width: 100%; }
+.qt-small { font-size: 12px; padding: 6px 14px; box-shadow: none; }
+.qt-small:active { transform: translate(1px, 1px); background: var(--bg); }
+.qt-small:disabled { opacity: 0.35; }
+.qt-quit { background: var(--paper); color: var(--ink); }
+
+.qt-next {
+  position: absolute; inset: -8px; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: rgba(251, 246, 238, 0.82); border-radius: 20px; backdrop-filter: blur(2px);
+}
+.qt-next-label { font-size: 13px; color: var(--ink-soft); }
+.qt-next-num { font-size: 96px; font-weight: 700; line-height: 1; color: var(--ink); text-shadow: 3px 3px 0 var(--yellow); }
+.qt-next-sub { font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
+
+/* セッションのモーダル */
+.modal {
+  position: fixed; inset: 0; z-index: 35; display: flex; align-items: center; justify-content: center;
+  background: rgba(91, 74, 63, 0.45); animation: levelup-in 0.25s ease-out;
+}
+.modal.is-leaving { animation: modal-out 0.28s ease-in forwards; pointer-events: none; }
+@keyframes modal-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+.modal.is-leaving > * { animation: modal-card-out 0.28s ease-in forwards; }
+@keyframes modal-card-out {
+  from { transform: scale(1) translateY(0); }
+  to { transform: scale(0.96) translateY(6px); }
+}
+
+.clear-card { position: relative; width: min(92vw, 340px); padding: 26px 22px 20px; text-align: center; background: var(--paper); border: 3px solid var(--ink); border-radius: 28px 34px 30px 36px / 36px 28px 34px 30px; box-shadow: 6px 6px 0 var(--mint); }
+.clear-card.is-pop { animation: levelup-card 0.6s cubic-bezier(0.2, 1.4, 0.4, 1); }
+.clear-ribbon { position: absolute; top: -16px; left: 50%; transform: translateX(-50%) rotate(-3deg); padding: 4px 18px; background: var(--mint); border: 2.4px solid var(--ink); border-radius: 14px 18px 16px 18px / 18px 14px 18px 16px; font-size: 16px; font-weight: 700; white-space: nowrap; }
+.clear-title { margin-top: 6px; font-size: 15px; font-weight: 700; color: var(--ink-soft); overflow-wrap: anywhere; }
+.clear-rows { margin: 14px 0 8px; display: flex; flex-direction: column; gap: 6px; text-align: left; min-height: 40px; }
+.clear-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; padding: 6px 10px; border: 2px dashed var(--line); border-radius: 12px; transition: opacity 0.25s, transform 0.25s; }
+.clear-row small { color: var(--ink-soft); font-size: 11px; margin-left: 6px; }
+.clear-row strong { font-size: 18px; font-variant-numeric: tabular-nums; }
+.clear-row.is-bonus { border-color: var(--yellow); background: #fffae6; }
+.clear-row.is-hidden, .clear-combo.is-hidden, .clear-levelup.is-hidden { opacity: 0; transform: translateY(6px); }
+.clear-total { position: relative; margin-top: 14px; padding: 14px 0 8px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; display: flex; align-items: baseline; justify-content: center; gap: 4px; }
+/* 数字の後ろに黄色い光のにじみ */
+.clear-total::before { content: ''; position: absolute; left: 50%; top: 50%; width: 220px; height: 120px; transform: translate(-50%, -50%); background: radial-gradient(ellipse at center, rgba(247, 227, 161, 0.95) 0%, rgba(247, 227, 161, 0.5) 45%, rgba(247, 227, 161, 0) 72%); z-index: 0; pointer-events: none; }
+.clear-plus { position: relative; z-index: 1; font-size: 26px; color: #c85c4a; }
+.clear-num { position: relative; z-index: 1; font-size: 84px; display: inline-block; transform-origin: 50% 80%; color: var(--ink); text-shadow: 3px 3px 0 var(--yellow), 6px 6px 0 var(--peach); letter-spacing: 0.02em; }
+.clear-num.is-boing { animation: boing 0.32s ease-out; }
+.clear-total small { position: relative; z-index: 1; font-size: 18px; margin-left: 6px; color: var(--ink-soft); }
+.clear-spark { position: absolute; top: 12px; width: 26px; height: 26px; color: #c9a227; --icon-fill-a: var(--yellow); --icon-fill-b: var(--yellow); z-index: 1; opacity: 0; }
+.clear-spark.is-left { left: 14px; }
+.clear-spark.is-right { right: 14px; top: 30px; }
+.clear-card.is-final .clear-spark { animation: spark-pop 0.6s ease-out forwards; }
+.clear-card.is-final .clear-spark.is-right { animation-delay: 0.15s; }
+@keyframes spark-pop { 0% { transform: scale(0) rotate(-30deg); opacity: 0; } 60% { transform: scale(1.3) rotate(10deg); opacity: 1; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+@keyframes boing { 0% { transform: scale(1); } 40% { transform: scale(1.22); } 70% { transform: scale(0.94); } 100% { transform: scale(1); } }
+.clear-combo { display: inline-block; margin-top: 8px; padding: 3px 14px; background: var(--yellow); border: 2.2px solid var(--ink); border-radius: 14px 18px 16px 18px / 18px 14px 18px 16px; font-weight: 700; transition: opacity 0.25s, transform 0.25s; }
+.clear-combo.is-none { background: var(--line); color: var(--ink-soft); }
+.clear-levelup { display: block; margin: 8px auto 0; width: max-content; padding: 3px 14px; background: var(--pink); border: 2.2px solid var(--ink); border-radius: 14px 18px 16px 18px / 18px 14px 18px 16px; font-weight: 700; transition: opacity 0.25s, transform 0.25s; }
+.clear-hint { margin-top: 12px; font-size: 11px; color: var(--ink-soft); }
+
+.break-card { width: min(92vw, 340px); padding: 24px 22px 20px; text-align: center; background: var(--paper); border: 3px solid var(--ink); border-radius: 28px 34px 30px 36px / 36px 28px 34px 30px; box-shadow: 6px 6px 0 var(--sky); }
+.break-title { font-size: 20px; font-weight: 700; }
+.break-sub { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
+.break-card .qt { margin: 14px 0 6px; }
+.break-note { font-size: 13px; margin: 6px 0 14px; }
+
+.sum-card { width: min(92vw, 340px); padding: 26px 22px 20px; text-align: center; background: var(--paper); border: 3px solid var(--ink); border-radius: 28px 34px 30px 36px / 36px 28px 34px 30px; box-shadow: 6px 6px 0 var(--peach); }
+.sum-title { font-size: 20px; font-weight: 700; }
+.sum-sub { font-size: 12px; color: var(--ink-soft); }
+.sum-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0 14px; }
+.sum-cell { padding: 10px 6px; border: 2.2px solid var(--ink); border-radius: 14px 18px 16px 18px / 18px 14px 18px 16px; background: var(--bg); }
+.sum-cell strong { display: block; font-size: 26px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.sum-cell strong small { font-size: 14px; }
+.sum-cell span { font-size: 11px; color: var(--ink-soft); }
+.sum-cell.is-main { background: var(--yellow); grid-column: 1 / -1; }
+.sum-cell.is-main strong { font-size: 36px; }
+.sum-best { font-size: 12px; color: #c85c4a; font-weight: 700; margin-bottom: 8px; }
+
+/* 記録: ランキング */
+.rank-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.rank-row { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 10px; padding: 8px 12px; background: var(--paper); border: 2px solid var(--ink); border-radius: 12px 14px 12px 14px / 14px 12px 14px 12px; }
+.rank-no { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--ink); border-radius: 50% 45% 50% 45%; font-size: 12px; font-weight: 700; background: var(--paper); }
+.rank-row:nth-child(1) .rank-no { background: var(--yellow); }
+.rank-row:nth-child(2) .rank-no { background: var(--line); }
+.rank-row:nth-child(3) .rank-no { background: var(--peach); }
+.rank-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.rank-date { font-size: 12px; color: var(--ink-soft); }
+.rank-meta { font-size: 12px; }
+.rank-xp { font-size: 18px; font-weight: 700; color: #4f9a72; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rank-xp small { font-size: 11px; color: var(--ink-soft); font-weight: 500; }
+.log-xp small { font-size: 11px; color: var(--ink-soft); font-weight: 500; }
+
+/* タイマー右上のコンボ */
+.qt-combo {
+  position: absolute; right: 12px; top: 12px; z-index: 2;
+  width: 48px; height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border: 2.2px solid var(--ink); border-radius: 50% 45% 50% 45%; background: var(--yellow); line-height: 1;
+}
+.qt-combo strong { font-size: 18px; font-weight: 700; }
+.qt-combo small { font-size: 8px; margin-top: 1px; }
+
+/* コンボの札と重ならないよう、タイトルとメモは右側を空けて折り返す */
+.focus-card.has-combo .focus-title,
+.focus-card.has-combo .focus-meta { padding-right: 60px; }
+
+/* タイマーの数字は1桁ずつ同じ幅で並べる */
+.qt-seconds span { display: inline-block; width: 0.51em; text-align: center; }
+
+/* ほかのやること: エリアごとの見出し */
+.quest-subheading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.quest-subheading:first-of-type { margin-top: 4px; }

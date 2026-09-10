@@ -81,44 +81,124 @@ function pulseXpBar() {
   }
 }
 
-// 完了ボタンからの一連の演出
-function celebrateComplete(button, xp, inTimer) {
-  const { x, y } = centerOf(button);
-  burstAt(x, y, inTimer ? 30 : 22, inTimer ? 160 : 130);
-  floatText(x, y - 10, `+${xp} XP${inTimer ? ' ×1.5' : ''}`, inTimer);
-  setTimeout(pulseXpBar, 350);
-  const card = button.closest('.focus-card');
-  if (card && !reducedMotion()) card.classList.add('is-cleared');
-}
-
-// レベルアップのお祝い
-let levelUpTimer = null;
-function celebrateLevelUp(level) {
-  const overlay = document.getElementById('levelup');
-  document.getElementById('levelup-level').textContent = `Lv.${level}`;
-  document.getElementById('levelup-title').textContent = titleForLevel(level);
-  overlay.hidden = false;
-  overlay.classList.remove('is-leaving');
-
-  const cx = window.innerWidth / 2;
-  const cy = window.innerHeight / 2;
-  burstAt(cx, cy - 40, 36, 220);
-  setTimeout(() => burstAt(cx - 90, cy + 20, 18, 140), 250);
-  setTimeout(() => burstAt(cx + 90, cy + 20, 18, 140), 400);
-  setTimeout(() => burstAt(cx, cy - 60, 26, 200), 900);
-
-  clearTimeout(levelUpTimer);
-  levelUpTimer = setTimeout(dismissLevelUp, 3200);
-}
-
-function dismissLevelUp() {
-  const overlay = document.getElementById('levelup');
-  if (overlay.hidden) return;
-  clearTimeout(levelUpTimer);
-  overlay.classList.add('is-leaving');
-  setTimeout(() => { overlay.hidden = true; overlay.classList.remove('is-leaving'); }, 250);
-}
-
 function initEffects() {
-  document.getElementById('levelup').addEventListener('click', dismissLevelUp);
+  // いまは初期化の必要なし（完了演出は showClearModal から呼ぶ）
+}
+
+// --- 完了演出モーダル（SPEC 7.3）-------------------------------------------
+
+let clearTimers = [];
+function laterFx(fn, ms) { clearTimers.push(setTimeout(fn, ms)); }
+
+function boingEl(el) {
+  el.classList.remove('is-boing');
+  void el.offsetWidth;
+  el.classList.add('is-boing');
+}
+
+// 完了演出の行数（基本 / ボーナス / コンボ）と、数字の動きが終わるまでの時間
+function clearRowCount(data) {
+  let n = 1;
+  if (data.bonusXp > 0) {
+    n += 1;
+    if (data.combo >= 2) n += 1;
+  }
+  return n;
+}
+
+function clearAnimationMs(data) {
+  return 400 + clearRowCount(data) * 900;
+}
+
+function showClearModal(data) {
+  clearTimers.forEach(clearTimeout); clearTimers = [];
+  const modal = document.getElementById('clear-modal');
+  const card = modal.querySelector('.clear-card');
+  document.getElementById('clear-title').textContent = data.title;
+  const rowsEl = document.getElementById('clear-rows');
+  const rows = [
+    { label: '基本', note: '★'.repeat(data.difficulty), value: data.baseXp, cls: '' },
+  ];
+  if (data.bonusXp > 0) {
+    // 2行に分けて出す（式は見せない）: ボーナス = 残り秒数分、コンボ = 倍率で増えた分
+    const base = Math.ceil(data.remainingSec * 0.1);
+    const comboPart = data.bonusXp - base;
+    rows.push({ label: 'ボーナス', note: `残り ${data.remainingSec}秒`, value: base, cls: 'is-bonus' });
+    if (data.combo >= 2) rows.push({ label: 'コンボ', note: `${data.combo}コンボ`, value: comboPart, cls: 'is-bonus' });
+  }
+  rowsEl.innerHTML = rows.map((r) => `<div class="clear-row ${r.cls} is-hidden"><span>${r.label} <small>${escapeHtml(r.note)}</small></span><strong>+0</strong></div>`).join('');
+  const num = document.getElementById('clear-num');
+  num.textContent = '0';
+  const comboEl = document.getElementById('clear-combo');
+  comboEl.textContent = data.combo >= 1 ? `${data.combo}コンボ！` : 'ボーナスなし';
+  comboEl.classList.toggle('is-none', data.combo < 1);
+  comboEl.classList.add('is-hidden');
+  const lvEl = document.getElementById('clear-levelup');
+  lvEl.hidden = !data.levelUp;
+  if (data.levelUp) lvEl.textContent = `レベルアップ！ Lv.${data.levelUp} ${data.title2}`;
+  lvEl.classList.add('is-hidden');
+
+  setModalVisible(modal, true);
+  card.classList.remove('is-pop', 'is-final'); void card.offsetWidth; card.classList.add('is-pop');
+
+  if (!reducedMotion()) {
+    const r = card.getBoundingClientRect();
+    const cx = r.left + r.width / 2; const cy = r.top + r.height / 2;
+    burstAt(cx, r.top + 10, 36, 220);
+    laterFx(() => burstAt(r.left + 20, cy, 18, 150), 200);
+    laterFx(() => burstAt(r.right - 20, cy, 18, 150), 350);
+  }
+
+  const rowEls = [...rowsEl.querySelectorAll('.clear-row')];
+  let total = 0;
+  rows.forEach((row, i) => {
+    laterFx(() => {
+      rowEls[i].classList.remove('is-hidden');
+      const strong = rowEls[i].querySelector('strong');
+      const from = total;
+      const v = row.value;
+      const steps = Math.max(1, Math.min(v, 8));
+      for (let k = 1; k <= steps; k++) {
+        laterFx(() => {
+          const cur = Math.round(v * k / steps);
+          strong.textContent = `+${cur}`;
+          num.textContent = String(from + cur);
+          boingEl(num);
+          if (k === steps) total = from + v;
+        }, Math.round(650 * k / steps));
+      }
+    }, 400 + i * 900);
+  });
+  const endAt = 400 + rows.length * 900;
+  laterFx(() => {
+    comboEl.classList.remove('is-hidden');
+    if (data.levelUp) lvEl.classList.remove('is-hidden');
+    card.classList.add('is-final'); // 両脇のきらめき
+    boingEl(num);
+    if (!reducedMotion()) {
+      const r = card.getBoundingClientRect();
+      burstAt(r.left + r.width / 2, r.top + r.height / 2 + 40, data.levelUp ? 40 : 30, 200);
+    }
+    pulseXpBar();
+  }, endAt);
+}
+
+function hideClearModal() {
+  clearTimers.forEach(clearTimeout); clearTimers = [];
+  setModalVisible(document.getElementById('clear-modal'), false);
+}
+
+// モーダルの表示・非表示。消すときはふわっとフェードアウトする
+function setModalVisible(el, visible) {
+  if (visible) {
+    el.classList.remove('is-leaving');
+    el.hidden = false;
+    return;
+  }
+  if (el.hidden || el.classList.contains('is-leaving')) return;
+  if (reducedMotion()) { el.hidden = true; return; }
+  el.classList.add('is-leaving');
+  setTimeout(() => {
+    if (el.classList.contains('is-leaving')) { el.hidden = true; el.classList.remove('is-leaving'); }
+  }, 280);
 }

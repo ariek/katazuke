@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>デザイン案: クエストのタイマー</title>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    /* モックアップ用: 本文だけスクロールさせる構造を外し、縦に並べる */
+    body { position: static; display: block; overflow: auto; height: auto; padding: 16px 16px 60px; }
+    .mock-section { margin: 0 auto 28px; max-width: 420px; }
+    .mock-label { font-size: 12px; color: var(--ink-soft); margin: 0 0 8px; padding-left: 4px; }
+    .mock-modal { position: relative; inset: auto; min-height: 360px; border-radius: 18px; }
+
+    /* ---- ここから実装で style.css に移す予定の指定 ---- */
+    .focus-card { position: relative; }
+    .focus-combo {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 12px; font-weight: 700; padding: 2px 9px;
+      border: 2px solid var(--ink); border-radius: 12px 14px 12px 14px / 14px 12px 14px 12px;
+      background: var(--yellow);
+    }
+    .focus-combo.is-zero { background: var(--line); color: var(--ink-soft); }
+    .focus-head-right { display: flex; align-items: center; gap: 8px; }
+
+    .qt { position: relative; display: flex; flex-direction: column; align-items: center; margin: 12px 0 4px; }
+    .qt-dial { position: relative; width: min(300px, 100%); aspect-ratio: 1; }
+    .qt-ring { width: 100%; height: 100%; overflow: visible; display: block; }
+    .qt-ring .qt-track { fill: var(--paper); stroke: #f1ece3; stroke-width: 9; }
+    .qt-ring .qt-fill { fill: none; stroke: #7fcaa2; stroke-width: 9; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; }
+    .qt-ring .qt-edge { fill: none; stroke: var(--ink); stroke-width: 2.4; }
+    .qt.is-paused .qt-fill { stroke: #ab98e0; }
+    .qt.is-timeup .qt-fill { stroke: #e6887a; }
+    .qt-center { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 22%; box-sizing: border-box; pointer-events: none; }
+    .qt-seconds { height: 112px; display: flex; align-items: center; }
+    .qt-slot { height: 40px; margin-top: 6px; display: flex; align-items: center; justify-content: center; }
+    .qt-ctl { pointer-events: auto; width: 42px; height: 40px; display: flex; align-items: center; justify-content: center; border: 2.2px solid var(--ink); border-radius: 10px 12px 10px 12px / 12px 10px 12px 10px; background: var(--paper); color: var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+    .qt-ctl .icon { width: 20px; height: 20px; --icon-fill-a: currentColor; }
+    .qt-ctl:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--ink); }
+    .qt-ctl:disabled { opacity: 0.35; box-shadow: none; }
+    .qt-seconds { font-size: min(112px, 30vw); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+        .qt.is-timeup .qt-seconds { color: #c85c4a; }
+    .qt-status { font-size: 13px; font-weight: 700; color: var(--ink-soft); padding: 2px 10px; border: 2px solid var(--line); border-radius: 12px 14px 12px 14px / 14px 12px 14px 12px; background: var(--bg); }
+    .qt-timeup { font-size: 13px; font-weight: 700; color: #c85c4a; padding: 2px 10px; border: 2px solid #c85c4a; border-radius: 12px 14px 12px 14px / 14px 12px 14px 12px; }
+
+    .qt-actions { display: flex; flex-direction: column; align-items: center; gap: 24px; margin-top: 12px; }
+    .qt-main { width: 78%; font-size: 20px; padding: 14px 16px; }
+    .qt-main.is-start { background: var(--peach); }
+    .qt-main:disabled { opacity: 0.4; box-shadow: none; }
+    .qt-subrow { display: flex; justify-content: center; width: 100%; }
+    .qt-small { font-size: 12px; padding: 6px 14px; box-shadow: none; }
+    .qt-small:active { transform: translate(1px, 1px); background: var(--bg); }
+    .qt-small:disabled { opacity: 0.35; }
+    .qt-quit { background: var(--paper); color: var(--ink); }
+
+    /* 次への待ち: リングの上に重ねる */
+    .qt-next {
+      position: absolute; inset: -8px; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: rgba(251, 246, 238, 0.82); border-radius: 20px; backdrop-filter: blur(2px);
+    }
+    .qt-next-label { font-size: 13px; color: var(--ink-soft); }
+    .qt-next-num { font-size: 96px; font-weight: 700; line-height: 1; color: var(--ink); text-shadow: 3px 3px 0 var(--yellow); }
+    .qt-next-sub { font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
+
+    /* 完了演出モーダル */
+    .clear-card { position: relative; width: min(92vw, 340px); padding: 26px 22px 20px; text-align: center; background: var(--paper); border: 3px solid var(--ink); border-radius: 28px 34px 30px 36px / 36px 28px 34px 30px; box-shadow: 6px 6px 0 var(--mint); }
+    .clear-ribbon { position: absolute; top: -16px; left: 50%; transform: translateX(-50%) rotate(-3deg); padding: 4px 18px; background: var(--mint); border: 2.4px solid var(--ink); border-radius: 14px 18px 16px 18px / 18px 14px 18px 16px; font-size: 16px; font-weight: 700; white-space: nowrap; }
+    .clear-title { margin-top: 6px; font-size: 15px; font-weight: 700; color: var(--ink-soft); overflow-wrap: anywhere; }
+    .clear-rows { margin: 14px 0 8px; display: flex; flex-direction: column; gap: 6px; text-align: left; }
+    .clear-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; padding: 6px 10px; border: 2px dashed var(--line); border-radius: 12px; }
+    .clear-row small { color: var(--ink-soft); font-size: 11px; margin-left: 6px; }
+    .clear-row strong { font-size: 18px; font-variant-numeric: tabular-nums; }
+    .clear-row.is-bonus { border-color: var(--yellow); background: #fffae6; }
+    .clear-total { position: relative; margin-top: 14px; padding: 14px 0 8px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; display: flex; align-items: baseline; justify-content: center; gap: 4px; }
+    /* 数字の後ろに黄色い光のにじみ */
+    .clear-total::before { content: ''; position: absolute; left: 50%; top: 50%; width: 220px; height: 120px; transform: translate(-50%, -50%); background: radial-gradient(ellipse at center, rgba(247, 227, 161, 0.95) 0%, rgba(247, 227, 161, 0.5) 45%, rgba(247, 227, 161, 0) 72%); z-index: 0; pointer-events: none; }
+    .clear-plus { position: relative; z-index: 1; font-size: 26px; color: #c85c4a; }
+    .clear-num { position: relative; z-index: 1; font-size: 84px; display: inline-block; transform-origin: 50% 80%; color: var(--ink); text-shadow: 3px 3px 0 var(--yellow), 6px 6px 0 var(--peach); letter-spacing: 0.02em; }
+    .clear-num.is-boing { animation: boing 0.32s ease-out; }
+    .clear-total small { position: relative; z-index: 1; font-size: 18px; margin-left: 6px; color: var(--ink-soft); }
+    .clear-spark { position: absolute; top: 12px; width: 26px; height: 26px; color: #c9a227; --icon-fill-a: var(--yellow); --icon-fill-b: var(--yellow); z-index: 1; opacity: 0; }
+    .clear-spark.is-left { left: 14px; }
+    .clear-spark.is-right { right: 14px; top: 30px; }
+    .clear-card.is-final .clear-spark { animation: spark-pop 0.6s ease-out forwards; }
+    .clear-card.is-final .clear-spark.is-right { animation-delay: 0.15s; }
+    @keyframes spark-pop { 0% { transform: scale(0) rotate(-30deg); opacity: 0; } 60% { transform: scale(1.3) rotate(10deg); opacity: 1; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+    @keyframes boing { 0% { transform: scale(1); } 40% { transform: scale(1.22); } 70% { transform: scale(0.94); } 100% { transform: scale(1); } }
+    .clear-row, .clear-combo { transition: opacity 0.25s, transform 0.25s; }
+    .clear-row.is-hidden, .clear-combo.is-hidden { opacity: 0; transform: translateY(6px); }
+    .clear-card.is-pop { animation: levelup-card 0.6s cubic-bezier(0.2, 1.4, 0.4, 1); }
+    .clear-combo { display: inline-block; margin-top: 8px; padding: 3px 14px; background: var(--yellow); border: 2.2px solid var(--ink); border-radius: 14px 18px 16px 18px / 18px 14px 18px 16px; font-weight: 700; }
+    .clear-hint { margin-top: 12px; font-size: 11px; color: var(--ink-soft); }
+
+    /* 休憩モーダル */
+    .break-card { width: min(92vw, 340px); padding: 24px 22px 20px; text-align: center; background: var(--paper); border: 3px solid var(--ink); border-radius: 28px 34px 30px 36px / 36px 28px 34px 30px; box-shadow: 6px 6px 0 var(--sky); }
+    .break-title { font-size: 20px; font-weight: 700; }
+    .break-sub { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
+    .break-card .qt { margin: 14px 0 6px; }
+    .break-card .qt-fill { stroke: #86b7e6; }
+    .break-note { font-size: 13px; margin: 6px 0 14px; }
+
+    /* まとめモーダル */
+    .sum-card { width: min(92vw, 340px); padding: 26px 22px 20px; text-align: center; background: var(--paper); border: 3px solid var(--ink); border-radius: 28px 34px 30px 36px / 36px 28px 34px 30px; box-shadow: 6px 6px 0 var(--peach); }
+    .sum-title { font-size: 20px; font-weight: 700; }
+    .sum-sub { font-size: 12px; color: var(--ink-soft); }
+    .sum-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0 14px; }
+    .sum-cell { padding: 10px 6px; border: 2.2px solid var(--ink); border-radius: 14px 18px 16px 18px / 18px 14px 18px 16px; background: var(--bg); }
+    .sum-cell strong { display: block; font-size: 26px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .sum-cell span { font-size: 11px; color: var(--ink-soft); }
+    .sum-cell.is-main { background: var(--yellow); grid-column: 1 / -1; }
+    .sum-cell.is-main strong { font-size: 36px; }
+    .sum-best { font-size: 12px; color: #c85c4a; font-weight: 700; margin-bottom: 8px; }
+
+    /* 記録: ランキング */
+    .rank-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+    .rank-row { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 10px; padding: 8px 12px; background: var(--paper); border: 2px solid var(--ink); border-radius: 12px 14px 12px 14px / 14px 12px 14px 12px; }
+    .rank-no { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--ink); border-radius: 50% 45% 50% 45%; font-size: 12px; font-weight: 700; background: var(--paper); }
+    .rank-row:nth-child(1) .rank-no { background: var(--yellow); }
+    .rank-row:nth-child(2) .rank-no { background: var(--line); }
+    .rank-row:nth-child(3) .rank-no { background: var(--peach); }
+    .rank-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+    .rank-date { font-size: 12px; color: var(--ink-soft); }
+    .rank-meta { font-size: 12px; }
+    .rank-xp { font-size: 18px; font-weight: 700; color: #4f9a72; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .rank-xp small { font-size: 11px; color: var(--ink-soft); font-weight: 500; }
+  
+    /* タイマー右上のコンボ */
+    .qt-combo {
+      position: absolute; right: 12px; top: 12px; z-index: 2;
+      width: 48px; height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      border: 2.2px solid var(--ink); border-radius: 50% 45% 50% 45%; background: var(--yellow); line-height: 1;
+    }
+    .qt-combo strong { font-size: 18px; font-weight: 700; }
+    .qt-combo small { font-size: 8px; margin-top: 1px; }
+    
+  
+    /* コンボの札と重ならないよう、タイトルとメモは右側を空けて折り返す */
+    .focus-card.has-combo .focus-title,
+    .focus-card.has-combo .focus-meta { padding-right: 60px; }
+    
+  
+    /* タイマーの数字は1桁ずつ同じ幅で並べる */
+    .qt-seconds span { display: inline-block; width: 0.51em; text-align: center; }
+    
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-pause" viewBox="0 0 24 24">
+        <rect x="6" y="5" width="4.5" height="14" rx="1.5" style="fill:var(--icon-fill-a, none)"/>
+        <rect x="13.5" y="5" width="4.5" height="14" rx="1.5" style="fill:var(--icon-fill-a, none)"/>
+      </symbol>
+      <symbol id="i-play" viewBox="0 0 24 24">
+        <path d="M8 5.5v13l10-6.5Z" style="fill:var(--icon-fill-a, none)"/>
+      </symbol>
+      <symbol id="i-sparkle" viewBox="0 0 24 24">
+        <path d="M12 3c.6 4.2 2.4 6.4 7 7-4.6.6-6.4 2.8-7 7-.6-4.2-2.4-6.4-7-7 4.6-.6 6.4-2.8 7-7Z" style="fill:var(--icon-fill-a, none)"/>
+        <path d="M18.5 15c.3 1.7 1 2.6 2.5 3-1.5.4-2.2 1.3-2.5 3-.3-1.7-1-2.6-2.5-3 1.5-.4 2.2-1.3 2.5-3Z" style="fill:var(--icon-fill-b, none)" stroke-width="1.4"/>
+      </symbol>
+      <symbol id="i-flame" viewBox="0 0 24 24">
+        <path d="M12 3c1 3 4 4.5 4 9a4 4 0 0 1-8 0c0-1.5.6-2.6 1.3-3.4.3 1 .9 1.6 1.7 1.9C10.5 8 11.5 5.5 12 3Z" style="fill:var(--icon-fill-a, none)"/>
+        <path d="M12 21a5.5 5.5 0 0 1-5.5-5.5c0-1.2.4-2.2 1-3" fill="none"/>
+        <path d="M12 21a5.5 5.5 0 0 0 5.5-5.5c0-1.2-.4-2.2-1-3" fill="none"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <!-- 1 -->
+  <section class="mock-section">
+    <p class="mock-label">1. 待機（セッション前）。難易度に応じた秒数を表示。主ボタンは「スタート」</p>
+    <div class="focus-card">
+      <div class="focus-head">
+        <span></span>
+        <span class="focus-head-right"></span>
+      </div>
+      <div class="focus-title">机の上の書類を仕分ける</div>
+      <div class="focus-meta">机 · ★★ · 3日ごと · 3日遅れ</div>
+      <div class="qt">
+        <div class="qt-dial">
+          <svg class="qt-ring" viewBox="0 0 130 130"><g filter="url(#wobble)">
+            <circle class="qt-track" cx="65" cy="65" r="54"/>
+            <circle class="qt-fill" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="0"/>
+            <circle class="qt-edge" cx="65" cy="65" r="58.5"/><circle class="qt-edge" cx="65" cy="65" r="49.5"/>
+          </g></svg>
+          <div class="qt-center"><div class="qt-seconds"><span>3</span><span>0</span><span>0</span></div><div class="qt-slot"><button class="qt-ctl" aria-label="スタート"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg></button></div></div>
+          
+        </div>
+      </div>
+      <div class="qt-actions">
+        <button class="btn btn-primary qt-main is-start">スタート</button>
+        <div class="qt-subrow"><button class="btn qt-small">あとで</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="mock-section">
+    <p class="mock-label">2. 実行中。縁が減り、コンボが右上に出る。主ボタンは「完了」、「× やめる」はその下</p>
+    <div class="focus-card has-combo">
+      <div class="focus-head">
+        <span></span>
+        <span class="focus-head-right"></span>
+      </div>
+      <div class="focus-title">机の上の書類を仕分ける</div>
+      <div class="focus-meta">机 · ★★ · 3日ごと · 3日遅れ</div>
+      <div class="qt">
+        <div class="qt-dial">
+          <svg class="qt-ring" viewBox="0 0 130 130"><g filter="url(#wobble)">
+            <circle class="qt-track" cx="65" cy="65" r="54"/>
+            <circle class="qt-fill" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="128"/>
+            <circle class="qt-edge" cx="65" cy="65" r="58.5"/><circle class="qt-edge" cx="65" cy="65" r="49.5"/>
+          </g></svg>
+          <div class="qt-center"><div class="qt-seconds"><span>1</span><span>8</span><span>7</span></div><div class="qt-slot"><button class="qt-ctl" aria-label="一時停止"><svg class="icon" aria-hidden="true"><use href="#i-pause"/></svg></button></div></div>
+          
+        </div>
+      </div>
+      <div class="qt-actions">
+        <button class="btn btn-primary qt-main ">クエスト完了</button>
+        <div class="qt-subrow"><button class="btn qt-small qt-quit">× やめる</button></div>
+      </div>
+      <div class="qt-combo"><strong>3</strong><small>コンボ</small></div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="mock-section">
+    <p class="mock-label">3. 一時停止。縁が薄紫になる。コンボは続く。リングの中が「再開」に</p>
+    <div class="focus-card has-combo">
+      <div class="focus-head">
+        <span></span>
+        <span class="focus-head-right"></span>
+      </div>
+      <div class="focus-title">机の上の書類を仕分ける</div>
+      <div class="focus-meta">机 · ★★ · 3日ごと · 一時停止中</div>
+      <div class="qt is-paused">
+        <div class="qt-dial">
+          <svg class="qt-ring" viewBox="0 0 130 130"><g filter="url(#wobble)">
+            <circle class="qt-track" cx="65" cy="65" r="54"/>
+            <circle class="qt-fill" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="128"/>
+            <circle class="qt-edge" cx="65" cy="65" r="58.5"/><circle class="qt-edge" cx="65" cy="65" r="49.5"/>
+          </g></svg>
+          <div class="qt-center"><div class="qt-seconds"><span>1</span><span>8</span><span>7</span></div><div class="qt-slot"><button class="qt-ctl" aria-label="再開"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg></button></div></div>
+          
+        </div>
+      </div>
+      <div class="qt-actions">
+        <button class="btn btn-primary qt-main ">クエスト完了</button>
+        <div class="qt-subrow"><button class="btn qt-small qt-quit">× やめる</button></div>
+      </div>
+      <div class="qt-combo"><strong>3</strong><small>コンボ</small></div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="mock-section">
+    <p class="mock-label">4. 時間切れ。0で止まり縁が赤に。完了は押せるがボーナスなし</p>
+    <div class="focus-card">
+      <div class="focus-head">
+        <span></span>
+        <span class="focus-head-right"></span>
+      </div>
+      <div class="focus-title">机の上の書類を仕分ける</div>
+      <div class="focus-meta">机 · ★★ · 3日ごと · 時間切れ</div>
+      <div class="qt is-timeup">
+        <div class="qt-dial">
+          <svg class="qt-ring" viewBox="0 0 130 130"><g filter="url(#wobble)">
+            <circle class="qt-track" cx="65" cy="65" r="54"/>
+            <circle class="qt-fill" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="339.3"/>
+            <circle class="qt-edge" cx="65" cy="65" r="58.5"/><circle class="qt-edge" cx="65" cy="65" r="49.5"/>
+          </g></svg>
+          <div class="qt-center"><div class="qt-seconds"><span>0</span></div><div class="qt-slot"><div class="qt-timeup">時間切れ</div></div></div>
+          
+        </div>
+      </div>
+      <div class="qt-actions">
+        <button class="btn btn-primary qt-main ">クエスト完了</button>
+        <div class="qt-subrow"><button class="btn qt-small qt-quit">× やめる</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="mock-section">
+    <p class="mock-label">5. 次への待ち。次のクエストと秒数を出し、リングの上に5秒のカウントダウンを重ねる。完了は押せない</p>
+    <div class="focus-card has-combo">
+      <div class="focus-head">
+        <span></span>
+        <span class="focus-head-right"></span>
+      </div>
+      <div class="focus-title">マグカップを片付ける</div>
+      <div class="focus-meta">机 · ★ · 毎日 · 1日遅れ</div>
+      <div class="qt">
+        <div class="qt-dial">
+          <svg class="qt-ring" viewBox="0 0 130 130"><g filter="url(#wobble)">
+            <circle class="qt-track" cx="65" cy="65" r="54"/>
+            <circle class="qt-fill" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="0"/>
+            <circle class="qt-edge" cx="65" cy="65" r="58.5"/><circle class="qt-edge" cx="65" cy="65" r="49.5"/>
+          </g></svg>
+          <div class="qt-center"><div class="qt-seconds"><span>1</span><span>8</span><span>0</span></div><div class="qt-slot"></div></div>
+          <div class="qt-next">
+            <div class="qt-next-label">次のクエストまで</div>
+            <div class="qt-next-num">3</div>
+            <div class="qt-next-sub">自動でスタートします</div>
+          </div>
+        </div>
+      </div>
+      <div class="qt-actions">
+        <button class="btn btn-primary qt-main " disabled>クエスト完了</button>
+        <div class="qt-subrow"><button class="btn qt-small qt-quit">× やめる</button></div>
+      </div>
+      <div class="qt-combo"><strong>4</strong><small>コンボ</small></div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="mock-section">
+    <p class="mock-label">6. 完了演出（モーダル、約4秒）。基本 → ボーナス → コンボの順に現れて数字がカウントアップ。合計は段階ごとに弾む</p>
+    <div class="sheet-backdrop mock-modal" style="display:flex;align-items:center;justify-content:center">
+      <div class="clear-card" id="clear-card">
+        <div class="clear-ribbon">クリア！</div>
+        <div class="clear-title">机の上の書類を仕分ける</div>
+        <div class="clear-rows">
+          <div class="clear-row" data-step="0"><span>基本 <small>★★</small></span><strong>+0</strong></div>
+          <div class="clear-row is-bonus" data-step="1"><span>ボーナス <small>残り 96秒</small></span><strong>+0</strong></div>
+          <div class="clear-row is-bonus" data-step="2"><span>コンボ <small>3コンボ</small></span><strong>+0</strong></div>
+        </div>
+        <div class="clear-total"><svg class="icon clear-spark is-left" aria-hidden="true"><use href="#i-sparkle"/></svg><span class="clear-plus">+</span><span class="clear-num">0</span><small>XP</small><svg class="icon clear-spark is-right" aria-hidden="true"><use href="#i-sparkle"/></svg></div>
+        <div class="clear-combo" data-step="3">3コンボ！</div>
+        <div class="clear-hint">自動で次に進みます</div>
+      </div>
+      <button class="btn qt-small" id="replay" style="position:absolute;right:10px;top:10px">もう一度</button>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="mock-section">
+    <p class="mock-label">7. 休憩（モーダル、5分）。操作は「休憩を終える」だけ</p>
+    <div class="sheet-backdrop mock-modal" style="display:flex;align-items:center;justify-content:center">
+      <div class="break-card">
+        <div class="break-title">休憩</div>
+        <div class="break-sub">25分がんばりました。少し休みましょう</div>
+        <div class="qt">
+        <div class="qt-dial">
+          <svg class="qt-ring" viewBox="0 0 130 130"><g filter="url(#wobble)">
+            <circle class="qt-track" cx="65" cy="65" r="54"/>
+            <circle class="qt-fill" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="90"/>
+            <circle class="qt-edge" cx="65" cy="65" r="58.5"/><circle class="qt-edge" cx="65" cy="65" r="49.5"/>
+          </g></svg>
+          <div class="qt-center"><div class="qt-seconds"><span>2</span><span>1</span><span>4</span></div><div class="qt-slot"></div></div>
+          
+        </div>
+      </div>
+        <div class="break-note"><span class="focus-combo"><svg class="icon icon-flame" aria-hidden="true"><use href="#i-flame"/></svg>4コンボ</span> 継続中</div>
+        <button class="btn">休憩を終える</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="mock-section">
+    <p class="mock-label">8. まとめ（セッション終了時のモーダル）</p>
+    <div class="sheet-backdrop mock-modal" style="display:flex;align-items:center;justify-content:center">
+      <div class="sum-card">
+        <div class="sum-title">おつかれさま！</div>
+        <div class="sum-sub">9/10 20:00 〜 20:38</div>
+        <div class="sum-grid">
+          <div class="sum-cell is-main"><strong>143</strong><span>獲得 XP</span></div>
+          <div class="sum-cell"><strong>6</strong><span>達成</span></div>
+          <div class="sum-cell"><strong>4</strong><span>最大コンボ</span></div>
+          <div class="sum-cell"><strong>38<small style="font-size:14px">分</small></strong><span>時間</span></div>
+          <div class="sum-cell"><strong>2</strong><span>位</span></div>
+        </div>
+        <div class="sum-best">自己ベスト2位！</div>
+        <button class="btn btn-primary">閉じる</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section class="mock-section">
+    <p class="mock-label">9. 記録画面に足すランキング（獲得 XP 上位5件）</p>
+    <h2 class="log-heading">セッションのランキング <span class="log-sub">獲得 XP 上位5件</span></h2>
+    <ul class="rank-list">
+      <li class="rank-row"><span class="rank-no">1</span><span class="rank-body"><span class="rank-date">9/8（火）21:00</span><span class="rank-meta">達成 8 · 最大 5コンボ · 47分</span></span><span class="rank-xp">201<small> XP</small></span></li>
+      <li class="rank-row"><span class="rank-no">2</span><span class="rank-body"><span class="rank-date">9/10（木）20:00</span><span class="rank-meta">達成 6 · 最大 4コンボ · 38分</span></span><span class="rank-xp">143<small> XP</small></span></li>
+      <li class="rank-row"><span class="rank-no">3</span><span class="rank-body"><span class="rank-date">9/7（月）19:30</span><span class="rank-meta">達成 5 · 最大 3コンボ · 31分</span></span><span class="rank-xp">118<small> XP</small></span></li>
+      <li class="rank-row"><span class="rank-no">4</span><span class="rank-body"><span class="rank-date">9/6（日）10:00</span><span class="rank-meta">達成 4 · 最大 2コンボ · 22分</span></span><span class="rank-xp">86<small> XP</small></span></li>
+      <li class="rank-row"><span class="rank-no">5</span><span class="rank-body"><span class="rank-date">9/5（土）16:00</span><span class="rank-meta">達成 3 · 最大 3コンボ · 18分</span></span><span class="rank-xp">71<small> XP</small></span></li>
+    </ul>
+  </section>
+
+  <div class="fx-layer" id="fx-layer" aria-hidden="true"></div>
+  <script src="../game.js"></script>
+  <script src="../effects.js"></script>
+  <script>
+    // 完了演出の再生（モックアップ用）
+    let clearTimers = [];
+    function later(fn, ms) { clearTimers.push(setTimeout(fn, ms)); }
+    function playClear() {
+      // 前の再生が残っていたら止める
+      clearTimers.forEach(clearTimeout); clearTimers = [];
+      const card = document.getElementById('clear-card');
+      const rows = [...card.querySelectorAll('[data-step]')];
+      rows.forEach((r) => r.classList.add('is-hidden'));
+      card.querySelectorAll('.clear-row strong').forEach((el) => { el.textContent = '+0'; });
+      const num = card.querySelector('.clear-num');
+      num.textContent = '0';
+      card.classList.remove('is-pop', 'is-final'); void card.offsetWidth; card.classList.add('is-pop');
+      const r = card.getBoundingClientRect();
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      burstAt(cx, r.top + 10, 36, 220);
+      later(() => burstAt(r.left + 20, cy, 18, 150), 200);
+      later(() => burstAt(r.right - 20, cy, 18, 150), 350);
+      const values = [25, 10, 3];
+      let total = 0;
+      const boing = () => { num.classList.remove('is-boing'); void num.offsetWidth; num.classList.add('is-boing'); };
+      values.forEach((v, i) => {
+        later(() => {
+          rows[i].classList.remove('is-hidden');
+          const strong = rows[i].querySelector('strong');
+          const from = total;
+          // 数字は段階的に増やし、増えるたびに合計をボインと弾ませる（最大8段階）
+          const steps = Math.min(v, 8);
+          for (let k = 1; k <= steps; k++) {
+            later(() => {
+              const cur = Math.round(v * k / steps);
+              strong.textContent = '+' + cur;
+              num.textContent = from + cur;
+              boing();
+              if (k === steps) total = from + v;
+            }, Math.round(650 * k / steps));
+          }
+        }, 500 + i * 900);
+      });
+      later(() => { rows[3].classList.remove('is-hidden'); card.classList.add('is-final'); burstAt(cx, cy + 40, 30, 200); boing(); }, 500 + 3 * 900);
+    }
+    document.getElementById('replay').addEventListener('click', playClear);
+    window.addEventListener('load', () => setTimeout(playClear, 800));
+  </script>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="wobble" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.2" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </svg>
+</body>
+</html>

@@ -70,11 +70,10 @@ function importJson(text) {
   const summary = `エリア ${data.areas.length} 件、クエスト ${data.tasks.length} 件、記録 ${data.logs.length} 件を読み込みます。\n現在のデータは上書きされます。よろしいですか？`;
   if (!confirm(summary)) return null;
   state = migrate(data);
-  if (!state.timer) state.timer = { startedAt: null, durationSec: 0, lastResult: null };
   ui.areaFilter = null;
   saveState();
-  stopTimerLoop();
-  if (timerActive(state.timer)) ensureTimerLoop();
+  stopSessionLoop();
+  initSession();
   return '';
 }
 
@@ -96,10 +95,11 @@ function clearSample() {
   state.tasks = [];
   state.logs = [];
   state.player = { xp: 0, level: 1, bestStreak: 0 };
-  state.timer = { startedAt: null, durationSec: 0, lastResult: null };
+  state.session = null;
+  state.sessions = [];
   state.sample = false;
   ui.areaFilter = null;
-  stopTimerLoop();
+  stopSessionLoop();
   saveState();
 }
 
@@ -108,7 +108,7 @@ function resetAll() {
   state = emptyState();
   state.areas = DEFAULT_AREAS.map(([name, kind], i) => ({ id: newId('a'), name, kind, order: i }));
   ui.areaFilter = null;
-  stopTimerLoop();
+  stopSessionLoop();
   saveState();
 }
 
