@@ -552,10 +552,10 @@ function initQuests() {
     }
   });
 
-  document.getElementById('task-delete').addEventListener('click', () => {
+  document.getElementById('task-delete').addEventListener('click', async () => {
     const id = form.elements.id.value;
     if (!id) return;
-    if (!confirm('このクエストを削除しますか？')) return;
+    if (!(await askConfirm('このクエストを削除します。', { ok: '削除する', danger: true }))) return;
     const at = centerOf(document.getElementById('task-delete'));
     const before = state.player.xp;
     deleteTask(id);

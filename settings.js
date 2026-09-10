@@ -58,7 +58,7 @@ function validateImport(data) {
   return null;
 }
 
-function importJson(text) {
+async function importJson(text) {
   let data;
   try {
     data = JSON.parse(text);
@@ -67,8 +67,8 @@ function importJson(text) {
   }
   const error = validateImport(data);
   if (error) return error;
-  const summary = `エリア ${data.areas.length} 件、クエスト ${data.tasks.length} 件、記録 ${data.logs.length} 件を読み込みます。\n現在のデータは上書きされます。よろしいですか？`;
-  if (!confirm(summary)) return null;
+  const summary = `エリア ${data.areas.length} 件、クエスト ${data.tasks.length} 件、記録 ${data.logs.length} 件を読み込みます。現在のデータは上書きされます。`;
+  if (!(await askConfirm(summary, { ok: '読み込む', danger: true }))) return null;
   state = migrate(data);
   ui.areaFilter = null;
   saveState();
@@ -190,15 +190,15 @@ function initSettings() {
     closeAreaSheet();
     render();
   });
-  document.getElementById('area-delete').addEventListener('click', () => {
+  document.getElementById('area-delete').addEventListener('click', async () => {
     const id = form.elements.id.value;
     const area = state.areas.find((a) => a.id === id);
     if (!area) return;
     const n = state.tasks.filter((t) => t.areaId === id).length;
     const msg = n > 0
-      ? `「${area.name}」と、所属するクエスト ${n} 件をまとめて削除します。よろしいですか？`
-      : `「${area.name}」を削除しますか？`;
-    if (!confirm(msg)) return;
+      ? `「${area.name}」と、所属するクエスト ${n} 件をまとめて削除します。`
+      : `「${area.name}」を削除します。`;
+    if (!(await askConfirm(msg, { ok: '削除する', danger: true }))) return;
     deleteArea(id);
     closeAreaSheet();
     render();
@@ -238,10 +238,10 @@ function initSettings() {
     reader.readAsText(file);
     e.target.value = '';
   });
-  document.getElementById('import-run').addEventListener('click', () => {
+  document.getElementById('import-run').addEventListener('click', async () => {
     const text = importArea.value.trim();
     if (!text) { showToast('JSON を貼り付けるかファイルを選んでください'); return; }
-    const result = importJson(text);
+    const result = await importJson(text);
     if (result === null) return;
     if (result) { showToast(result, 'is-levelup'); return; }
     importArea.value = '';
@@ -250,17 +250,17 @@ function initSettings() {
   });
 
   // サンプル削除
-  document.getElementById('sample-clear').addEventListener('click', () => {
-    if (!confirm('サンプルのクエストと記録を削除します。エリアは残ります。よろしいですか？')) return;
+  document.getElementById('sample-clear').addEventListener('click', async () => {
+    if (!(await askConfirm('サンプルのクエストと記録を削除します。エリアは残ります。', { ok: '消す', danger: true }))) return;
     clearSample();
     render();
     showToast('サンプルを消しました');
   });
 
   // 初期化
-  document.getElementById('reset-all').addEventListener('click', () => {
-    if (!confirm('すべてのデータ（エリア、クエスト、記録、レベル）を削除します。よろしいですか？')) return;
-    if (!confirm('本当に削除しますか？ この操作は取り消せません。')) return;
+  document.getElementById('reset-all').addEventListener('click', async () => {
+    if (!(await askConfirm('すべてのデータ（エリア、クエスト、記録、レベル）を削除します。', { ok: '削除する', danger: true }))) return;
+    if (!(await askConfirm('本当に削除しますか？ この操作は取り消せません。', { ok: '本当に削除する', danger: true }))) return;
     resetAll();
     render();
     showToast('初期化しました');

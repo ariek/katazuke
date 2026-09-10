@@ -234,9 +234,10 @@ function pickNextQuest() {
 
 // --- 終了 --------------------------------------------------------------
 
-function quitSession() {
+async function quitSession() {
   if (!state.session) return;
-  if (!confirm('セッションをやめますか？ 走っているクエストは未完了のまま残ります。')) return;
+  if (!(await askConfirm('セッションをやめますか？ 走っているクエストは未完了のまま残ります。', { ok: 'やめる', cancel: '続ける', danger: true }))) return;
+  if (!state.session) return; // 待っている間に終わっていたら何もしない
   endSession('quit');
 }
 

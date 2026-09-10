@@ -331,6 +331,16 @@
     </div>
   </div>
 
+  <div class="modal" id="dialog-modal" hidden role="alertdialog" aria-labelledby="dialog-message">
+    <div class="dialog-card">
+      <p class="dialog-message" id="dialog-message"></p>
+      <div class="dialog-actions">
+        <button class="btn" id="dialog-cancel">キャンセル</button>
+        <button class="btn btn-primary" id="dialog-ok">OK</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast" hidden></div>
   <div class="update-bar" id="update-bar" hidden>
     <span>新しい版があります</span>
@@ -355,6 +365,7 @@
   <script src="bulk.js"></script>
   <script src="log.js"></script>
   <script src="effects.js"></script>
+  <script src="dialog.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
