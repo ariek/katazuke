@@ -3,7 +3,7 @@
 
 使い方（プロジェクトのフォルダで）:
     /usr/bin/python3 dev/server.py
-同じ Wi-Fi の iPhone からは http://<MacのIP>:8765/ で開ける。
+アプリは http://127.0.0.1:8765/public/ 、同じ Wi-Fi の iPhone からは http://<MacのIP>:8765/public/ で開ける。
 """
 import os
 import sys

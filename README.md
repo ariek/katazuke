@@ -19,52 +19,58 @@
 
 ## ローカルで動かす
 
-`file://` で直接開いても動くが、フォント読み込みなどの挙動を本番に近づけるには簡易サーバーを使う。
+簡易サーバーを起動して確認する（キャッシュを禁止するヘッダー付き）。
 
 ```bash
 python3 dev/server.py
 ```
 
-ブラウザで `http://127.0.0.1:8765/` を開く。エリアの絵を全種類まとめて見る開発用ページは `http://127.0.0.1:8765/dev/gallery.html`。
+ブラウザで `http://127.0.0.1:8765/public/` を開く。エリアの絵を全種類まとめて見る開発用ページは `http://127.0.0.1:8765/dev/gallery.html`、タイマーのデザイン案は `http://127.0.0.1:8765/docs/design-timer.html`。
 
 Claude Code から確認する場合は `.claude/launch.json` の `katazuke` 設定で同じサーバーが起動する。
 
 ## 公開（GitHub Pages）
 
-1. リポジトリを公開に切り替える（無料プランの GitHub Pages は公開リポジトリのみ）。
-2. GitHub のリポジトリページで Settings → Pages を開く。
-3. Source を「Deploy from a branch」、Branch を `main` / `/ (root)` にして保存する。
-4. 数分後に `https://<ユーザー名>.github.io/katazuke/` で開ける。
+`main` に取り込まれると、GitHub Actions（`.github/workflows/pages.yml`）が `public/` だけを GitHub Pages に公開する。ドキュメントや開発用ファイルは公開されない。
 
-以降は `main` に取り込むたびに自動で反映される。
+初回だけ設定が必要:
+
+1. リポジトリを公開に切り替える（無料プランの GitHub Pages は公開リポジトリのみ）。
+2. GitHub のリポジトリページで Settings → Pages を開き、Source を「GitHub Actions」にする。
+3. 数分後に `https://<ユーザー名>.github.io/katazuke/` で開ける。
 
 ## ドキュメント
 
 | ファイル | 内容 |
 | --- | --- |
-| [SPEC.md](SPEC.md) | 仕様書。画面、ゲームルール、データ構造、検討事項、決定事項の記録 |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | ブランチ運用とコミットメッセージのルール |
+| [docs/SPEC.md](docs/SPEC.md) | 仕様書。画面、ゲームルール、データ構造、検討事項、決定事項の記録 |
+| [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | ブランチ運用とコミットメッセージのルール |
+| [docs/design-timer.html](docs/design-timer.html) | タイマー付きカードと各モーダルのデザイン案 |
 | [CLAUDE.md](CLAUDE.md) | Claude Code に作業させるときの方針 |
 
-仕様を変えるときは、コードより先に `SPEC.md` を直す。
+仕様を変えるときは、コードより先に `docs/SPEC.md` を直す。
 
 ## ファイル構成
 
 ```
-index.html   画面の骨組み
-style.css    スタイル
-app.js       状態管理、保存、画面切り替え、起動
-game.js      経験値、レベル、ストリーク、きれい度の計算
-room.js      エリアの絵（SVG）
-quests.js    クエスト画面
-timer.js     タイマー
-settings.js  設定画面
-log.js       記録画面
-effects.js   完了とレベルアップの演出
-sw.js        サービスワーカー（オフライン用キャッシュと更新通知）
-manifest.webmanifest  PWA のマニフェスト
-icons/       アプリアイコン
-dev/         開発用ページ
+public/       公開する本体（GitHub Pages に配信される）
+  index.html    画面の骨組み
+  style.css     スタイル
+  app.js        状態管理、保存、画面切り替え、起動
+  game.js       経験値、レベル、ストリーク、きれい度の計算
+  room.js       エリアの絵（SVG）
+  quests.js     クエスト画面
+  timer.js      クエストのタイマーとセッション
+  settings.js   設定画面
+  bulk.js       クエストの一括追加
+  log.js        記録画面
+  effects.js    完了演出
+  dialog.js     確認ダイアログ
+  sw.js         サービスワーカー
+  manifest.webmanifest, icons/
+docs/         仕様書、開発ルール、デザイン案
+dev/          開発用（確認用サーバー、チェック、絵の一覧）
+.github/      PR の雛形と Pages 公開のワークフロー
 ```
 
 ## ライセンス
