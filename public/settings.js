@@ -105,8 +105,7 @@ function clearSample() {
 
 function resetAll() {
   localStorage.removeItem(STORAGE_KEY);
-  state = emptyState();
-  state.areas = DEFAULT_AREAS.map(([name, kind], i) => ({ id: newId('a'), name, kind, order: i }));
+  state = emptyState(); // エリアも含めてすべて消す
   ui.areaFilter = null;
   stopSessionLoop();
   saveState();

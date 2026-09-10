@@ -130,7 +130,6 @@ function renderFocusCard(entry, areaName, now, remaining) {
   const phase = sessionPhase();
   if (!entry && phase === 'idle') {
     return `<div class="focus-card is-empty">
-      <div class="focus-label">いまやる</div>
       <div class="focus-empty">やることはありません。おつかれさま！ ${iconHtml('i-sparkle', 'icon icon-sparkle')}</div>
     </div>`;
   }
