@@ -2,11 +2,24 @@
 
 const STORAGE_KEY = 'katazuke.v1';
 const LAST_TAB_KEY = 'katazuke.lastTab'; // 最後に見ていたタブ。エクスポートには含めない
-const TAB_NAMES = ['quests', 'timer', 'room', 'log', 'settings'];
+const TAB_NAMES = ['quests', 'room', 'log', 'settings'];
 const DATA_VERSION = 1;
 
 let state = null;
-const ui = { tab: 'quests', areaFilter: null, logMonth: null, logDay: null, todoOpen: false };
+const SECTIONS_KEY = 'katazuke.sections'; // クエスト画面の折りたたみ状態。エクスポートには含めない
+const ui = { tab: 'quests', areaFilter: null, logMonth: null, logDay: null, sections: loadSections() };
+
+function loadSections() {
+  const defaults = { todo: false, done: false, byArea: false };
+  try {
+    const saved = JSON.parse(localStorage.getItem(SECTIONS_KEY) || '{}');
+    return { ...defaults, ...saved };
+  } catch (err) { return defaults; }
+}
+
+function saveSections() {
+  try { localStorage.setItem(SECTIONS_KEY, JSON.stringify(ui.sections)); } catch (err) { /* 保存できなくても続行 */ }
+}
 
 // --- 保存 -------------------------------------------------------------
 
@@ -21,7 +34,8 @@ function emptyState() {
     areas: [],
     tasks: [],
     logs: [],
-    timer: { startedAt: null, durationSec: 0, lastResult: null },
+    session: null,
+    sessions: [],
     sample: false,
   };
 }
@@ -38,9 +52,16 @@ function loadState() {
   }
 }
 
+// 0.x の間は変換処理を書かず、足りない項目を初期値で埋めるだけ（SPEC 9.2）
 function migrate(data) {
-  // 将来 version が上がったときの変換処理をここに足す
   if (!data.version) data.version = DATA_VERSION;
+  if (!data.player) data.player = { xp: 0, level: 1, bestStreak: 0 };
+  if (!Array.isArray(data.areas)) data.areas = [];
+  if (!Array.isArray(data.tasks)) data.tasks = [];
+  if (!Array.isArray(data.logs)) data.logs = [];
+  if (!Array.isArray(data.sessions)) data.sessions = [];
+  if (data.session === undefined) data.session = null;
+  delete data.timer; // 旧タイマーは使わない
   return data;
 }
 
@@ -110,12 +131,12 @@ function sampleState(now = new Date()) {
   ];
 
   s.logs = [
-    { taskId: s.tasks[7].id, doneAt: iso(now), xp: 10, inTimer: false, prev: { done: false, lastDoneAt: iso(daysAgo(1)), dueAt: iso(daysAgo(0)) } },
-    { taskId: s.tasks[4].id, doneAt: iso(daysAgo(1)), xp: 10, inTimer: false },
-    { taskId: s.tasks[5].id, doneAt: iso(daysAgo(1)), xp: 25, inTimer: true },
-    { taskId: s.tasks[6].id, doneAt: iso(daysAgo(2)), xp: 10, inTimer: false },
+    { taskId: s.tasks[7].id, doneAt: iso(now), xp: 15, baseXp: 15, bonusXp: 0, combo: 0, prev: { done: false, lastDoneAt: iso(daysAgo(1)), dueAt: iso(daysAgo(0)) } },
+    { taskId: s.tasks[4].id, doneAt: iso(daysAgo(1)), xp: 27, baseXp: 15, bonusXp: 12, combo: 1 },
+    { taskId: s.tasks[5].id, doneAt: iso(daysAgo(1)), xp: 47, baseXp: 25, bonusXp: 22, combo: 2 },
+    { taskId: s.tasks[6].id, doneAt: iso(daysAgo(2)), xp: 15, baseXp: 15, bonusXp: 0, combo: 0 },
   ];
-  s.player.xp = 140;
+  s.player.xp = 104;
   s.player.bestStreak = 3;
   return s;
 }
@@ -171,10 +192,42 @@ function render() {
   renderHeader();
   renderRoom();
   renderQuests();
-  renderTimer();
   renderTimerMini();
   renderSettings();
   renderLog();
+  renderSessionModals();
+}
+
+// 休憩とまとめのモーダル（完了演出は effects.js）
+function renderSessionModals() {
+  const s = state.session;
+  const breakModal = document.getElementById('break-modal');
+  const summaryModal = document.getElementById('summary-modal');
+  setModalVisible(breakModal, !!(s && s.phase === 'break'));
+  if (s && s.phase === 'break') {
+    const note = document.querySelector('#break-modal .break-note');
+    note.hidden = s.combo <= 0;
+    document.getElementById('break-combo').innerHTML = comboBadge(s.combo);
+    renderTimerTick();
+  }
+  setModalVisible(summaryModal, !!(s && s.phase === 'summary'));
+  if (s && s.phase === 'summary') {
+    const r = s.summary;
+    const from = new Date(r.startedAt); const to = new Date(r.endedAt);
+    const hm = (d) => `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+    document.getElementById('summary-sub').textContent = `${formatShortDate(from)} ${hm(from)} 〜 ${hm(to)}`;
+    document.getElementById('summary-xp').textContent = String(r.xp);
+    document.getElementById('summary-count').textContent = String(r.completed);
+    document.getElementById('summary-combo').textContent = String(r.maxCombo);
+    document.getElementById('summary-min').innerHTML = `${Math.max(1, Math.round(r.durationSec / 60))}<small>分</small>`;
+    const rankCell = document.getElementById('summary-rank-cell');
+    rankCell.hidden = !(r.rank >= 1 && r.rank <= 5);
+    document.getElementById('summary-rank').textContent = String(r.rank);
+    const best = document.getElementById('summary-best');
+    best.hidden = !(r.rank >= 1 && r.rank <= 5);
+    best.textContent = r.rank === 1 ? '自己ベスト更新！' : `自己ベスト${r.rank}位！`;
+    document.getElementById('summary-title').textContent = r.completed > 0 ? 'おつかれさま！' : 'セッションを終えました';
+  }
 }
 
 // --- タブ -------------------------------------------------------------
@@ -213,7 +266,7 @@ function measureInsets() {
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.3.1';
+const APP_VERSION = 'v0.4.0';
 let waitingWorker = null;
 
 function registerServiceWorker() {
@@ -256,9 +309,8 @@ function offerUpdate(worker) {
 
 function init() {
   state = loadState() || sampleState();
-  if (!state.timer) state.timer = { startedAt: null, durationSec: 0, lastResult: null };
+  state = migrate(state);
   saveState();
-  initTimer();
   render();
 
   document.getElementById('tabbar').addEventListener('click', (e) => {
@@ -279,6 +331,8 @@ function init() {
   initBulk();
   initLog();
   initEffects();
+  initTimer();
+  render();
   // 前回見ていた画面から始める。なければクエスト
   let lastTab = null;
   try { lastTab = localStorage.getItem(LAST_TAB_KEY); } catch (err) { lastTab = null; }

@@ -1,8 +1,19 @@
 // ゲームルール: 経験値、レベル、ストリーク、きれい度の計算
 // 数値はすべて仮置き（SPEC.md 5章）
 
-const XP_BY_DIFFICULTY = { 1: 10, 2: 25, 3: 50 };
-const TIMER_BONUS = 1.5;
+const XP_BY_DIFFICULTY = { 1: 15, 2: 25, 3: 50 };
+// 難易度ごとのタイマーの長さ（秒）
+const QUEST_SECONDS = { 1: 180, 2: 300, 3: 600 };
+// コンボ倍率: 1コンボ目 1.0、2コンボ目 1.2、以降 0.1 ずつ（数列はあとで調整する前提）
+function comboMultiplier(n) {
+  if (n <= 1) return 1.0;
+  return 1 + 0.1 * n;
+}
+// 残り秒数ボーナス: 残り秒数 × 0.1 × コンボ倍率 を切り上げ
+function timerBonus(remainingSec, combo) {
+  if (remainingSec <= 0) return 0;
+  return Math.ceil(remainingSec * 0.1 * comboMultiplier(combo));
+}
 
 const TITLES = [
   [1, '見習い'],
@@ -36,9 +47,8 @@ function titleForLevel(level) {
   return title;
 }
 
-function xpForTask(task, inTimer) {
-  const base = XP_BY_DIFFICULTY[task.difficulty] || XP_BY_DIFFICULTY[1];
-  return Math.round(inTimer ? base * TIMER_BONUS : base);
+function baseXpForTask(task) {
+  return XP_BY_DIFFICULTY[task.difficulty] || XP_BY_DIFFICULTY[1];
 }
 
 // タスクの状態
@@ -152,8 +162,3 @@ function repeatLabel(repeat) {
   return '';
 }
 
-// タイマーが動いているか
-function timerActive(timer, now = new Date()) {
-  if (!timer || !timer.startedAt) return false;
-  return now.getTime() < new Date(timer.startedAt).getTime() + timer.durationSec * 1000;
-}

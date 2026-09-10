@@ -107,9 +107,9 @@ function renderLog() {
         <span class="log-time">${time}</span>
         <span class="log-body">
           <span class="log-title">${escapeHtml(titleOf(log))}</span>
-          <span class="log-meta">${escapeHtml(areaOf(log))}${log.inTimer ? ` · ${iconHtml('i-timer', 'icon icon-timer')}タイマー中` : ''}</span>
+          <span class="log-meta">${escapeHtml(areaOf(log))}${log.combo >= 1 ? ` · ${iconHtml('i-flame', 'icon icon-flame')}${log.combo}コンボ` : ''}</span>
         </span>
-        <span class="log-xp">+${log.xp}</span>
+        <span class="log-xp">+${log.xp}${log.bonusXp > 0 ? `<small>（+${log.bonusXp}）</small>` : ''}</span>
       </li>`;
     }).join('')
     : '<li class="quest-empty">この日の記録はありません</li>';
@@ -143,6 +143,23 @@ function renderLog() {
         <span class="bar-value">${n}</span>
       </li>`).join('')
     : '<li class="quest-empty">今週はまだ記録がありません</li>';
+
+  // セッションのランキング（獲得 XP 上位5件）
+  const ranked = [...(state.sessions || [])].sort((a, b) => b.xp - a.xp).slice(0, 5);
+  document.getElementById('log-rank').innerHTML = ranked.length
+    ? ranked.map((r, i) => {
+      const d = new Date(r.startedAt);
+      const label = `${d.getMonth() + 1}/${d.getDate()}（${WEEKDAYS[(d.getDay() + 6) % 7]}）${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+      return `<li class="rank-row">
+        <span class="rank-no">${i + 1}</span>
+        <span class="rank-body">
+          <span class="rank-date">${label}</span>
+          <span class="rank-meta">達成 ${r.completed} · 最大 ${r.maxCombo}コンボ · ${Math.max(1, Math.round(r.durationSec / 60))}分</span>
+        </span>
+        <span class="rank-xp">${r.xp}<small> XP</small></span>
+      </li>`;
+    }).join('')
+    : '<li class="quest-empty">セッションを終えると、ここに上位5件が並びます</li>';
 }
 
 function initLog() {
