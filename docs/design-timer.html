@@ -396,11 +396,11 @@
   <script src="../public/effects.js"></script>
   <script>
     // 完了演出の再生（モックアップ用）
-    let clearTimers = [];
-    function later(fn, ms) { clearTimers.push(setTimeout(fn, ms)); }
+    let mockTimers = [];
+    function later(fn, ms) { mockTimers.push(setTimeout(fn, ms)); }
     function playClear() {
       // 前の再生が残っていたら止める
-      clearTimers.forEach(clearTimeout); clearTimers = [];
+      mockTimers.forEach(clearTimeout); mockTimers = [];
       const card = document.getElementById('clear-card');
       const rows = [...card.querySelectorAll('[data-step]')];
       rows.forEach((r) => r.classList.add('is-hidden'));
