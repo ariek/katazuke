@@ -216,6 +216,17 @@ function renderFocusCard(entry, areaName, now, remaining) {
   </div>`;
 }
 
+// 登録ボーナス: 追加で +1 XP、削除で -1 XP（0 未満にはしない。境目をまたげばレベルは下がる）
+const ADD_XP = 1;
+
+function addRegisterXp() {
+  state.player.xp += ADD_XP;
+}
+
+function removeRegisterXp(count = 1) {
+  state.player.xp = Math.max(0, state.player.xp - ADD_XP * count);
+}
+
 function upsertTask(data) {
   const now = new Date().toISOString();
   if (data.id) {
