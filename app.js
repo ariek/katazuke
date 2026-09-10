@@ -257,16 +257,11 @@ function measureInsets() {
   const root = document.documentElement.style;
   if (top > 0) root.setProperty('--inset-top', `${top}px`); else root.removeProperty('--inset-top');
   if (bottom > 0) root.setProperty('--inset-bottom', `${bottom}px`); else root.removeProperty('--inset-bottom');
-  const info = document.getElementById('screen-info');
-  if (info) {
-    const standalone = document.documentElement.classList.contains('is-standalone');
-    info.textContent = `画面 ${window.innerWidth}×${window.innerHeight} · 上の余白 ${top}px · 下の余白 ${bottom}px · 全画面 ${standalone ? 'はい' : 'いいえ'}`;
-  }
 }
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.4.1';
+const APP_VERSION = 'v0.4.2';
 let waitingWorker = null;
 
 function registerServiceWorker() {
