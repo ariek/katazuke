@@ -2,10 +2,19 @@
 
 個人開発だが、履歴を追いやすくするために以下のルールで運用する。
 
+## ディレクトリ
+
+| ディレクトリ | 役割 |
+| --- | --- |
+| `public/` | 公開する本体。GitHub Actions がここだけを GitHub Pages に配信する |
+| `docs/` | 仕様書、このルール、デザイン案 |
+| `dev/` | 確認用サーバー、コミット前チェック、絵の一覧 |
+| `.github/` | PR の雛形と Pages 公開のワークフロー |
+
 ## 作業の流れ
 
 1. `main` から作業ブランチを切って実装する。この時点ではコミットしない。
-2. ローカルで確認する。Mac のブラウザは `http://127.0.0.1:8765/`、iPhone は同じ Wi-Fi から `http://<MacのIP>:8765/`（サーバーは下記コマンドで起動）。全画面の見え方は、その URL をホーム画面に追加して確認する。
+2. ローカルで確認する。Mac のブラウザは `http://127.0.0.1:8765/public/`、iPhone は同じ Wi-Fi から `http://<MacのIP>:8765/public/`（サーバーは下記コマンドで起動）。全画面の見え方は、その URL をホーム画面に追加して確認する。
 3. コミット前に `./dev/check.sh` を実行し、JS の構文と CSS の波括弧の対応を確認する（CSS は途中で壊れると、それ以降の指定が全部無効になる）。
 4. 確認して OK になってからコミットし、プッシュして PR を作る。直しがあれば同じブランチで続け、再確認してからコミットする。
 5. PR を Squash and merge で取り込み、必要ならタグを打つ。
@@ -75,17 +84,17 @@ fix: 日付が変わった直後にストリークが0になる問題を修正
 
 ## リリース時の注意
 
-- アプリのファイル（HTML / CSS / JS / アイコン）を変更して `main` に取り込むときは、`sw.js` の `CACHE_VERSION` と `app.js` の `APP_VERSION` を同じ値に上げる。これが変わらないと、インストール済みの端末に更新通知が出ない。
-- アイコンを変えるときは `icons/icon.svg` を直し、PNG は次のコマンドで作り直す（macOS）。
+- アプリのファイル（`public/` 以下）を変更して `main` に取り込むときは、`public/sw.js` の `CACHE_VERSION` と `public/app.js` の `APP_VERSION` を同じ値に上げる。これが変わらないと、インストール済みの端末に更新通知が出ない。
+- アイコンを変えるときは `public/icons/icon.svg` を直し、PNG は次のコマンドで作り直す（macOS）。
 
 ```bash
-cd icons && qlmanage -t -s 1024 -o . icon.svg && python3 -c "from PIL import Image; s=Image.open('icon.svg.png').convert('RGBA'); [s.resize((n,n), Image.LANCZOS).save(f) for f,n in [('icon-512.png',512),('icon-192.png',192)]]; bg=Image.new('RGBA',(180,180),'#fbf6ee'); bg.alpha_composite(s.resize((180,180), Image.LANCZOS)); bg.convert('RGB').save('apple-touch-icon.png')" && rm icon.svg.png
+cd public/icons && qlmanage -t -s 1024 -o . icon.svg && python3 -c "from PIL import Image; s=Image.open('icon.svg.png').convert('RGBA'); [s.resize((n,n), Image.LANCZOS).save(f) for f,n in [('icon-512.png',512),('icon-192.png',192)]]; bg=Image.new('RGBA',(180,180),'#fbf6ee'); bg.alpha_composite(s.resize((180,180), Image.LANCZOS)); bg.convert('RGB').save('apple-touch-icon.png')" && rm icon.svg.png
 ```
 
 ## バージョン
 
 - 番号は `v メジャー.マイナー.パッチ` の3桁。`feat`（機能追加）でマイナーを、`fix` / `style`（修正や見た目の調整）でパッチを上げる。
-- アプリのファイルを変える PR では、`app.js` の `APP_VERSION` と `sw.js` の `CACHE_VERSION` を同じ番号に上げる。
+- アプリのファイルを変える PR では、`public/app.js` の `APP_VERSION` と `public/sw.js` の `CACHE_VERSION` を同じ番号に上げる。
 - その PR を `main` に取り込んだら、同じ番号のタグを打ってプッシュする（例: `v0.2.3`）。ドキュメントだけの変更ではタグを打たない。
 - 最初の遊べる版は `v0.1.0`。
 
@@ -99,5 +108,5 @@ cd icons && qlmanage -t -s 1024 -o . icon.svg && python3 -c "from PIL import Ima
 
 ## 仕様変更
 
-- 仕様を変えるときは `SPEC.md` を先に直し、同じ PR にコードの変更を入れる。
-- 決めたことは `SPEC.md` 末尾の「決定事項の記録」に日付付きで追記する。
+- 仕様を変えるときは `docs/SPEC.md` を先に直し、同じ PR にコードの変更を入れる。
+- 決めたことは `docs/SPEC.md` 末尾の「決定事項の記録」に日付付きで追記する。

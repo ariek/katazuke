@@ -7,7 +7,7 @@
 - 利用者は自分ひとり。プロフィール切り替えは不要。
 - 動作環境はスマホのブラウザを主とし、PCでも使える。
 - サーバーなし。データはすべて `localStorage` に保存する。
-- 素の HTML / CSS / JavaScript で作り、ビルド工程なし。GitHub Pages で `main` ブランチのルートを公開する。
+- 素の HTML / CSS / JavaScript で作り、ビルド工程なし。GitHub Actions で `public/` だけを GitHub Pages に公開する。
 - 見た目はやわらかい手描き風（パステル調、少しラフな線）。
 - 設計方針: クエストをなるべく細かく分け、1つずつ片付ける（シングルタスク）ことを最優先にする。機能を足すときもこの方針に沿うかを基準に判断する。
 
@@ -321,30 +321,36 @@
 ## 12. ファイル構成
 
 ```
-index.html      画面の骨組み
-style.css       スタイル
-app.js          状態管理、保存、画面切り替え
-game.js         経験値、レベル、ストリーク、きれい度の計算
-room.js         部屋の SVG とエリアの切り替え
-quests.js       クエスト画面（一覧、追加・編集・削除、完了と取り消し）
-timer.js        クエストのタイマーとセッション（7章）
-effects.js      完了とレベルアップの演出
-dialog.js       独自の確認ダイアログ
-sw.js           サービスワーカー（キャッシュと更新）
-manifest.webmanifest PWA のマニフェスト
-icons/          アプリアイコン（icon.svg が元、PNG は生成物）
-settings.js     設定画面（エリア編集、エクスポート/インポート、サンプル削除、初期化）
-bulk.js         クエストの一括追加（貼り付けた文字列の解釈、内訳、登録と取り消し）
-log.js          記録画面（カレンダー、日ごとの記録、週間サマリー）
-dev/gallery.html エリアの絵を全種類・全段階まとめて確認する開発用ページ
-dev/mockup-timer.html タイマー付きカードと各モーダルのデザイン案（実装の参照用）
-dev/server.py   ローカル確認用サーバー（キャッシュ禁止）
-dev/check.sh    コミット前の簡易チェック（JS 構文、CSS の波括弧）
-.claude/launch.json ローカル確認用サーバーの起動設定（Claude Code 用）
-README.md       概要、動かし方、公開手順
-SPEC.md         この仕様書
-CONTRIBUTING.md ブランチとコミットのルール
-CLAUDE.md       Claude Code 向けの作業方針
+public/               公開する本体。GitHub Actions がここだけを GitHub Pages に配信する
+  index.html          画面の骨組み
+  style.css           スタイル
+  app.js              状態管理、保存、画面切り替え
+  game.js             経験値、レベル、ストリーク、きれい度の計算
+  room.js             部屋の SVG とエリアの切り替え
+  quests.js           クエスト画面（一覧、追加・編集・削除、完了と取り消し）
+  timer.js            クエストのタイマーとセッション（7章）
+  effects.js          完了とレベルアップの演出
+  dialog.js           独自の確認ダイアログ
+  settings.js         設定画面（エリア編集、エクスポート/インポート、サンプル削除、初期化）
+  bulk.js             クエストの一括追加（貼り付けた文字列の解釈、内訳、登録と取り消し）
+  log.js              記録画面（カレンダー、日ごとの記録、週間サマリー）
+  sw.js               サービスワーカー（キャッシュと更新）
+  manifest.webmanifest PWA のマニフェスト
+  icons/              アプリアイコン（icon.svg が元、PNG は生成物）
+docs/
+  SPEC.md             この仕様書
+  CONTRIBUTING.md     ブランチとコミットのルール
+  design-timer.html   タイマー付きカードと各モーダルのデザイン案（実装の参照用）
+dev/
+  server.py           ローカル確認用サーバー（キャッシュ禁止）
+  check.sh            コミット前の簡易チェック（JS 構文、CSS の波括弧）
+  gallery.html        エリアの絵を全種類・全段階まとめて確認する開発用ページ
+.github/
+  workflows/pages.yml main への取り込みで public/ を GitHub Pages に公開する
+  PULL_REQUEST_TEMPLATE.md
+.claude/launch.json   ローカル確認用サーバーの起動設定（Claude Code 用）
+README.md             概要、動かし方、公開手順
+CLAUDE.md             Claude Code 向けの作業方針
 ```
 
 スクリプトはビルドせずにそのまま読み込む。読み込み順は `game.js` → `room.js` → `quests.js` → `timer.js` → `settings.js` → `bulk.js` → `log.js` → `effects.js` → `dialog.js` → `app.js` で、`app.js` が起動処理を持つ。
@@ -379,3 +385,4 @@ CLAUDE.md       Claude Code 向けの作業方針
 - 2026-09-10: タイマー付きカードのデザインを確定。数字の下の枠に ▶ / ⏸ / 時間切れを入れ、主ボタンは「スタート」→「クエスト完了」、その下に「あとで」または「× やめる」。完了演出は紙吹雪とカウントアップ、合計は段階ごとに弾む。
 - 2026-09-10: 経験値が減る操作（完了の取り消し、クエスト削除の −1）はどちらもレベルダウンしうる扱いに統一する。
 - 2026-09-10: 一時停止してもボーナスとコンボは途切れないようにする。途切れるのは時間切れと「やめる」だけ。
+- 2026-09-10: 公開する本体を `public/`、ドキュメントを `docs/`、開発用を `dev/` に分け、GitHub Actions で `public/` だけを Pages に公開する。
