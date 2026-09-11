@@ -32,11 +32,11 @@ required = [
     'initTimer', 'initSession', 'startSession', 'beginQuest', 'pauseQuest', 'resumeQuest', 'completeQuest', 'quitSession', 'endSession',
     'closeSummary', 'tickSession', 'ensureSessionLoop', 'stopSessionLoop', 'renderTimerTick', 'renderTimerMini', 'pickNextQuest',
     'questRemainingSec', 'sessionActive', 'sessionPhase', 'digitsHtml', 'playTone', 'skipQuest', 'adjustSeconds',
-    'initSettings', 'renderSettings', 'sortedAreas', 'moveArea', 'deleteArea', 'upsertArea', 'importJson', 'exportJson', 'clearSample', 'resetAll',
+    'initSettings', 'renderSettings', 'sortedCategories', 'moveCategory', 'deleteCategory', 'upsertCategory', 'importJson', 'exportJson', 'clearSample', 'resetAll',
     'initBulk', 'parseBulkText', 'applyBulkPlan', 'undoBulk',
     'initLog', 'renderLog', 'initEffects', 'burstAt', 'floatText', 'pulseXpBar', 'centerOf', 'showClearModal', 'hideClearModal', 'setModalVisible',
     'clearAnimationMs', 'initDialog', 'askConfirm', 'showAlert',
-    'levelInfo', 'titleForLevel', 'baseXpForTask', 'timerBonus', 'comboMultiplier', 'taskStatus', 'areaCleanliness', 'currentStreak',
+    'levelInfo', 'titleForLevel', 'baseXpForTask', 'timerBonus', 'comboMultiplier', 'taskStatus', 'currentStreak',
     'dateKey', 'addDays', 'startOfDay', 'nextDueDate', 'daysBetween', 'formatShortDate', 'repeatLabel',
 ]
 missing = [n for n in required if n not in defined]

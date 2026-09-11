@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "katazuke",
+      "name": "todo-timer",
       "runtimeExecutable": "/usr/bin/python3",
       "runtimeArgs": [
         "dev/server.py",

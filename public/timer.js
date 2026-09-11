@@ -286,7 +286,7 @@ function nextOrEnd() {
 
 function pickNextQuest(excludeId = null) {
   const now = new Date();
-  const tasks = state.tasks.filter((t) => t.id !== excludeId && (!ui.areaFilter || t.areaId === ui.areaFilter));
+  const tasks = state.tasks.filter((t) => t.id !== excludeId && (!ui.categoryFilter || t.categoryId === ui.categoryFilter));
   const entries = tasks.map((task) => ({ task, status: taskStatus(task, now) }))
     .filter((e) => ['overdue', 'due', 'todo'].includes(e.status));
   const focus = pickFocus(entries, now);

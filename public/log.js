@@ -93,10 +93,10 @@ function renderLog() {
     const task = state.tasks.find((t) => t.id === log.taskId);
     return task ? task.title : '（削除されたタスク）';
   };
-  const areaOf = (log) => {
+  const categoryOf = (log) => {
     const task = state.tasks.find((t) => t.id === log.taskId);
-    const area = task && state.areas.find((a) => a.id === task.areaId);
-    return area ? area.name : '';
+    const category = task && state.categories.find((a) => a.id === task.categoryId);
+    return category ? category.name : '';
   };
   document.getElementById('log-day-title').textContent = `${dayLabel}の記録`;
   document.getElementById('log-day-list').innerHTML = dayLogs.length
@@ -107,7 +107,7 @@ function renderLog() {
         <span class="log-time">${time}</span>
         <span class="log-body">
           <span class="log-title">${escapeHtml(titleOf(log))}</span>
-          <span class="log-meta">${escapeHtml(areaOf(log))}${log.combo >= 1 ? ` · ${iconHtml('i-flame', 'icon icon-flame')}${log.combo}コンボ` : ''}</span>
+          <span class="log-meta">${escapeHtml(categoryOf(log))}${log.combo >= 1 ? ` · ${iconHtml('i-flame', 'icon icon-flame')}${log.combo}コンボ` : ''}</span>
         </span>
         <span class="log-xp">+${log.xp}${log.bonusXp > 0 ? `<small>（+${log.bonusXp}）</small>` : ''}</span>
       </li>`;
@@ -129,14 +129,14 @@ function renderLog() {
     [weekLogs.length, '完了'], [weekXp, 'XP'], [activeDays, '日活動'],
   ].map(([v, l]) => `<span class="week-stat"><strong>${v}</strong>${l}</span>`).join('');
 
-  const perArea = {};
+  const perCategory = {};
   for (const log of weekLogs) {
-    const name = areaOf(log) || 'その他';
-    perArea[name] = (perArea[name] || 0) + 1;
+    const name = categoryOf(log) || 'その他';
+    perCategory[name] = (perCategory[name] || 0) + 1;
   }
-  const entries = Object.entries(perArea).sort((a, b) => b[1] - a[1]);
+  const entries = Object.entries(perCategory).sort((a, b) => b[1] - a[1]);
   const max = entries.length ? entries[0][1] : 1;
-  document.getElementById('log-week-areas').innerHTML = entries.length
+  document.getElementById('log-week-categories').innerHTML = entries.length
     ? entries.map(([name, n]) => `<li class="bar-row">
         <span class="bar-label">${escapeHtml(name)}</span>
         <span class="bar-track"><span class="bar-fill" style="width:${Math.round((n / max) * 100)}%"></span></span>

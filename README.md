@@ -27,7 +27,7 @@ python3 dev/server.py
 
 ブラウザで `http://127.0.0.1:8765/public/` を開く。クエストの色とアイコンをまとめて見る開発用ページは `http://127.0.0.1:8765/dev/gallery.html`、タイマーのデザイン案は `http://127.0.0.1:8765/docs/design-timer.html`。
 
-Claude Code から確認する場合は `.claude/launch.json` の `katazuke` 設定で同じサーバーが起動する。
+Claude Code から確認する場合は `.claude/launch.json` の `todo-timer` 設定で同じサーバーが起動する。
 
 ## 公開（GitHub Pages）
 
@@ -37,7 +37,7 @@ Claude Code から確認する場合は `.claude/launch.json` の `katazuke` 設
 
 1. リポジトリを公開に切り替える（無料プランの GitHub Pages は公開リポジトリのみ）。
 2. GitHub のリポジトリページで Settings → Pages を開き、Source を「GitHub Actions」にする。
-3. 数分後に `https://<ユーザー名>.github.io/katazuke/` で開ける。
+3. 数分後に `https://<ユーザー名>.github.io/todo-timer/` で開ける。
 
 ## ドキュメント
 

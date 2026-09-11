@@ -1,6 +1,6 @@
 // タスクの一括追加: 貼り付けた文字列を解釈し、内訳を出してから登録する
 
-const BULK_DEFAULT_AREA = 'なんでも';
+const BULK_DEFAULT_CATEGORY = 'なんでも';
 const BULK_TITLE_MAX = 60;
 const BULK_NOTE_MAX = 200;
 
@@ -51,10 +51,10 @@ function parseDeadline(str, now = new Date()) {
 }
 
 // 文字列を解釈して「登録の計画」を返す。まだ状態は変えない
-function parseBulkText(text, areas, tasks) {
-  const areaByName = new Map(sortedAreas().map((a) => [a.name, a]));
+function parseBulkText(text, categories, tasks) {
+  const categoryByName = new Map(sortedCategories().map((a) => [a.name, a]));
   // 新しいクエストの色は、まだ使われていない色からランダムに選ぶ（使い切ったら全色から）
-  const usedColors = new Set(state.areas.map((a) => a.color));
+  const usedColors = new Set(state.categories.map((a) => a.color));
   const pickColor = () => {
     const pool = CATEGORY_COLORS.filter((c) => !usedColors.has(c.id));
     const from = pool.length ? pool : CATEGORY_COLORS;
@@ -62,23 +62,23 @@ function parseBulkText(text, areas, tasks) {
     usedColors.add(picked.id);
     return picked.id;
   };
-  const existingTitles = new Set(tasks.filter((t) => !t.done).map((t) => `${t.areaId}\n${t.title}`));
-  const newAreas = []; // { name, color, icon }
-  const entries = []; // { areaName, areaId|null, title, deadline, difficulty }
+  const existingTitles = new Set(tasks.filter((t) => !t.done).map((t) => `${t.categoryId}\n${t.title}`));
+  const newCategories = []; // { name, color, icon }
+  const entries = []; // { categoryName, categoryId|null, title, deadline, difficulty }
   const skipped = { empty: 0, badDeadline: 0, badDifficulty: 0, duplicate: 0 };
   let truncated = 0;
   const seen = new Set();
   const now = new Date();
 
-  const resolveArea = (name) => {
-    const found = areaByName.get(name);
+  const resolveCategory = (name) => {
+    const found = categoryByName.get(name);
     if (found) return { id: found.id, name: found.name };
-    let pending = newAreas.find((a) => a.name === name);
+    let pending = newCategories.find((a) => a.name === name);
     if (!pending) {
-      pending = name === BULK_DEFAULT_AREA
+      pending = name === BULK_DEFAULT_CATEGORY
         ? { name, color: DEFAULT_COLOR, icon: DEFAULT_ICON }
         : { name, color: pickColor(), icon: DEFAULT_ICON };
-      newAreas.push(pending);
+      newCategories.push(pending);
     }
     return { id: null, name };
   };
@@ -91,7 +91,7 @@ function parseBulkText(text, areas, tasks) {
 
     // クエスト：タイトル：期限：難易度：メモ（区切りは ：, :, タブ。メモの中の区切りはそのまま残す）
     const parts = line.split(SEPARATOR_RE).map(bulkTrim);
-    let areaName = BULK_DEFAULT_AREA;
+    let categoryName = BULK_DEFAULT_CATEGORY;
     let title = '';
     let deadlineText = '';
     let difficultyText = '';
@@ -99,15 +99,15 @@ function parseBulkText(text, areas, tasks) {
     if (parts.length === 1) {
       title = parts[0];
     } else if (parts.length === 2) {
-      [areaName, title] = parts;
+      [categoryName, title] = parts;
     } else if (parts.length === 3) {
-      [areaName, title] = parts;
+      [categoryName, title] = parts;
       if (looksLikeDifficulty(parts[2])) difficultyText = parts[2]; else deadlineText = parts[2];
     } else {
-      [areaName, title, deadlineText, difficultyText] = parts;
+      [categoryName, title, deadlineText, difficultyText] = parts;
       note = parts.slice(4).join('：');
     }
-    if (!areaName) areaName = BULK_DEFAULT_AREA;
+    if (!categoryName) categoryName = BULK_DEFAULT_CATEGORY;
     if (!title) { skipped.empty += 1; continue; }
     if (title.length > BULK_TITLE_MAX) { title = title.slice(0, BULK_TITLE_MAX); truncated += 1; }
     if (note.length > BULK_NOTE_MAX) note = note.slice(0, BULK_NOTE_MAX);
@@ -125,39 +125,39 @@ function parseBulkText(text, areas, tasks) {
       difficulty = v;
     }
 
-    const area = resolveArea(areaName);
-    const key = `${area.id || `new:${area.name}`}\n${title}`;
-    if (seen.has(key) || (area.id && existingTitles.has(`${area.id}\n${title}`))) { skipped.duplicate += 1; continue; }
+    const category = resolveCategory(categoryName);
+    const key = `${category.id || `new:${category.name}`}\n${title}`;
+    if (seen.has(key) || (category.id && existingTitles.has(`${category.id}\n${title}`))) { skipped.duplicate += 1; continue; }
     seen.add(key);
-    entries.push({ areaName: area.name, areaId: area.id, title, deadline, difficulty, note });
+    entries.push({ categoryName: category.name, categoryId: category.id, title, deadline, difficulty, note });
   }
 
   // クエストごとの件数
-  const perArea = {};
-  for (const e of entries) perArea[e.areaName] = (perArea[e.areaName] || 0) + 1;
-  return { newAreas, entries, skipped, perArea, truncated };
+  const perCategory = {};
+  for (const e of entries) perCategory[e.categoryName] = (perCategory[e.categoryName] || 0) + 1;
+  return { newCategories, entries, skipped, perCategory, truncated };
 }
 
 let lastBulk = null; // 取り消し用
 
 function applyBulkPlan(plan) {
   const now = new Date().toISOString();
-  const createdAreaIds = [];
+  const createdCategoryIds = [];
   const createdTaskIds = [];
-  let maxOrder = state.areas.reduce((m, a) => Math.max(m, a.order), -1);
-  const idByName = new Map(state.areas.map((a) => [a.name, a.id]));
+  let maxOrder = state.categories.reduce((m, a) => Math.max(m, a.order), -1);
+  const idByName = new Map(state.categories.map((a) => [a.name, a.id]));
 
-  for (const a of plan.newAreas) {
+  for (const a of plan.newCategories) {
     maxOrder += 1;
-    const area = { id: newId('a'), name: a.name, color: a.color, icon: a.icon, order: maxOrder };
-    state.areas.push(area);
-    idByName.set(area.name, area.id);
-    createdAreaIds.push(area.id);
+    const category = { id: newId('c'), name: a.name, color: a.color, icon: a.icon, order: maxOrder };
+    state.categories.push(category);
+    idByName.set(category.name, category.id);
+    createdCategoryIds.push(category.id);
   }
   for (const e of plan.entries) {
     const task = {
       id: newId('t'),
-      areaId: e.areaId || idByName.get(e.areaName),
+      categoryId: e.categoryId || idByName.get(e.categoryName),
       title: e.title,
       difficulty: e.difficulty || 1,
       repeat: { type: 'none' },
@@ -174,8 +174,8 @@ function applyBulkPlan(plan) {
     addRegisterXp();
   }
   saveState();
-  lastBulk = { createdAreaIds, createdTaskIds };
-  return { areas: createdAreaIds.length, tasks: createdTaskIds.length };
+  lastBulk = { createdCategoryIds, createdTaskIds };
+  return { categories: createdCategoryIds.length, tasks: createdTaskIds.length };
 }
 
 function undoBulk() {
@@ -186,13 +186,13 @@ function undoBulk() {
   const removed = before - state.tasks.length;
   if (removed > 0) removeRegisterXp(removed);
   // 今回作ったクエストは、ほかにタスクが残っていなければ消す
-  for (const areaId of lastBulk.createdAreaIds) {
-    if (!state.tasks.some((t) => t.areaId === areaId)) {
-      state.areas = state.areas.filter((a) => a.id !== areaId);
-      if (ui.areaFilter === areaId) ui.areaFilter = null;
+  for (const categoryId of lastBulk.createdCategoryIds) {
+    if (!state.tasks.some((t) => t.categoryId === categoryId)) {
+      state.categories = state.categories.filter((a) => a.id !== categoryId);
+      if (ui.categoryFilter === categoryId) ui.categoryFilter = null;
     }
   }
-  sortedAreas().forEach((a, i) => { a.order = i; });
+  sortedCategories().forEach((a, i) => { a.order = i; });
   lastBulk = null;
   saveState();
   return true;
@@ -205,11 +205,11 @@ let bulkPlan = null;
 function renderBulkPreview(plan) {
   const box = document.getElementById('bulk-result');
   const parts = [];
-  if (plan.newAreas.length) {
-    parts.push(`<p><strong>新しいクエスト ${plan.newAreas.length} 件</strong>: ${plan.newAreas.map((a) => escapeHtml(a.name)).join('、')}</p>`);
+  if (plan.newCategories.length) {
+    parts.push(`<p><strong>新しいクエスト ${plan.newCategories.length} 件</strong>: ${plan.newCategories.map((a) => escapeHtml(a.name)).join('、')}</p>`);
   }
-  const areaLines = Object.entries(plan.perArea).map(([name, n]) => `${escapeHtml(name)} ${n}`).join('、');
-  parts.push(`<p><strong>タスク ${plan.entries.length} 件</strong>${areaLines ? `: ${areaLines}` : ''}</p>`);
+  const categoryLines = Object.entries(plan.perCategory).map(([name, n]) => `${escapeHtml(name)} ${n}`).join('、');
+  parts.push(`<p><strong>タスク ${plan.entries.length} 件</strong>${categoryLines ? `: ${categoryLines}` : ''}</p>`);
   if (plan.truncated) parts.push(`<p class="bulk-skip">切り詰め: ${BULK_TITLE_MAX}文字に短くした行 ${plan.truncated}</p>`);
   const skips = [];
   if (plan.skipped.empty) skips.push(`タイトルなし ${plan.skipped.empty}`);
@@ -228,7 +228,7 @@ function renderBulkPreview(plan) {
 
 function renderBulkDone(result) {
   const box = document.getElementById('bulk-result');
-  box.innerHTML = `<p><strong>${result.tasks} 件を登録しました</strong>（+${result.tasks} XP${result.areas ? `、クエスト ${result.areas} 件を追加` : ''}）</p>
+  box.innerHTML = `<p><strong>${result.tasks} 件を登録しました</strong>（+${result.tasks} XP${result.categories ? `、クエスト ${result.categories} 件を追加` : ''}）</p>
     <div class="btn-row"><button class="btn" id="bulk-undo">取り消す</button></div>`;
   box.hidden = false;
 }
@@ -248,7 +248,7 @@ function initBulk() {
     const text = textarea.value;
     if (!bulkTrim(text)) { showToast('1行1タスクで貼り付けてください'); return; }
     lastBulk = null;
-    bulkPlan = parseBulkText(text, state.areas, state.tasks);
+    bulkPlan = parseBulkText(text, state.categories, state.tasks);
     renderBulkPreview(bulkPlan);
   });
 
