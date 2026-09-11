@@ -73,20 +73,25 @@ function isDeferredToday(task, now = new Date()) {
   return !!task.deferredAt && dateKey(task.deferredAt) === dateKey(now);
 }
 
-// やることの並び順: 先送りしたものは最後（先送りが早い順）、期限切れ → 今日 → 期限なし、
-// 同じなら難易度が低い順、さらに同じなら期限が早い順。先頭が「いまやる」になる
+// やることの並び順: 期限日が早い順（期限なしは最後）、同じ日なら登録が早い順。
+// 「あとで」にしたものは、その期限日の中で最後に回る（先送りが早い順）。先頭が「いまやる」になる
+function dueDayKey(task) {
+  const due = task.repeat.type === 'none' ? task.deadline : task.dueAt;
+  return due ? dateKey(due) : '9999-99-99';
+}
+
 function sortFocusOrder(todoEntries, now = new Date()) {
-  const rank = { overdue: 0, due: 1, todo: 2 };
   return [...todoEntries].sort((a, b) => {
+    const ka = dueDayKey(a.task);
+    const kb = dueDayKey(b.task);
+    if (ka !== kb) return ka < kb ? -1 : 1;
     const da = isDeferredToday(a.task, now);
     const db = isDeferredToday(b.task, now);
     if (da !== db) return da ? 1 : -1;
     if (da && db) return a.task.deferredAt < b.task.deferredAt ? -1 : 1;
-    if (rank[a.status] !== rank[b.status]) return rank[a.status] - rank[b.status];
-    if (a.task.difficulty !== b.task.difficulty) return a.task.difficulty - b.task.difficulty;
-    const ka = a.task.deadline || a.task.dueAt || '9999';
-    const kb = b.task.deadline || b.task.dueAt || '9999';
-    return ka < kb ? -1 : ka > kb ? 1 : 0;
+    const ca = a.task.createdAt || '';
+    const cb = b.task.createdAt || '';
+    return ca < cb ? -1 : ca > cb ? 1 : 0;
   });
 }
 
@@ -185,7 +190,9 @@ function renderFocusCard(entry, areaName, now, remaining) {
   let sub;
   if (phase === 'idle') {
     main = `<button class="btn btn-primary qt-main is-start" data-qt="start">スタート</button>`;
-    sub = `<button class="btn qt-small" data-defer="${task.id}" ${remaining <= 1 ? 'disabled' : ''}>あとで</button>`;
+    // 同じ期限日にほかのクエストがなければ「あとで」は意味がないので押せない
+    const sameDay = state.tasks.filter((t) => t.id !== task.id && !t.done && ['overdue', 'due', 'todo'].includes(taskStatus(t, now)) && dueDayKey(t) === dueDayKey(task) && (!ui.areaFilter || t.areaId === ui.areaFilter));
+    sub = `<button class="btn qt-small" data-defer="${task.id}" ${sameDay.length === 0 ? 'disabled' : ''}>あとで</button>`;
   } else {
     const canComplete = phase === 'running' || phase === 'paused';
     main = `<button class="btn btn-primary qt-main" data-qt="complete" ${canComplete ? '' : 'disabled'}>クエスト完了</button>`;
