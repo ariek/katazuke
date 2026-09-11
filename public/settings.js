@@ -40,13 +40,13 @@ function deleteCategory(categoryId) {
   saveState();
 }
 
-function moveCategory(categoryId, delta) {
-  const list = sortedCategories();
-  const index = list.findIndex((a) => a.id === categoryId);
-  const target = index + delta;
-  if (index < 0 || target < 0 || target >= list.length) return;
-  [list[index], list[target]] = [list[target], list[index]];
-  list.forEach((a, i) => { a.order = i; });
+// 並び順を id の配列どおりにする（ドラッグ＆ドロップの結果を反映）
+function reorderCategories(ids) {
+  const byId = new Map(state.categories.map((c) => [c.id, c]));
+  let order = 0;
+  ids.forEach((id) => { const c = byId.get(id); if (c) c.order = order++; });
+  // 配列に含まれなかったものは末尾に
+  sortedCategories().forEach((c) => { if (!ids.includes(c.id)) c.order = order++; });
   saveState();
 }
 
@@ -126,16 +126,13 @@ function renderSettings() {
   const taskCount = {};
   for (const t of state.tasks) taskCount[t.categoryId] = (taskCount[t.categoryId] || 0) + 1;
 
-  list.innerHTML = categories.map((a, i) => `<li class="category-row">
+  list.innerHTML = categories.map((a) => `<li class="category-row" data-id="${a.id}">
     ${categoryIconHtml(a, 'cat-icon cat-icon--lg')}
     <button class="category-body" data-category-edit="${a.id}">
       <span class="category-name">${escapeHtml(a.name)}</span>
       <span class="category-meta">タスク ${taskCount[a.id] || 0} 件</span>
     </button>
-    <span class="category-move">
-      <button class="icon-btn" data-category-move="${a.id}" data-delta="-1" ${i === 0 ? 'disabled' : ''} aria-label="上へ">▲</button>
-      <button class="icon-btn" data-category-move="${a.id}" data-delta="1" ${i === categories.length - 1 ? 'disabled' : ''} aria-label="下へ">▼</button>
-    </span>
+    <span class="category-grip" aria-label="押したまま動かして並べ替え" title="押したまま動かして並べ替え"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></span>
   </li>`).join('') || '<li class="quest-empty">クエストがありません。下のボタンで追加してください。</li>';
 
   document.getElementById('sample-section').hidden = !state.sample;
@@ -174,17 +171,70 @@ function renderPickers() {
 
 // --- イベント ---------------------------------------------------------
 
+// クエスト一覧のドラッグ＆ドロップ並べ替え。つまみ（≡）を押したまま上下に動かす
+function initCategoryDrag() {
+  const list = document.getElementById('category-list');
+  const main = list.closest('.main') || document.scrollingElement;
+  let drag = null; // { row, grabY: つまんだ位置と行の上端の差, pointerId }
+
+  const listY = (clientY) => clientY - list.getBoundingClientRect().top;
+
+  const moveTo = (clientY) => {
+    const { row, grabY } = drag;
+    // 画面の端に近づいたら少しスクロールする
+    const mRect = main.getBoundingClientRect ? main.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
+    if (clientY < mRect.top + 48) main.scrollTop -= 8;
+    else if (clientY > mRect.bottom - 48) main.scrollTop += 8;
+    const y = listY(clientY);
+    // ほかの行の中央を越えたら、その行の前後に移す
+    const rows = [...list.querySelectorAll('.category-row')].filter((r) => r !== row);
+    for (const other of rows) {
+      const mid = other.offsetTop + other.offsetHeight / 2;
+      const before = other.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING; // row が other より後ろ
+      if (before && y < mid) { list.insertBefore(row, other); break; }
+      if (!before && y > mid) { other.after(row); break; }
+    }
+    row.style.transform = `translateY(${y - grabY - row.offsetTop}px)`;
+  };
+
+  const finish = (e) => {
+    if (!drag || e.pointerId !== drag.pointerId) return;
+    const { row } = drag;
+    drag = null;
+    row.classList.remove('is-dragging');
+    row.style.transform = '';
+    list.classList.remove('is-reordering');
+    try { row.releasePointerCapture(e.pointerId); } catch (err) { /* すでに解放済み */ }
+    const ids = [...list.querySelectorAll('.category-row')].map((r) => r.dataset.id);
+    reorderCategories(ids);
+    render();
+  };
+
+  list.addEventListener('pointerdown', (e) => {
+    const grip = e.target.closest('.category-grip');
+    if (!grip || drag) return;
+    const row = grip.closest('.category-row');
+    e.preventDefault();
+    drag = { row, grabY: listY(e.clientY) - row.offsetTop, pointerId: e.pointerId };
+    row.classList.add('is-dragging');
+    list.classList.add('is-reordering');
+    try { row.setPointerCapture(e.pointerId); } catch (err) { /* 取得できなくても続行 */ }
+  });
+  list.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.pointerId) return;
+    e.preventDefault();
+    moveTo(e.clientY);
+  });
+  list.addEventListener('pointerup', finish);
+  list.addEventListener('pointercancel', finish);
+}
+
 function initSettings() {
   document.getElementById('category-list').addEventListener('click', (e) => {
-    const move = e.target.closest('[data-category-move]');
-    if (move) {
-      moveCategory(move.dataset.categoryMove, parseInt(move.dataset.delta, 10));
-      render();
-      return;
-    }
     const edit = e.target.closest('[data-category-edit]');
     if (edit) openCategorySheet(edit.dataset.categoryEdit);
   });
+  initCategoryDrag();
   document.getElementById('category-add-btn').addEventListener('click', () => openCategorySheet());
 
   const sheet = document.getElementById('category-sheet');

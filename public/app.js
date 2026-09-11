@@ -10,7 +10,7 @@ const SECTIONS_KEY = 'todo-timer.sections'; // タスク画面の折りたたみ
 const ui = { tab: 'quests', categoryFilter: null, logMonth: null, logDay: null, sections: loadSections(), extraSec: 0, extraTaskId: null };
 
 function loadSections() {
-  const defaults = { todo: false, done: false, byCategory: false };
+  const defaults = { todo: false, done: false };
   try {
     const saved = JSON.parse(localStorage.getItem(SECTIONS_KEY) || '{}');
     return { ...defaults, ...saved };
@@ -227,7 +227,7 @@ function measureInsets() {
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.7.2';
+const APP_VERSION = 'v0.8.0';
 let waitingWorker = null;
 
 function registerServiceWorker() {
