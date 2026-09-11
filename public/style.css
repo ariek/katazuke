@@ -14,7 +14,7 @@
   --normal: #f5d98a;
   --messy: #f2a9a0;
   --radius-wobbly: 18px 22px 20px 24px / 24px 18px 22px 20px;
-  --tabbar-h: 64px;
+  --tabbar-h: 56px;
   /* 端末の切り欠きやホームインジケーターの分。app.js が実測値（px）で上書きする */
   --inset-top: env(safe-area-inset-top, 0px);
   --inset-bottom: env(safe-area-inset-bottom, 0px);
@@ -25,14 +25,14 @@
 /* 全画面（ホーム画面から起動）のとき。メディアクエリが効かない端末向けに、JS で付ける印でも同じにする */
 @media (display-mode: standalone) {
   :root {
-    --tabbar-h: 54px;
+    --tabbar-h: 50px;
     --safe-bottom: max(0px, calc(var(--inset-bottom) - 24px));
     --header-top: max(4px, calc(var(--inset-top) - 6px));
   }
 }
 
 :root.is-standalone {
-  --tabbar-h: 54px;
+  --tabbar-h: 50px;
   --safe-bottom: max(0px, calc(var(--inset-bottom) - 24px));
   --header-top: max(4px, calc(var(--inset-top) - 6px));
 }
@@ -191,118 +191,6 @@ button {
   color: var(--ink-soft);
 }
 
-/* 部屋カード */
-.room-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.room-card {
-  display: block;
-  width: 100%;
-  text-align: left;
-  background: var(--paper);
-  border: 2.5px solid var(--ink);
-  border-radius: var(--radius-wobbly);
-  box-shadow: 4px 4px 0 var(--line);
-  padding: 12px 14px 14px;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.room-card:nth-child(odd) { transform: rotate(-0.4deg); }
-.room-card:nth-child(even) { transform: rotate(0.4deg); }
-
-.room-card:active {
-  transform: translate(2px, 2px) rotate(0deg);
-  box-shadow: 1px 1px 0 var(--line);
-}
-
-.room-card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-
-.room-card-name {
-  font-size: 17px;
-  font-weight: 700;
-}
-
-.room-card-state {
-  font-size: 12px;
-  padding: 2px 9px;
-  border: 2px solid var(--ink);
-  border-radius: 12px 14px 12px 14px / 14px 12px 14px 12px;
-  white-space: nowrap;
-}
-
-.room-card-state[data-state="clean"] { background: var(--clean); }
-.room-card-state[data-state="normal"] { background: var(--normal); }
-.room-card-state[data-state="messy"] { background: var(--messy); }
-
-.room-card-art {
-  width: 100%;
-  aspect-ratio: 200 / 112;
-  display: block;
-  margin: 4px 0 6px;
-}
-
-.room-card-art svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-  overflow: visible;
-}
-
-.room-card-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 13px;
-  color: var(--ink-soft);
-}
-
-.room-card-due {
-  font-weight: 700;
-  color: var(--ink);
-}
-
-.room-card-due.is-zero {
-  color: var(--ink-soft);
-  font-weight: 500;
-}
-
-.clean-dots {
-  display: inline-flex;
-  gap: 4px;
-}
-
-.clean-dot {
-  width: 10px;
-  height: 10px;
-  border: 1.8px solid var(--ink);
-  border-radius: 50% 45% 50% 45%;
-  background: var(--paper);
-}
-
-.clean-dot.is-on { background: var(--mint); }
-
-/* スマホでは3列に収まるよう、カードの中身を小さくする */
-@media (max-width: 559px) {
-  .room-grid { gap: 8px; }
-  .room-card { padding: 8px 8px 8px; border-width: 2px; box-shadow: 2px 2px 0 var(--line); }
-  .room-card-head { flex-direction: column; align-items: flex-start; gap: 2px; margin-bottom: 2px; }
-  .room-card-name { font-size: 13px; line-height: 1.2; overflow-wrap: anywhere; }
-  .room-card-state { font-size: 10px; padding: 1px 7px; border-width: 1.6px; }
-  .room-card-art { margin: 2px 0 4px; }
-  .room-card-foot { font-size: 11px; }
-  .clean-dots { display: none; }
-  .room-card-due { font-size: 11px; }
-}
-
 /* タブバー */
 .tabbar {
   flex: none;
@@ -318,24 +206,20 @@ button {
 .tab {
   flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  font-size: 11px;
-  line-height: 13px;
   color: var(--ink-soft);
 }
 
 .tab-icon {
   display: block;
-  height: 24px;
+  height: 28px;
   transition: transform 0.15s ease;
 }
 
 .tab-svg {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   stroke-width: 1.8;
   --icon-fill-a: var(--line);
   --icon-fill-b: var(--paper);
@@ -351,7 +235,7 @@ button {
 }
 
 .tab.is-active .tab-svg { stroke-width: 2; }
-.tab.is-active[data-tab="room"] .tab-svg { --icon-fill-a: var(--peach); --icon-fill-b: var(--yellow); }
+.tab.is-active[data-tab="room"] .tab-svg { --icon-fill-a: var(--peach); }
 .tab.is-active[data-tab="quests"] .tab-svg { --icon-fill-a: var(--yellow); --icon-fill-b: var(--peach); }
 .tab.is-active[data-tab="timer"] .tab-svg { --icon-fill-a: var(--sky); --icon-fill-b: var(--yellow); }
 .tab.is-active[data-tab="log"] .tab-svg { --icon-fill-a: var(--mint); --icon-fill-b: var(--ink); }
@@ -759,17 +643,6 @@ button.task-check:active { transform: scale(0.9); }
   box-shadow: 3px 3px 0 var(--line);
 }
 
-.area-thumb {
-  flex: none;
-  width: 64px;
-  border: 1.8px solid var(--ink);
-  border-radius: 8px;
-  overflow: hidden;
-  background: var(--bg);
-}
-
-.area-thumb svg { display: block; width: 100%; height: auto; }
-
 .area-body {
   flex: 1;
   min-width: 0;
@@ -801,26 +674,6 @@ button.task-check:active { transform: scale(0.9); }
 
 .icon-btn:disabled { opacity: 0.3; cursor: default; }
 
-.area-preview {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.area-preview-cell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  border: 1.8px solid var(--ink);
-  border-radius: 10px;
-  padding: 4px;
-  background: var(--bg);
-  font-size: 11px;
-  color: var(--ink-soft);
-}
-
-.area-preview-cell svg { width: 100%; height: auto; display: block; }
 
 /* 記録画面 */
 .log-stats {
@@ -1252,7 +1105,7 @@ button.task-check:active { transform: scale(0.9); }
 /* タイマーの数字は1桁ずつ同じ幅で並べる */
 .qt-seconds span { display: inline-block; width: 0.51em; text-align: center; }
 
-/* ほかのやること: エリアごとの見出し */
+/* ほかのやること: クエストごとの見出し */
 .quest-subheading {
   display: flex;
   align-items: center;
@@ -1301,3 +1154,65 @@ button.task-check:active { transform: scale(0.9); }
 
 /* 待機中のカードはタップで編集できる */
 .focus-card.is-editable { cursor: pointer; }
+
+/* クエスト（カテゴリー）の色付きアイコン */
+.cat-icon {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 30px; height: 30px; border-radius: 50% 45% 50% 45%;
+  border: 2px solid var(--ink); background: var(--cat-color, var(--line)); color: var(--ink);
+}
+.cat-icon .icon { width: 18px; height: 18px; --icon-fill-a: rgba(255, 253, 248, 0.7); stroke-width: 2; }
+.cat-icon--lg { width: 44px; height: 44px; }
+.cat-icon--lg .icon { width: 26px; height: 26px; }
+.cat-icon--sm { width: 22px; height: 22px; border-width: 1.6px; margin-right: 6px; }
+.cat-icon--sm .icon { width: 13px; height: 13px; }
+.cat-icon--row { width: 34px; height: 34px; }
+.cat-icon--row .icon { width: 20px; height: 20px; }
+
+/* 絞り込みチップの色とアイコン */
+.chip--cat { display: inline-flex; align-items: center; gap: 5px; }
+.chip--cat .icon { width: 15px; height: 15px; --icon-fill-a: var(--cat-color); stroke-width: 2; }
+.chip--cat.is-active { background: var(--cat-color); }
+
+/* クエスト画面のカード */
+.room-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.cat-card {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; text-align: center;
+  padding: 14px 8px 12px; background: var(--paper); border: 2.2px solid var(--ink);
+  border-radius: var(--radius-wobbly); box-shadow: 3px 3px 0 var(--cat-color, var(--line));
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.cat-card:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--cat-color, var(--line)); }
+.cat-card-icon {
+  width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;
+  border: 2.2px solid var(--ink); border-radius: 50% 45% 50% 45%; background: var(--cat-color, var(--line));
+}
+.cat-card-icon .icon { width: 32px; height: 32px; --icon-fill-a: rgba(255, 253, 248, 0.7); stroke-width: 2; }
+.cat-card-name { font-size: 15px; font-weight: 700; overflow-wrap: anywhere; line-height: 1.2; }
+.cat-card-count { font-size: 12px; color: var(--ink-soft); }
+.cat-card-count strong { font-size: 15px; color: var(--ink); }
+.cat-card-count .is-zero { color: var(--ink-soft); }
+.cat-card-overdue { font-size: 11px; font-weight: 700; color: #c85c4a; }
+@media (max-width: 559px) {
+  .room-grid { gap: 8px; }
+  .cat-card { padding: 10px 6px 10px; gap: 4px; }
+  .cat-card-icon { width: 46px; height: 46px; }
+  .cat-card-icon .icon { width: 26px; height: 26px; }
+  .cat-card-name { font-size: 13px; }
+  .cat-card-count { font-size: 11px; }
+}
+
+/* 色とアイコンの選択 */
+.color-picker { display: flex; flex-wrap: wrap; gap: 8px; }
+.color-swatch {
+  width: 34px; height: 34px; border-radius: 50% 45% 50% 45%; background: var(--cat-color);
+  border: 2px solid var(--line);
+}
+.color-swatch.is-selected { border-color: var(--ink); box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink); }
+.icon-picker { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.icon-choice {
+  display: flex; align-items: center; justify-content: center; aspect-ratio: 1;
+  border: 2px solid var(--line); border-radius: 10px 12px 10px 12px / 12px 10px 12px 10px; background: var(--bg); color: var(--ink);
+}
+.icon-choice .icon { width: 22px; height: 22px; --icon-fill-a: var(--cat-color); stroke-width: 2; }
+.icon-choice.is-selected { border-color: var(--ink); background: var(--paper); box-shadow: 2px 2px 0 var(--ink); }

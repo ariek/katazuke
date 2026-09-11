@@ -91,7 +91,7 @@ function renderLog() {
   const dayLabel = ui.logDay === today ? '今日' : `${sel.getMonth() + 1}月${sel.getDate()}日（${WEEKDAYS[(sel.getDay() + 6) % 7]}）`;
   const titleOf = (log) => {
     const task = state.tasks.find((t) => t.id === log.taskId);
-    return task ? task.title : '（削除されたクエスト）';
+    return task ? task.title : '（削除されたタスク）';
   };
   const areaOf = (log) => {
     const task = state.tasks.find((t) => t.id === log.taskId);

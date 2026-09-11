@@ -1,11 +1,18 @@
-// 設定画面: エリア編集、エクスポート/インポート、サンプル削除、初期化
+// 設定画面: クエスト（カテゴリー）編集、エクスポート/インポート、サンプル削除、初期化
 
+// 初期クエスト（名前、色、アイコン）
 const DEFAULT_AREAS = [
-  ['机', 'desk'], ['床', 'floor'], ['ベッドまわり', 'bed'], ['クローゼット', 'closet'],
-  ['キッチン', 'kitchen'], ['洗面所・風呂', 'bath'], ['玄関', 'entrance'],
+  ['仕事', 'sky', 'briefcase'], ['家事', 'mint', 'house'], ['勉強', 'lav', 'book'], ['健康', 'pink', 'heart'], ['買い物', 'yellow', 'cart'],
 ];
 
-// --- エリアの操作 -----------------------------------------------------
+// まだ使われていない色から順に選ぶ
+function nextFreeColor() {
+  const used = new Set(state.areas.map((a) => a.color));
+  const free = CATEGORY_COLORS.find((c) => !used.has(c.id));
+  return free ? free.id : CATEGORY_COLORS[state.areas.length % CATEGORY_COLORS.length].id;
+}
+
+// --- クエスト（カテゴリー）の操作 -----------------------------------------------------
 
 function sortedAreas() {
   return [...state.areas].sort((a, b) => a.order - b.order);
@@ -14,10 +21,10 @@ function sortedAreas() {
 function upsertArea(data) {
   if (data.id) {
     const area = state.areas.find((a) => a.id === data.id);
-    if (area) Object.assign(area, { name: data.name, kind: data.kind });
+    if (area) Object.assign(area, { name: data.name, color: data.color, icon: data.icon });
   } else {
     const maxOrder = state.areas.reduce((m, a) => Math.max(m, a.order), -1);
-    state.areas.push({ id: newId('a'), name: data.name, kind: data.kind, order: maxOrder + 1 });
+    state.areas.push({ id: newId('a'), name: data.name, color: data.color, icon: data.icon, order: maxOrder + 1 });
   }
   saveState();
 }
@@ -67,7 +74,7 @@ async function importJson(text) {
   }
   const error = validateImport(data);
   if (error) return error;
-  const summary = `エリア ${data.areas.length} 件、クエスト ${data.tasks.length} 件、記録 ${data.logs.length} 件を読み込みます。現在のデータは上書きされます。`;
+  const summary = `クエスト ${data.areas.length} 件、タスク ${data.tasks.length} 件、記録 ${data.logs.length} 件を読み込みます。現在のデータは上書きされます。`;
   if (!(await askConfirm(summary, { ok: '読み込む', danger: true }))) return null;
   state = migrate(data);
   ui.areaFilter = null;
@@ -105,7 +112,7 @@ function clearSample() {
 
 function resetAll() {
   localStorage.removeItem(STORAGE_KEY);
-  state = emptyState(); // エリアも含めてすべて消す
+  state = emptyState(); // クエストも含めてすべて消す
   ui.areaFilter = null;
   stopSessionLoop();
   saveState();
@@ -120,20 +127,20 @@ function renderSettings() {
   for (const t of state.tasks) taskCount[t.areaId] = (taskCount[t.areaId] || 0) + 1;
 
   list.innerHTML = areas.map((a, i) => `<li class="area-row">
-    <span class="area-thumb">${renderRoomArt(a.kind, 'clean')}</span>
+    ${categoryIconHtml(a, 'cat-icon cat-icon--lg')}
     <button class="area-body" data-area-edit="${a.id}">
       <span class="area-name">${escapeHtml(a.name)}</span>
-      <span class="area-meta">クエスト ${taskCount[a.id] || 0} 件</span>
+      <span class="area-meta">タスク ${taskCount[a.id] || 0} 件</span>
     </button>
     <span class="area-move">
       <button class="icon-btn" data-area-move="${a.id}" data-delta="-1" ${i === 0 ? 'disabled' : ''} aria-label="上へ">▲</button>
       <button class="icon-btn" data-area-move="${a.id}" data-delta="1" ${i === areas.length - 1 ? 'disabled' : ''} aria-label="下へ">▼</button>
     </span>
-  </li>`).join('') || '<li class="quest-empty">エリアがありません。下のボタンで追加してください。</li>';
+  </li>`).join('') || '<li class="quest-empty">クエストがありません。下のボタンで追加してください。</li>';
 
   document.getElementById('sample-section').hidden = !state.sample;
   document.getElementById('data-summary').textContent =
-    `エリア ${state.areas.length} 件 · クエスト ${state.tasks.length} 件 · 記録 ${state.logs.length} 件 · データ形式 v${state.version}`;
+    `クエスト ${state.areas.length} 件 · タスク ${state.tasks.length} 件 · 記録 ${state.logs.length} 件 · データ形式 v${state.version}`;
 }
 
 function openAreaSheet(areaId = null) {
@@ -141,12 +148,11 @@ function openAreaSheet(areaId = null) {
   const area = areaId ? state.areas.find((a) => a.id === areaId) : null;
   form.elements.id.value = area ? area.id : '';
   form.elements.name.value = area ? area.name : '';
-  form.elements.kind.innerHTML = Object.entries(ROOM_KINDS)
-    .map(([kind, label]) => `<option value="${kind}">${label}</option>`).join('');
-  form.elements.kind.value = area ? area.kind : 'shelf';
-  document.getElementById('area-sheet-title').textContent = area ? 'エリアを編集' : 'エリアを追加';
+  form.elements.color.value = area ? area.color : nextFreeColor();
+  form.elements.icon.value = area ? area.icon : DEFAULT_ICON;
+  document.getElementById('area-sheet-title').textContent = area ? 'クエストを編集' : 'クエストを追加';
   document.getElementById('area-delete').hidden = !area;
-  updateAreaPreview();
+  renderPickers();
   document.getElementById('area-sheet').hidden = false;
   setTimeout(() => form.elements.name.focus(), 50);
 }
@@ -155,10 +161,15 @@ function closeAreaSheet() {
   document.getElementById('area-sheet').hidden = true;
 }
 
-function updateAreaPreview() {
-  const kind = document.getElementById('area-form').elements.kind.value;
-  document.getElementById('area-preview').innerHTML = ['messy', 'normal', 'clean']
-    .map((s) => `<span class="area-preview-cell">${renderRoomArt(kind, s)}<small>${CLEAN_LABELS[s]}</small></span>`).join('');
+// 色とアイコンの選択肢
+function renderPickers() {
+  const form = document.getElementById('area-form');
+  const color = form.elements.color.value;
+  const icon = form.elements.icon.value;
+  document.getElementById('color-picker').innerHTML = CATEGORY_COLORS.map((c) =>
+    `<button type="button" class="color-swatch ${c.id === color ? 'is-selected' : ''}" data-color="${c.id}" style="--cat-color:${c.hex}" aria-label="${c.name}"></button>`).join('');
+  document.getElementById('icon-picker').innerHTML = CATEGORY_ICONS.map(([name, label]) =>
+    `<button type="button" class="icon-choice ${name === icon ? 'is-selected' : ''}" data-icon="${name}" style="--cat-color:${categoryColorHex(color)}" aria-label="${label}" title="${label}"><svg class="icon" aria-hidden="true"><use href="#c-${name}"/></svg></button>`).join('');
 }
 
 // --- イベント ---------------------------------------------------------
@@ -180,12 +191,23 @@ function initSettings() {
   const form = document.getElementById('area-form');
   sheet.addEventListener('click', (e) => { if (e.target === sheet) closeAreaSheet(); });
   document.getElementById('area-cancel').addEventListener('click', closeAreaSheet);
-  form.elements.kind.addEventListener('change', updateAreaPreview);
+  document.getElementById('color-picker').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-color]');
+    if (!b) return;
+    form.elements.color.value = b.dataset.color;
+    renderPickers();
+  });
+  document.getElementById('icon-picker').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-icon]');
+    if (!b) return;
+    form.elements.icon.value = b.dataset.icon;
+    renderPickers();
+  });
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const name = form.elements.name.value.trim();
     if (!name) { form.elements.name.focus(); return; }
-    upsertArea({ id: form.elements.id.value || null, name, kind: form.elements.kind.value });
+    upsertArea({ id: form.elements.id.value || null, name, color: form.elements.color.value, icon: form.elements.icon.value });
     closeAreaSheet();
     render();
   });
@@ -195,7 +217,7 @@ function initSettings() {
     if (!area) return;
     const n = state.tasks.filter((t) => t.areaId === id).length;
     const msg = n > 0
-      ? `「${area.name}」と、所属するクエスト ${n} 件をまとめて削除します。`
+      ? `「${area.name}」と、所属するタスク ${n} 件をまとめて削除します。`
       : `「${area.name}」を削除します。`;
     if (!(await askConfirm(msg, { ok: '削除する', danger: true }))) return;
     deleteArea(id);
@@ -250,7 +272,7 @@ function initSettings() {
 
   // サンプル削除
   document.getElementById('sample-clear').addEventListener('click', async () => {
-    if (!(await askConfirm('サンプルのクエストと記録を削除します。エリアは残ります。', { ok: '消す', danger: true }))) return;
+    if (!(await askConfirm('サンプルのタスクと記録を削除します。クエストは残ります。', { ok: '消す', danger: true }))) return;
     clearSample();
     render();
     showToast('サンプルを消しました');
@@ -258,7 +280,7 @@ function initSettings() {
 
   // 初期化
   document.getElementById('reset-all').addEventListener('click', async () => {
-    if (!(await askConfirm('すべてのデータ（エリア、クエスト、記録、レベル）を削除します。', { ok: '削除する', danger: true }))) return;
+    if (!(await askConfirm('すべてのデータ（クエスト、タスク、記録、レベル）を削除します。', { ok: '削除する', danger: true }))) return;
     if (!(await askConfirm('本当に削除しますか？ この操作は取り消せません。', { ok: '本当に削除する', danger: true }))) return;
     resetAll();
     render();

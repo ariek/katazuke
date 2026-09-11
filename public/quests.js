@@ -95,14 +95,14 @@ function sortFocusOrder(todoEntries, now = new Date()) {
   });
 }
 
-// 「エリアごと」のときはエリアの並び順に分け、各エリア内を標準の並びにする
+// 「クエストごと」のときはクエストの並び順に分け、各クエスト内を標準の並びにする
 function orderTodo(todoEntries, now = new Date()) {
   const byArea = !ui.areaFilter && ui.sections && ui.sections.byArea;
   if (!byArea) return sortFocusOrder(todoEntries, now);
   const areas = [...state.areas].sort((a, b) => a.order - b.order);
   const out = [];
   for (const a of areas) out.push(...sortFocusOrder(todoEntries.filter((e) => e.task.areaId === a.id), now));
-  // どのエリアにも属さないものがあれば最後に
+  // どのクエストにも属さないものがあれば最後に
   const seen = new Set(out.map((e) => e.task.id));
   out.push(...sortFocusOrder(todoEntries.filter((e) => !seen.has(e.task.id)), now));
   return out;
@@ -218,7 +218,7 @@ function renderFocusCard(entry, areaName, now) {
     sub = `<button class="btn qt-small" data-defer="${task.id}" ${sameDay.length === 0 ? 'disabled' : ''}>スキップ</button>`;
   } else {
     const canComplete = phase === 'running' || phase === 'paused';
-    main = `<button class="btn btn-primary qt-main" data-qt="complete" ${canComplete ? '' : 'disabled'}><svg class="icon" aria-hidden="true"><use href="#i-check-box"/></svg> クエスト完了</button>`;
+    main = `<button class="btn btn-primary qt-main" data-qt="complete" ${canComplete ? '' : 'disabled'}><svg class="icon" aria-hidden="true"><use href="#i-check-box"/></svg> タスク完了</button>`;
     // 「× やめる」の右に「スキップ」（いまのクエストを先送りして別のクエストで待ち直す。ほかに候補がなければ押せない）
     const canSkip = !!pickNextQuest(s.taskId);
     sub = `<button class="btn qt-small qt-quit" data-qt="quit">× やめる</button><button class="btn qt-small" data-qt="skip" ${canSkip ? '' : 'disabled'}>スキップ</button>`;
@@ -330,6 +330,7 @@ function sortDue(a, b) {
 
 function taskRow(entry, areaName, now, mode) {
   const { task, status } = entry;
+  const cat = state.areas.find((a) => a.id === task.areaId);
   const meta = [areaName, DIFFICULTY_LABELS[task.difficulty], repeatLabel(task.repeat), dueText(task, status, now),
     isDeferredToday(task, now) ? 'スキップ済み' : '']
     .filter(Boolean).join(' · ');
@@ -341,7 +342,7 @@ function taskRow(entry, areaName, now, mode) {
   } else if (mode === 'wait') {
     action = '<span class="task-check is-wait" aria-hidden="true"></span>';
   } else {
-    action = ''; // 一覧からは完了できないので印は置かない
+    action = categoryIconHtml(cat, 'cat-icon cat-icon--row'); // クエストの色とアイコン
   }
   return `<li class="task-row" data-status="${status}">
     ${action}
@@ -357,15 +358,15 @@ function renderQuests() {
   const today = dateKey(now);
   const areaName = Object.fromEntries(state.areas.map((a) => [a.id, a.name]));
 
-  // エリア絞り込みチップ
+  // クエスト絞り込みチップ
   const chips = document.getElementById('area-chips');
   const areas = [...state.areas].sort((a, b) => a.order - b.order);
   const byArea = !ui.areaFilter && ui.sections.byArea;
   chips.innerHTML = [
     `<button class="chip ${!ui.areaFilter && !byArea ? 'is-active' : ''}" data-area="">すべて</button>`,
-    `<button class="chip ${byArea ? 'is-active' : ''}" data-mode="area">エリアごと</button>`,
+    `<button class="chip ${byArea ? 'is-active' : ''}" data-mode="area">クエストごと</button>`,
   ]
-    .concat(areas.map((a) => `<button class="chip ${ui.areaFilter === a.id ? 'is-active' : ''}" data-area="${a.id}">${escapeHtml(a.name)}</button>`))
+    .concat(areas.map((a) => `<button class="chip chip--cat ${ui.areaFilter === a.id ? 'is-active' : ''}" data-area="${a.id}" style="--cat-color:${categoryColorHex(a.color)}"><svg class="icon" aria-hidden="true"><use href="#c-${categoryIconId(a.icon)}"/></svg>${escapeHtml(a.name)}</button>`))
     .join('');
 
   const tasks = state.tasks.filter((t) => !ui.areaFilter || t.areaId === ui.areaFilter);
@@ -397,11 +398,11 @@ function renderQuests() {
   if (others.length) {
     let body;
     if (byArea) {
-      // エリアごとに分けて、エリアの並び順で見出しを付ける。各エリア内は標準の並び
+      // クエストごとに分けて、クエストの並び順で見出しを付ける。各クエスト内は標準の並び
       body = areas.map((a) => {
         const list = others.filter((e) => e.task.areaId === a.id);
         if (!list.length) return '';
-        return `<h3 class="quest-subheading">${escapeHtml(a.name)} <span class="count">${list.length}</span></h3>
+        return `<h3 class="quest-subheading">${categoryIconHtml(a, 'cat-icon cat-icon--sm')}${escapeHtml(a.name)} <span class="count">${list.length}</span></h3>
           <ul class="task-list">${list.map(row('todo')).join('')}</ul>`;
       }).join('');
     } else {
@@ -432,7 +433,7 @@ function renderQuests() {
     </details>`;
   }
   if (state.tasks.length === 0) {
-    html = '<p class="quest-empty">右下の「＋」から最初のクエストを登録しましょう。</p>';
+    html = '<p class="quest-empty">右下の「＋」から最初のタスクを登録しましょう。</p>';
   }
   document.getElementById('quest-list').innerHTML = html;
   // 折りたたみの開閉を覚える
@@ -460,7 +461,7 @@ function openTaskSheet(taskId = null) {
   form.elements.repeatEvery.value = task && task.repeat.type === 'days' ? task.repeat.every : 3;
   form.elements.deadline.value = task && task.deadline ? dateKey(task.deadline) : '';
   form.elements.note.value = task ? task.note : '';
-  document.getElementById('task-sheet-title').textContent = task ? 'クエストを編集' : 'クエストを追加';
+  document.getElementById('task-sheet-title').textContent = task ? 'タスクを編集' : 'タスクを追加';
   document.getElementById('task-delete').hidden = !task;
   updateTaskFormVisibility();
   document.getElementById('task-sheet').hidden = false;
@@ -588,7 +589,7 @@ function initQuests() {
     e.preventDefault();
     const data = readTaskForm();
     if (!data.title) { form.elements.title.focus(); return; }
-    if (!data.areaId) { showToast('先に設定でエリアを作ってください'); return; }
+    if (!data.areaId) { showToast('先に設定でクエストを作ってください'); return; }
     const isNew = !data.id;
     const saveBtn = form.querySelector('button[type="submit"]');
     const at = centerOf(saveBtn);
@@ -604,7 +605,7 @@ function initQuests() {
   document.getElementById('task-delete').addEventListener('click', async () => {
     const id = form.elements.id.value;
     if (!id) return;
-    if (!(await askConfirm('このクエストを削除します。', { ok: '削除する', danger: true }))) return;
+    if (!(await askConfirm('このタスクを削除します。', { ok: '削除する', danger: true }))) return;
     const at = centerOf(document.getElementById('task-delete'));
     const before = state.player.xp;
     deleteTask(id);
