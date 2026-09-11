@@ -16,12 +16,13 @@ function timerBonus(remainingSec, combo) {
 }
 
 const TITLES = [
-  [1, '見習い'],
-  [3, '片付け見習い'],
-  [5, '片付け係'],
-  [8, '整理上手'],
-  [10, '整理の達人'],
-  [15, '片付けマスター'],
+  [1, 'かけだし'],
+  [3, '見習い冒険者'],
+  [5, '冒険者'],
+  [8, '熟練冒険者'],
+  [10, '達人'],
+  [15, '英雄'],
+  [20, '伝説'],
 ];
 
 function xpToNext(level) {
@@ -72,7 +73,7 @@ function isDueStatus(status) {
   return status === 'due' || status === 'overdue';
 }
 
-// エリアのきれい度: 期限内のタスク数 ÷ 有効なタスク数。タスクなしは 1
+// クエストの達成度: 期限内のタスク数 ÷ 有効なタスク数。タスクなしは 1（件数表示に使う）
 function areaCleanliness(areaId, tasks, now = new Date()) {
   const active = tasks.filter((task) => task.areaId === areaId && !task.done);
   if (active.length === 0) return { ratio: 1, state: 'clean', dueCount: 0, todoCount: 0, total: 0 };

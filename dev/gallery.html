@@ -1,38 +1,35 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>絵の一覧（開発用）</title>
-  <link rel="stylesheet" href="../public/style.css">
-  <style>
-    body { padding: 16px; }
-    h1 { font-size: 18px; margin: 0 0 12px; }
-    .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 900px; }
-    .cell { background: var(--paper); border: 2px solid var(--ink); border-radius: var(--radius-wobbly); padding: 8px; }
-    .cell h2 { font-size: 13px; margin: 0 0 4px; color: var(--ink-soft); }
-    .cell svg { width: 100%; display: block; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>クエストの色とアイコン（開発用）</title>
+<link rel="stylesheet" href="../public/style.css">
+<style>
+  body { position: static; overflow: auto; padding: 20px; }
+  h1 { font-size: 20px; margin: 0 0 12px; }
+  h2 { font-size: 16px; margin: 24px 0 8px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 10px; }
+  .cell { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; color: var(--ink-soft); text-align: center; }
+  .swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+</style>
 </head>
 <body>
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-    <filter id="wobble" x="-5%" y="-5%" width="110%" height="110%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="noise"/>
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.2" xChannelSelector="R" yChannelSelector="G"/>
-    </filter>
-  </svg>
-  <h1>エリアの絵 一覧（散らかり / ふつう / きれい）</h1>
-  <div class="gallery" id="gallery"></div>
-  <script src="../public/room.js"></script>
-  <script>
-    const el = document.getElementById('gallery');
-    let html = '';
-    for (const [kind, name] of Object.entries(ROOM_KINDS)) {
-      for (const state of ['messy', 'normal', 'clean']) {
-        html += `<div class="cell"><h2>${name} / ${state}</h2>${renderRoomArt(kind, state)}</div>`;
-      }
-    }
-    el.innerHTML = html;
-  </script>
+<svg width="0" height="0" style="position:absolute"><defs></defs></svg>
+<h1>クエストの色とアイコン</h1>
+<h2>色</h2>
+<div class="swatches" id="colors"></div>
+<h2>アイコン</h2>
+<div class="grid" id="icons"></div>
+<script src="../public/icons.js"></script>
+<script>
+  injectCategoryIcons();
+  document.getElementById('colors').innerHTML = CATEGORY_COLORS.map((c) =>
+    `<div class="cell"><span class="cat-icon cat-icon--lg" style="--cat-color:${c.hex}"><svg class="icon"><use href="#c-star"/></svg></span>${c.name}<br>${c.id}</div>`).join('');
+  document.getElementById('icons').innerHTML = CATEGORY_ICONS.map(([id, label], i) => {
+    const c = CATEGORY_COLORS[i % CATEGORY_COLORS.length];
+    return `<div class="cell"><span class="cat-icon cat-icon--lg" style="--cat-color:${c.hex}"><svg class="icon"><use href="#c-${id}"/></svg></span>${label}<br>${id}</div>`;
+  }).join('');
+</script>
 </body>
 </html>

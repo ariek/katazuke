@@ -57,6 +57,13 @@ function migrate(data) {
   if (!data.version) data.version = DATA_VERSION;
   if (!data.player) data.player = { xp: 0, level: 1, bestStreak: 0 };
   if (!Array.isArray(data.areas)) data.areas = [];
+  // 旧「エリアの絵（kind）」は色とアイコンに置き換える
+  const KIND_TO_ICON = { desk: 'laptop', floor: 'broom', bed: 'bed', closet: 'shirt', kitchen: 'pot', bath: 'bath', entrance: 'house', shelf: 'book', house: 'house' };
+  data.areas.forEach((a, i) => {
+    if (!a.color) a.color = CATEGORY_COLORS[i % CATEGORY_COLORS.length].id;
+    if (!a.icon) a.icon = KIND_TO_ICON[a.kind] || DEFAULT_ICON;
+    delete a.kind;
+  });
   if (!Array.isArray(data.tasks)) data.tasks = [];
   if (!Array.isArray(data.logs)) data.logs = [];
   if (!Array.isArray(data.sessions)) data.sessions = [];
@@ -80,7 +87,7 @@ function sampleState(now = new Date()) {
   const daysLater = (n) => addDays(now, n);
 
   const areaDefs = DEFAULT_AREAS;
-  const areas = areaDefs.map(([name, kind], i) => ({ id: newId('a'), name, kind, order: i }));
+  const areas = areaDefs.map(([name, color, icon], i) => ({ id: newId('a'), name, color, icon, order: i }));
   s.areas = areas;
   const A = Object.fromEntries(areaDefs.map(([name], i) => [name, areas[i].id]));
 
@@ -104,37 +111,25 @@ function sampleState(now = new Date()) {
   };
 
   s.tasks = [
-    // 机: 散らかり
-    t('机', '机の上の書類を仕分ける', 2, 3, { lastDone: daysAgo(6), due: daysAgo(3) }),
-    t('机', 'マグカップを片付ける', 1, 'daily', { lastDone: daysAgo(2), due: daysAgo(1) }),
-    t('机', 'ケーブルをまとめる', 2, 'none'),
-    t('机', 'ペン立てを整理する', 1, 'weekly', { lastDone: daysAgo(10), due: daysAgo(3) }),
-    // 床: ふつう
-    t('床', '床に置いた服をしまう', 1, 'daily', { lastDone: daysAgo(1), due: daysAgo(0) }),
-    t('床', '掃除機をかける', 2, 3, { lastDone: daysAgo(1), due: daysLater(2) }),
-    t('床', 'ラグのほこりを取る', 1, 'weekly', { lastDone: daysAgo(2), due: daysLater(5) }),
-    // ベッドまわり: きれい
-    t('ベッドまわり', 'ベッドメイキング', 1, 'daily', { lastDone: now, due: daysLater(1) }),
-    t('ベッドまわり', 'シーツを洗う', 3, 'weekly', { lastDone: daysAgo(3), due: daysLater(4) }),
-    // クローゼット: きれい（期限なし todo のみ）
-    t('クローゼット', '着ない服を3着選んで処分する', 3, 'none'),
-    // キッチン: ふつう
-    t('キッチン', '洗い物をする', 2, 'daily', { lastDone: daysAgo(1), due: daysAgo(0) }),
-    t('キッチン', 'コンロまわりを拭く', 1, 3, { lastDone: daysAgo(1), due: daysLater(2) }),
-    t('キッチン', '冷蔵庫の中を確認する', 2, 'weekly', { lastDone: daysAgo(2), due: daysLater(5) }),
-    // 洗面所・風呂: 散らかり
-    t('洗面所・風呂', '洗面台を拭く', 1, 'daily', { lastDone: daysAgo(3), due: daysAgo(2) }),
-    t('洗面所・風呂', '浴槽を洗う', 2, 'daily', { lastDone: daysAgo(2), due: daysAgo(1) }),
-    t('洗面所・風呂', '排水口を掃除する', 2, 'weekly', { lastDone: daysAgo(12), due: daysAgo(5) }),
-    // 玄関: 期限付き todo
-    t('玄関', '靴を下駄箱に入れる', 1, 'none', { deadline: daysLater(3) }),
+    t('仕事', 'メールの返信', 1, 'daily', { lastDone: daysAgo(2), due: daysAgo(1) }),
+    t('仕事', '経費精算を出す', 2, 'weekly', { lastDone: daysAgo(10), due: daysAgo(3) }),
+    t('仕事', '会議の資料を作る', 3, 'none', { deadline: daysLater(2) }),
+    t('家事', '洗い物をする', 1, 'daily', { lastDone: daysAgo(1), due: daysAgo(0) }),
+    t('家事', '洗濯物をたたむ', 1, 2, { lastDone: daysAgo(1), due: daysLater(1) }),
+    t('家事', 'ゴミを出す', 1, 'weekly', { lastDone: daysAgo(2), due: daysLater(5) }),
+    t('勉強', '英単語を10個おぼえる', 1, 'daily', { lastDone: now, due: daysLater(1) }),
+    t('勉強', '参考書を1章読む', 2, 3, { lastDone: daysAgo(3), due: daysAgo(0) }),
+    t('健康', 'ストレッチをする', 1, 'daily', { lastDone: daysAgo(1), due: daysAgo(0) }),
+    t('健康', '30分歩く', 2, 'daily', { lastDone: daysAgo(3), due: daysAgo(2) }),
+    t('買い物', '牛乳を買う', 1, 'none', { deadline: daysLater(1) }),
+    t('買い物', '電池を買う', 1, 'none'),
   ];
 
   s.logs = [
-    { taskId: s.tasks[7].id, doneAt: iso(now), xp: 15, baseXp: 15, bonusXp: 0, combo: 0, prev: { done: false, lastDoneAt: iso(daysAgo(1)), dueAt: iso(daysAgo(0)) } },
-    { taskId: s.tasks[4].id, doneAt: iso(daysAgo(1)), xp: 27, baseXp: 15, bonusXp: 12, combo: 1 },
-    { taskId: s.tasks[5].id, doneAt: iso(daysAgo(1)), xp: 47, baseXp: 25, bonusXp: 22, combo: 2 },
-    { taskId: s.tasks[6].id, doneAt: iso(daysAgo(2)), xp: 15, baseXp: 15, bonusXp: 0, combo: 0 },
+    { taskId: s.tasks[6].id, doneAt: iso(now), xp: 15, baseXp: 15, bonusXp: 0, combo: 0, prev: { done: false, lastDoneAt: iso(daysAgo(1)), dueAt: iso(daysAgo(0)) } },
+    { taskId: s.tasks[3].id, doneAt: iso(daysAgo(1)), xp: 27, baseXp: 15, bonusXp: 12, combo: 1 },
+    { taskId: s.tasks[4].id, doneAt: iso(daysAgo(1)), xp: 47, baseXp: 25, bonusXp: 22, combo: 2 },
+    { taskId: s.tasks[5].id, doneAt: iso(daysAgo(2)), xp: 15, baseXp: 15, bonusXp: 0, combo: 0 },
   ];
   s.player.xp = 104;
   s.player.bestStreak = 3;
@@ -163,34 +158,9 @@ function renderHeader() {
     : `${iconHtml('i-flame', 'icon icon-flame icon-off')} <strong>0</strong>日`;
 }
 
-function renderRoom() {
-  const now = new Date();
-  const grid = document.getElementById('room-grid');
-  const areas = [...state.areas].sort((a, b) => a.order - b.order);
-  grid.innerHTML = areas.map((area) => {
-    const c = areaCleanliness(area.id, state.tasks, now);
-    const dots = Array.from({ length: 5 }, (_, i) =>
-      `<span class="clean-dot ${i < Math.round(c.ratio * 5) ? 'is-on' : ''}"></span>`).join('');
-    const due = c.todoCount > 0
-      ? `<span class="room-card-due">やること ${c.todoCount}</span>`
-      : '<span class="room-card-due is-zero">やること なし</span>';
-    return `<button class="room-card" data-area="${area.id}" aria-label="${escapeHtml(area.name)}のクエストを見る">
-      <div class="room-card-head">
-        <span class="room-card-name">${escapeHtml(area.name)}</span>
-        <span class="room-card-state" data-state="${c.state}">${CLEAN_LABELS[c.state]}</span>
-      </div>
-      <div class="room-card-art">${renderRoomArt(area.kind, c.state)}</div>
-      <div class="room-card-foot">
-        <span class="clean-dots" title="きれい度 ${Math.round(c.ratio * 100)}%">${dots}</span>
-        ${due}
-      </div>
-    </button>`;
-  }).join('');
-}
-
 function render() {
   renderHeader();
-  renderRoom();
+  renderOverview();
   renderQuests();
   renderTimerMini();
   renderSettings();
@@ -261,7 +231,7 @@ function measureInsets() {
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.6.0';
+const APP_VERSION = 'v0.7.0';
 let waitingWorker = null;
 
 function registerServiceWorker() {
@@ -303,6 +273,7 @@ function offerUpdate(worker) {
 // --- 起動 -------------------------------------------------------------
 
 function init() {
+  injectCategoryIcons();
   state = loadState() || sampleState();
   state = migrate(state);
   saveState();
@@ -314,7 +285,7 @@ function init() {
   });
 
   document.getElementById('room-grid').addEventListener('click', (e) => {
-    const card = e.target.closest('.room-card');
+    const card = e.target.closest('.cat-card');
     if (!card) return;
     ui.areaFilter = card.dataset.area;
     renderQuests();
@@ -334,7 +305,7 @@ function init() {
   try { lastTab = localStorage.getItem(LAST_TAB_KEY); } catch (err) { lastTab = null; }
   switchTab(TAB_NAMES.includes(lastTab) ? lastTab : 'quests');
 
-  document.getElementById('app-version').textContent = `片付けクエスト ${APP_VERSION}`;
+  document.getElementById('app-version').textContent = `タスククエスト ${APP_VERSION}`;
   measureInsets();
   setTimeout(measureInsets, 500);
   window.addEventListener('resize', measureInsets);

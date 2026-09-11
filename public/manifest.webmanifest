@@ -1,7 +1,7 @@
 {
-  "name": "片付けクエスト",
-  "short_name": "片付け",
-  "description": "部屋の片付けをクエストにして続けるゲーム",
+  "name": "タスククエスト",
+  "short_name": "タスクQ",
+  "description": "タスクをクエストにして片付けていくゲーム",
   "lang": "ja",
   "start_url": "./",
   "scope": "./",

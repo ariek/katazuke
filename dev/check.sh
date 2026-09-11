@@ -26,7 +26,7 @@ src = '\n'.join(open(f, encoding='utf-8').read() for f in glob.glob('public/*.js
 defined = set(m.group(1) for m in re.finditer(r'\bfunction\s+([A-Za-z_$][\w$]*)\s*\(', src))
 required = [
     'init', 'render', 'switchTab', 'saveState', 'loadState', 'migrate', 'sampleState', 'newId', 'escapeHtml', 'iconHtml',
-    'measureInsets', 'registerServiceWorker', 'renderSessionModals', 'renderHeader', 'renderRoom',
+    'measureInsets', 'registerServiceWorker', 'renderSessionModals', 'renderHeader', 'renderOverview', 'categoryIconHtml', 'categoryColorHex', 'categoryIconId', 'injectCategoryIcons', 'renderPickers', 'nextFreeColor',
     'initQuests', 'renderQuests', 'renderFocusCard', 'pickFocus', 'sortFocusOrder', 'orderTodo', 'completeTask', 'undoComplete',
     'upsertTask', 'deleteTask', 'deferTask', 'addRegisterXp', 'removeRegisterXp', 'openTaskSheet', 'closeTaskSheet', 'showToast', 'comboBadge',
     'initTimer', 'initSession', 'startSession', 'beginQuest', 'pauseQuest', 'resumeQuest', 'completeQuest', 'quitSession', 'endSession',
@@ -37,7 +37,7 @@ required = [
     'initLog', 'renderLog', 'initEffects', 'burstAt', 'floatText', 'pulseXpBar', 'centerOf', 'showClearModal', 'hideClearModal', 'setModalVisible',
     'clearAnimationMs', 'initDialog', 'askConfirm', 'showAlert',
     'levelInfo', 'titleForLevel', 'baseXpForTask', 'timerBonus', 'comboMultiplier', 'taskStatus', 'areaCleanliness', 'currentStreak',
-    'dateKey', 'addDays', 'startOfDay', 'nextDueDate', 'daysBetween', 'formatShortDate', 'repeatLabel', 'renderRoomArt',
+    'dateKey', 'addDays', 'startOfDay', 'nextDueDate', 'daysBetween', 'formatShortDate', 'repeatLabel',
 ]
 missing = [n for n in required if n not in defined]
 if missing:
