@@ -153,9 +153,8 @@ function adjustSeconds(delta) {
 function skipQuest() {
   const s = state.session;
   if (!s || !['countdown', 'running', 'paused'].includes(s.phase)) return;
-  const alt = pickNextQuest(s.taskId); // いまのクエストを除いた先頭
+  const alt = deferTask(s.taskId); // ひとつ後ろに回し、入れ替わったタスクに移る。候補がなければ何もしない
   if (!alt) return;
-  deferTask(s.taskId);
   s.taskId = alt.id;
   s.durationSec = QUEST_SECONDS[alt.difficulty] || QUEST_SECONDS[1];
   s.timerStartedAt = null;

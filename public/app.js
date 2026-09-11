@@ -7,7 +7,7 @@ const DATA_VERSION = 1;
 
 let state = null;
 const SECTIONS_KEY = 'todo-timer.sections'; // タスク画面の折りたたみ状態。エクスポートには含めない
-const ui = { tab: 'quests', categoryFilter: null, logMonth: null, logDay: null, sections: loadSections(), extraSec: 0, extraTaskId: null };
+const ui = { tab: 'quests', categoryFilter: null, focusTaskId: null, logMonth: null, logDay: null, sections: loadSections(), extraSec: 0, extraTaskId: null };
 
 function loadSections() {
   const defaults = { todo: false, done: false };
@@ -62,6 +62,11 @@ function migrate(data) {
     if (!c.icon) c.icon = DEFAULT_ICON;
   });
   if (!Array.isArray(data.tasks)) data.tasks = [];
+  // 手動の並び順がないタスクは登録順で末尾に
+  let nextOrder = data.tasks.reduce((m, t) => (typeof t.order === 'number' ? Math.max(m, t.order) : m), -1) + 1;
+  data.tasks.filter((t) => typeof t.order !== 'number')
+    .sort((a, b) => ((a.createdAt || '') < (b.createdAt || '') ? -1 : 1))
+    .forEach((t) => { t.order = nextOrder++; });
   if (!Array.isArray(data.logs)) data.logs = [];
   if (!Array.isArray(data.sessions)) data.sessions = [];
   if (data.session === undefined) data.session = null;
@@ -99,6 +104,7 @@ function sampleState(now = new Date()) {
       note: '',
       deadline: opts.deadline ? iso(opts.deadline) : null,
       deferredAt: null,
+      unpinnedAt: null,
       lastDoneAt: opts.lastDone ? iso(opts.lastDone) : null,
       dueAt: opts.due ? iso(opts.due) : null,
       done: false,
@@ -227,7 +233,7 @@ function measureInsets() {
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.8.0';
+const APP_VERSION = 'v0.9.0';
 let waitingWorker = null;
 
 function registerServiceWorker() {
