@@ -95,10 +95,9 @@ function sortFocusOrder(todoEntries, now = new Date()) {
   });
 }
 
-// 「クエストごと」のときはクエストの並び順に分け、各クエスト内を標準の並びにする
+// 「すべて」のときはクエストの並び順に分け、各クエスト内を標準の並びにする。絞り込み中は標準の並び
 function orderTodo(todoEntries, now = new Date()) {
-  const byCategory = !ui.categoryFilter && ui.sections && ui.sections.byCategory;
-  if (!byCategory) return sortFocusOrder(todoEntries, now);
+  if (ui.categoryFilter) return sortFocusOrder(todoEntries, now);
   const categories = [...state.categories].sort((a, b) => a.order - b.order);
   const out = [];
   for (const a of categories) out.push(...sortFocusOrder(todoEntries.filter((e) => e.task.categoryId === a.id), now));
@@ -361,10 +360,9 @@ function renderQuests() {
   // クエスト絞り込みチップ
   const chips = document.getElementById('category-chips');
   const categories = [...state.categories].sort((a, b) => a.order - b.order);
-  const byCategory = !ui.categoryFilter && ui.sections.byCategory;
+  const byCategory = !ui.categoryFilter;
   chips.innerHTML = [
-    `<button class="chip ${!ui.categoryFilter && !byCategory ? 'is-active' : ''}" data-category="">すべて</button>`,
-    `<button class="chip ${byCategory ? 'is-active' : ''}" data-mode="category">クエストごと</button>`,
+    `<button class="chip ${byCategory ? 'is-active' : ''}" data-category="">すべて</button>`,
   ]
     .concat(categories.map((a) => `<button class="chip chip--cat ${ui.categoryFilter === a.id ? 'is-active' : ''}" data-category="${a.id}" style="--cat-color:${categoryColorHex(a.color)}"><svg class="icon" aria-hidden="true"><use href="#c-${categoryIconId(a.icon)}"/></svg>${escapeHtml(a.name)}</button>`))
     .join('');
@@ -521,14 +519,7 @@ function initQuests() {
   document.getElementById('category-chips').addEventListener('click', (e) => {
     const chip = e.target.closest('.chip');
     if (!chip) return;
-    if (chip.dataset.mode === 'category') {
-      ui.categoryFilter = null;
-      ui.sections.byCategory = true;
-    } else {
-      ui.categoryFilter = chip.dataset.category || null;
-      if (!ui.categoryFilter) ui.sections.byCategory = false;
-    }
-    saveSections();
+    ui.categoryFilter = chip.dataset.category || null;
     renderQuests();
   });
 

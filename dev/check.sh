@@ -32,7 +32,7 @@ required = [
     'initTimer', 'initSession', 'startSession', 'beginQuest', 'pauseQuest', 'resumeQuest', 'completeQuest', 'quitSession', 'endSession',
     'closeSummary', 'tickSession', 'ensureSessionLoop', 'stopSessionLoop', 'renderTimerTick', 'renderTimerMini', 'pickNextQuest',
     'questRemainingSec', 'sessionActive', 'sessionPhase', 'digitsHtml', 'playTone', 'skipQuest', 'adjustSeconds',
-    'initSettings', 'renderSettings', 'sortedCategories', 'moveCategory', 'deleteCategory', 'upsertCategory', 'importJson', 'exportJson', 'clearSample', 'resetAll',
+    'initSettings', 'renderSettings', 'sortedCategories', 'reorderCategories', 'initCategoryDrag', 'deleteCategory', 'upsertCategory', 'importJson', 'exportJson', 'clearSample', 'resetAll',
     'initBulk', 'parseBulkText', 'applyBulkPlan', 'undoBulk',
     'initLog', 'renderLog', 'initEffects', 'burstAt', 'floatText', 'pulseXpBar', 'centerOf', 'showClearModal', 'hideClearModal', 'setModalVisible',
     'clearAnimationMs', 'initDialog', 'askConfirm', 'showAlert',

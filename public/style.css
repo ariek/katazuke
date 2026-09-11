@@ -655,24 +655,32 @@ button.task-check:active { transform: scale(0.9); }
 .category-name { font-size: 15px; font-weight: 700; }
 .category-meta { font-size: 12px; color: var(--ink-soft); }
 
-.category-move {
+/* 並べ替えのつまみ。押したまま動かせるよう、ここではブラウザのスクロールを止める */
+.category-grip {
   flex: none;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-right: -6px;
+  color: var(--ink-soft);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
-
-.icon-btn {
-  width: 30px;
-  height: 24px;
-  border: 1.8px solid var(--ink);
-  border-radius: 8px 10px 8px 10px / 10px 8px 10px 8px;
-  background: var(--bg);
-  font-size: 11px;
-  line-height: 1;
+.category-grip .icon { width: 24px; height: 24px; }
+.category-list { position: relative; }
+.category-list.is-reordering { user-select: none; -webkit-user-select: none; }
+.category-row.is-dragging {
+  position: relative;
+  z-index: 2;
+  box-shadow: 5px 6px 0 var(--line);
+  transform: translateY(0);
+  cursor: grabbing;
 }
-
-.icon-btn:disabled { opacity: 0.3; cursor: default; }
+.category-row.is-dragging .category-grip { cursor: grabbing; }
 
 
 /* 記録画面 */
@@ -725,6 +733,13 @@ button.task-check:active { transform: scale(0.9); }
 }
 
 .cal-head .log-heading { margin: 0; flex: 1; text-align: center; justify-content: center; }
+.icon-btn {
+  border: 1.8px solid var(--ink);
+  border-radius: 8px 10px 8px 10px / 10px 8px 10px 8px;
+  background: var(--bg);
+  line-height: 1;
+}
+.icon-btn:disabled { opacity: 0.3; cursor: default; }
 .cal-nav { width: 34px; height: 30px; font-size: 18px; }
 
 .calendar {
@@ -1170,7 +1185,7 @@ button.task-check:active { transform: scale(0.9); }
 .cat-icon--row .icon { width: 20px; height: 20px; }
 
 /* 絞り込みチップの色とアイコン */
-.chip--cat { display: inline-flex; align-items: center; gap: 5px; }
+.chip { display: inline-flex; align-items: center; gap: 5px; }
 .chip--cat .icon { width: 15px; height: 15px; --icon-fill-a: var(--cat-color); stroke-width: 2; }
 .chip--cat.is-active { background: var(--cat-color); }
 
