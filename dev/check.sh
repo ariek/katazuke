@@ -31,7 +31,7 @@ required = [
     'upsertTask', 'deleteTask', 'deferTask', 'addRegisterXp', 'removeRegisterXp', 'openTaskSheet', 'closeTaskSheet', 'showToast', 'comboBadge',
     'initTimer', 'initSession', 'startSession', 'beginQuest', 'pauseQuest', 'resumeQuest', 'completeQuest', 'quitSession', 'endSession',
     'closeSummary', 'tickSession', 'ensureSessionLoop', 'stopSessionLoop', 'renderTimerTick', 'renderTimerMini', 'pickNextQuest',
-    'questRemainingSec', 'sessionActive', 'sessionPhase', 'digitsHtml', 'playTone',
+    'questRemainingSec', 'sessionActive', 'sessionPhase', 'digitsHtml', 'playTone', 'skipQuest', 'adjustSeconds',
     'initSettings', 'renderSettings', 'sortedAreas', 'moveArea', 'deleteArea', 'upsertArea', 'importJson', 'exportJson', 'clearSample', 'resetAll',
     'initBulk', 'parseBulkText', 'applyBulkPlan', 'undoBulk',
     'initLog', 'renderLog', 'initEffects', 'burstAt', 'floatText', 'pulseXpBar', 'centerOf', 'showClearModal', 'hideClearModal', 'setModalVisible',

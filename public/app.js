@@ -7,7 +7,7 @@ const DATA_VERSION = 1;
 
 let state = null;
 const SECTIONS_KEY = 'katazuke.sections'; // クエスト画面の折りたたみ状態。エクスポートには含めない
-const ui = { tab: 'quests', areaFilter: null, logMonth: null, logDay: null, sections: loadSections() };
+const ui = { tab: 'quests', areaFilter: null, logMonth: null, logDay: null, sections: loadSections(), extraSec: 0, extraTaskId: null };
 
 function loadSections() {
   const defaults = { todo: false, done: false, byArea: false };
@@ -261,7 +261,7 @@ function measureInsets() {
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.5.1';
+const APP_VERSION = 'v0.6.0';
 let waitingWorker = null;
 
 function registerServiceWorker() {
