@@ -1,6 +1,6 @@
 {
-  "name": "タスククエスト",
-  "short_name": "タスクQ",
+  "name": "やることクエスト",
+  "short_name": "やるクエ",
   "description": "タスクをクエストにして片付けていくゲーム",
   "lang": "ja",
   "start_url": "./",

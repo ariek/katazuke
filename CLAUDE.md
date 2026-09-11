@@ -1,6 +1,6 @@
 # katazuke
 
-日々のタスクを片付けるためのブラウザゲーム「タスククエスト」。画面上の言葉は「クエスト」=カテゴリー（内部名 area/category）、「タスク」=1件のやること（内部名 task）。素の HTML/CSS/JS、localStorage 保存、GitHub Pages で公開。
+日々のタスクを片付けるためのブラウザゲーム「やることクエスト」。画面上の言葉は「クエスト」=カテゴリー（内部名 area/category）、「タスク」=1件のやること（内部名 task）。素の HTML/CSS/JS、localStorage 保存、GitHub Pages で公開。
 
 - 仕様は `docs/SPEC.md`。仕様を変えるときはコードより先にここを直す。
 - ブランチ運用とコミットメッセージの形式は `docs/CONTRIBUTING.md` に従う。
