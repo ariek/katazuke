@@ -22,7 +22,6 @@
       background: var(--yellow);
     }
     .focus-combo.is-zero { background: var(--line); color: var(--ink-soft); }
-    .focus-head-right { display: flex; align-items: center; gap: 8px; }
 
     .qt { position: relative; display: flex; flex-direction: column; align-items: center; margin: 12px 0 4px; }
     .qt-dial { position: relative; width: min(300px, 100%); aspect-ratio: 1; }
@@ -34,11 +33,11 @@
     .qt.is-timeup .qt-fill { stroke: #e6887a; }
     .qt-center { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 22%; box-sizing: border-box; pointer-events: none; }
     .qt-seconds { height: 112px; display: flex; align-items: center; }
-    .qt-slot { height: 40px; margin-top: 6px; display: flex; align-items: center; justify-content: center; }
-    .qt-ctl { pointer-events: auto; width: 42px; height: 40px; display: flex; align-items: center; justify-content: center; border: 2.2px solid var(--ink); border-radius: 10px 12px 10px 12px / 12px 10px 12px 10px; background: var(--paper); color: var(--ink); box-shadow: 2px 2px 0 var(--ink); }
-    .qt-ctl .icon { width: 20px; height: 20px; --icon-fill-a: currentColor; }
-    .qt-ctl:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--ink); }
-    .qt-ctl:disabled { opacity: 0.35; box-shadow: none; }
+    .qt-slot { height: 40px; margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .qt-ctl { pointer-events: auto; width: 44px; height: 40px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 10px; background: transparent; color: var(--ink); box-shadow: none; }
+    .qt-ctl .icon { width: 30px; height: 30px; --icon-fill-a: currentColor; stroke-width: 2.2; }
+    .qt-ctl:active { transform: translate(1px, 1px); opacity: 0.6; }
+    .qt-ctl:disabled { opacity: 0.25; }
     .qt-seconds { font-size: min(112px, 30vw); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
         .qt.is-timeup .qt-seconds { color: #c85c4a; }
     .qt-status { font-size: 13px; font-weight: 700; color: var(--ink-soft); padding: 2px 10px; border: 2px solid var(--line); border-radius: 12px 14px 12px 14px / 14px 12px 14px 12px; background: var(--bg); }
@@ -48,20 +47,13 @@
     .qt-main { width: 78%; font-size: 20px; padding: 14px 16px; }
     .qt-main.is-start { background: var(--peach); }
     .qt-main:disabled { opacity: 0.4; box-shadow: none; }
-    .qt-subrow { display: flex; justify-content: center; width: 100%; }
+    .qt-subrow { display: flex; justify-content: center; gap: 10px; width: 100%; }
     .qt-small { font-size: 12px; padding: 6px 14px; box-shadow: none; }
     .qt-small:active { transform: translate(1px, 1px); background: var(--bg); }
     .qt-small:disabled { opacity: 0.35; }
     .qt-quit { background: var(--paper); color: var(--ink); }
 
     /* 次への待ち: リングの上に重ねる */
-    .qt-next {
-      position: absolute; inset: -8px; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      background: rgba(251, 246, 238, 0.82); border-radius: 20px; backdrop-filter: blur(2px);
-    }
-    .qt-next-label { font-size: 13px; color: var(--ink-soft); }
-    .qt-next-num { font-size: 96px; font-weight: 700; line-height: 1; color: var(--ink); text-shadow: 3px 3px 0 var(--yellow); }
-    .qt-next-sub { font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
 
     /* 完了演出モーダル */
     .clear-card { position: relative; width: min(92vw, 340px); padding: 26px 22px 20px; text-align: center; background: var(--paper); border: 3px solid var(--ink); border-radius: 28px 34px 30px 36px / 36px 28px 34px 30px; box-shadow: 6px 6px 0 var(--mint); }
@@ -143,7 +135,19 @@
     /* タイマーの数字は1桁ずつ同じ幅で並べる */
     .qt-seconds span { display: inline-block; width: 0.51em; text-align: center; }
     
-  </style>
+  
+    /* 次への待ちのカード: 開始時のカードと同じ高さ。文字は縦の中央、ボタンは下に寄せる */
+    .focus-card--countdown { text-align: center; min-height: 536px; display: flex; flex-direction: column; box-sizing: border-box; }
+    .cd-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .cd-title { font-size: 36px; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+    .cd-sec { display: block; margin-top: 4px; font-size: 24px; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
+    .cd-meta { margin-top: 8px; font-size: 13px; color: var(--ink-soft); }
+    .cd-num { margin-top: 22px; font-size: 128px; font-weight: 700; line-height: 1; color: var(--ink); text-shadow: 4px 4px 0 var(--yellow); animation: cd-pop 0.45s cubic-bezier(0.2, 0.8, 0.3, 1); }
+    @keyframes cd-pop { from { transform: scale(1.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .focus-card--countdown .qt-actions { margin-top: 12px; }
+        .qt-main .icon { width: 22px; height: 22px; vertical-align: -4px; margin-right: 2px; --icon-fill-a: currentColor; stroke-width: 2.2; }
+    .qt-main:not(.is-start) .icon { --icon-fill-a: var(--paper); }
+    </style>
 </head>
 <body>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -159,6 +163,16 @@
         <path d="M12 3c.6 4.2 2.4 6.4 7 7-4.6.6-6.4 2.8-7 7-.6-4.2-2.4-6.4-7-7 4.6-.6 6.4-2.8 7-7Z" style="fill:var(--icon-fill-a, none)"/>
         <path d="M18.5 15c.3 1.7 1 2.6 2.5 3-1.5.4-2.2 1.3-2.5 3-.3-1.7-1-2.6-2.5-3 1.5-.4 2.2-1.3 2.5-3Z" style="fill:var(--icon-fill-b, none)" stroke-width="1.4"/>
       </symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14" fill="none"/>
+      </symbol>
+      <symbol id="i-check-box" viewBox="0 0 24 24">
+        <rect x="4" y="4" width="16" height="16" rx="3.5" style="fill:var(--icon-fill-a, none)"/>
+        <path d="m8 12.5 2.8 2.8L16.5 9.5" fill="none"/>
+      </symbol>
+      <symbol id="i-minus" viewBox="0 0 24 24">
+        <path d="M5 12h14" fill="none"/>
+      </symbol>
       <symbol id="i-flame" viewBox="0 0 24 24">
         <path d="M12 3c1 3 4 4.5 4 9a4 4 0 0 1-8 0c0-1.5.6-2.6 1.3-3.4.3 1 .9 1.6 1.7 1.9C10.5 8 11.5 5.5 12 3Z" style="fill:var(--icon-fill-a, none)"/>
         <path d="M12 21a5.5 5.5 0 0 1-5.5-5.5c0-1.2.4-2.2 1-3" fill="none"/>
@@ -171,10 +185,6 @@
   <section class="mock-section">
     <p class="mock-label">1. 待機（セッション前）。難易度に応じた秒数を表示。主ボタンは「スタート」</p>
     <div class="focus-card">
-      <div class="focus-head">
-        <span></span>
-        <span class="focus-head-right"></span>
-      </div>
       <div class="focus-title">机の上の書類を仕分ける</div>
       <div class="focus-meta">机 · ★★ · 3日ごと · 3日遅れ</div>
       <div class="qt">
@@ -184,13 +194,13 @@
             <circle class="qt-fill" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="0"/>
             <circle class="qt-edge" cx="65" cy="65" r="58.5"/><circle class="qt-edge" cx="65" cy="65" r="49.5"/>
           </g></svg>
-          <div class="qt-center"><div class="qt-seconds"><span>3</span><span>0</span><span>0</span></div><div class="qt-slot"><button class="qt-ctl" aria-label="スタート"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg></button></div></div>
+          <div class="qt-center"><div class="qt-seconds"><span>3</span><span>0</span><span>0</span></div><div class="qt-slot"><button class="qt-ctl" aria-label="10秒引く"><svg class="icon" aria-hidden="true"><use href="#i-minus"/></svg></button><button class="qt-ctl" aria-label="スタート"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg></button><button class="qt-ctl" aria-label="10秒足す"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></button></div></div>
           
         </div>
       </div>
       <div class="qt-actions">
-        <button class="btn btn-primary qt-main is-start">スタート</button>
-        <div class="qt-subrow"><button class="btn qt-small">あとで</button></div>
+        <button class="btn btn-primary qt-main is-start"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg> スタート</button>
+        <div class="qt-subrow"><button class="btn qt-small">スキップ</button></div>
       </div>
     </div>
   </section>
@@ -199,10 +209,6 @@
   <section class="mock-section">
     <p class="mock-label">2. 実行中。縁が減り、コンボが右上に出る。主ボタンは「完了」、「× やめる」はその下</p>
     <div class="focus-card has-combo">
-      <div class="focus-head">
-        <span></span>
-        <span class="focus-head-right"></span>
-      </div>
       <div class="focus-title">机の上の書類を仕分ける</div>
       <div class="focus-meta">机 · ★★ · 3日ごと · 3日遅れ</div>
       <div class="qt">
@@ -212,13 +218,13 @@
             <circle class="qt-fill" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="128"/>
             <circle class="qt-edge" cx="65" cy="65" r="58.5"/><circle class="qt-edge" cx="65" cy="65" r="49.5"/>
           </g></svg>
-          <div class="qt-center"><div class="qt-seconds"><span>1</span><span>8</span><span>7</span></div><div class="qt-slot"><button class="qt-ctl" aria-label="一時停止"><svg class="icon" aria-hidden="true"><use href="#i-pause"/></svg></button></div></div>
+          <div class="qt-center"><div class="qt-seconds"><span>1</span><span>8</span><span>7</span></div><div class="qt-slot"><button class="qt-ctl" aria-label="10秒引く"><svg class="icon" aria-hidden="true"><use href="#i-minus"/></svg></button><button class="qt-ctl" aria-label="一時停止"><svg class="icon" aria-hidden="true"><use href="#i-pause"/></svg></button><button class="qt-ctl" aria-label="10秒足す"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></button></div></div>
           
         </div>
       </div>
       <div class="qt-actions">
-        <button class="btn btn-primary qt-main ">クエスト完了</button>
-        <div class="qt-subrow"><button class="btn qt-small qt-quit">× やめる</button></div>
+        <button class="btn btn-primary qt-main "><svg class="icon" aria-hidden="true"><use href="#i-check-box"/></svg> クエスト完了</button>
+        <div class="qt-subrow"><button class="btn qt-small qt-quit">× やめる</button><button class="btn qt-small">スキップ</button></div>
       </div>
       <div class="qt-combo"><strong>3</strong><small>コンボ</small></div>
     </div>
@@ -228,10 +234,6 @@
   <section class="mock-section">
     <p class="mock-label">3. 一時停止。縁が薄紫になる。コンボは続く。リングの中が「再開」に</p>
     <div class="focus-card has-combo">
-      <div class="focus-head">
-        <span></span>
-        <span class="focus-head-right"></span>
-      </div>
       <div class="focus-title">机の上の書類を仕分ける</div>
       <div class="focus-meta">机 · ★★ · 3日ごと · 一時停止中</div>
       <div class="qt is-paused">
@@ -241,13 +243,13 @@
             <circle class="qt-fill" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="128"/>
             <circle class="qt-edge" cx="65" cy="65" r="58.5"/><circle class="qt-edge" cx="65" cy="65" r="49.5"/>
           </g></svg>
-          <div class="qt-center"><div class="qt-seconds"><span>1</span><span>8</span><span>7</span></div><div class="qt-slot"><button class="qt-ctl" aria-label="再開"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg></button></div></div>
+          <div class="qt-center"><div class="qt-seconds"><span>1</span><span>8</span><span>7</span></div><div class="qt-slot"><button class="qt-ctl" aria-label="10秒引く"><svg class="icon" aria-hidden="true"><use href="#i-minus"/></svg></button><button class="qt-ctl" aria-label="再開"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg></button><button class="qt-ctl" aria-label="10秒足す"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></button></div></div>
           
         </div>
       </div>
       <div class="qt-actions">
-        <button class="btn btn-primary qt-main ">クエスト完了</button>
-        <div class="qt-subrow"><button class="btn qt-small qt-quit">× やめる</button></div>
+        <button class="btn btn-primary qt-main "><svg class="icon" aria-hidden="true"><use href="#i-check-box"/></svg> クエスト完了</button>
+        <div class="qt-subrow"><button class="btn qt-small qt-quit">× やめる</button><button class="btn qt-small">スキップ</button></div>
       </div>
       <div class="qt-combo"><strong>3</strong><small>コンボ</small></div>
     </div>
@@ -257,10 +259,6 @@
   <section class="mock-section">
     <p class="mock-label">4. 時間切れ。0で止まり縁が赤に。完了は押せるがボーナスなし</p>
     <div class="focus-card">
-      <div class="focus-head">
-        <span></span>
-        <span class="focus-head-right"></span>
-      </div>
       <div class="focus-title">机の上の書類を仕分ける</div>
       <div class="focus-meta">机 · ★★ · 3日ごと · 時間切れ</div>
       <div class="qt is-timeup">
@@ -270,47 +268,29 @@
             <circle class="qt-fill" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="339.3"/>
             <circle class="qt-edge" cx="65" cy="65" r="58.5"/><circle class="qt-edge" cx="65" cy="65" r="49.5"/>
           </g></svg>
-          <div class="qt-center"><div class="qt-seconds"><span>0</span></div><div class="qt-slot"><div class="qt-timeup">時間切れ</div></div></div>
+          <div class="qt-center"><div class="qt-seconds"><span>0</span></div><div class="qt-slot"><button disabled class="qt-ctl" aria-label="10秒引く"><svg class="icon" aria-hidden="true"><use href="#i-minus"/></svg></button><div class="qt-timeup">時間切れ</div><button class="qt-ctl" aria-label="10秒足す"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></button></div></div>
           
         </div>
       </div>
       <div class="qt-actions">
-        <button class="btn btn-primary qt-main ">クエスト完了</button>
-        <div class="qt-subrow"><button class="btn qt-small qt-quit">× やめる</button></div>
+        <button class="btn btn-primary qt-main "><svg class="icon" aria-hidden="true"><use href="#i-check-box"/></svg> クエスト完了</button>
+        <div class="qt-subrow"><button class="btn qt-small qt-quit">× やめる</button><button class="btn qt-small">スキップ</button></div>
       </div>
     </div>
   </section>
 
   <!-- 5 -->
   <section class="mock-section">
-    <p class="mock-label">5. 次への待ち。次のクエストと秒数を出し、リングの上に5秒のカウントダウンを重ねる。完了は押せない</p>
-    <div class="focus-card has-combo">
-      <div class="focus-head">
-        <span></span>
-        <span class="focus-head-right"></span>
-      </div>
-      <div class="focus-title">マグカップを片付ける</div>
-      <div class="focus-meta">机 · ★ · 毎日 · 1日遅れ</div>
-      <div class="qt">
-        <div class="qt-dial">
-          <svg class="qt-ring" viewBox="0 0 130 130"><g filter="url(#wobble)">
-            <circle class="qt-track" cx="65" cy="65" r="54"/>
-            <circle class="qt-fill" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="0"/>
-            <circle class="qt-edge" cx="65" cy="65" r="58.5"/><circle class="qt-edge" cx="65" cy="65" r="49.5"/>
-          </g></svg>
-          <div class="qt-center"><div class="qt-seconds"><span>1</span><span>8</span><span>0</span></div><div class="qt-slot"></div></div>
-          <div class="qt-next">
-            <div class="qt-next-label">次のクエストまで</div>
-            <div class="qt-next-num">3</div>
-            <div class="qt-next-sub">自動でスタートします</div>
-          </div>
-        </div>
+    <p class="mock-label">5. 次への待ち。タイトルを大きく中央に、その下にエリアなどを小さく、その下にカウントダウンの数字。リング・完了ボタン・コンボは出さない</p>
+    <div class="focus-card focus-card--countdown">
+      <div class="cd-body">
+        <div class="cd-title">マグカップを片付ける<span class="cd-sec">（180秒）</span></div>
+        <div class="cd-meta">机 · ★ · 毎日 · 1日遅れ</div>
+        <div class="cd-num">3</div>
       </div>
       <div class="qt-actions">
-        <button class="btn btn-primary qt-main " disabled>クエスト完了</button>
-        <div class="qt-subrow"><button class="btn qt-small qt-quit">× やめる</button></div>
+        <div class="qt-subrow"><button class="btn qt-small qt-quit">× やめる</button><button class="btn qt-small">スキップ</button></div>
       </div>
-      <div class="qt-combo"><strong>4</strong><small>コンボ</small></div>
     </div>
   </section>
 

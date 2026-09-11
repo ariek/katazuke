@@ -115,6 +115,10 @@ function pickFocus(todoEntries, now = new Date()) {
 
 const ICON_PAUSE = '<svg class="icon" aria-hidden="true"><use href="#i-pause"/></svg>';
 const ICON_PLAY = '<svg class="icon" aria-hidden="true"><use href="#i-play"/></svg>';
+const ICON_PLUS = '<svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>';
+const ICON_MINUS = '<svg class="icon" aria-hidden="true"><use href="#i-minus"/></svg>';
+function plusBtn(sec) { return `<button class="qt-ctl" data-qt="plus" aria-label="10秒足す" ${sec >= 999 ? 'disabled' : ''}>${ICON_PLUS}</button>`; }
+function minusBtn(sec) { return `<button class="qt-ctl" data-qt="minus" aria-label="10秒引く" ${sec <= 0 ? 'disabled' : ''}>${ICON_MINUS}</button>`; }
 
 function ringHtml(offset) {
   return `<svg class="qt-ring" viewBox="0 0 130 130"><g filter="url(#wobble)">
@@ -130,7 +134,7 @@ function comboBadge(combo) {
 }
 
 // 「いまやる」カード。セッションの状態に応じてタイマーとボタンを出し分ける
-function renderFocusCard(entry, areaName, now, remaining) {
+function renderFocusCard(entry, areaName, now) {
   const s = state.session;
   const phase = sessionPhase();
   if (!entry && phase === 'idle') {
@@ -148,37 +152,56 @@ function renderFocusCard(entry, areaName, now, remaining) {
   const meta = task ? [areaName, DIFFICULTY_LABELS[task.difficulty], repeatLabel(task.repeat), metaTail].filter(Boolean).join(' · ') : '';
 
   // リング
-  let seconds = task ? (QUEST_SECONDS[task.difficulty] || QUEST_SECONDS[1]) : 0;
+  let seconds = task ? (QUEST_SECONDS[task.difficulty] || QUEST_SECONDS[1]) + (phase === 'idle' ? idleExtraFor(task.id) : 0) : 0;
   let offset = 0;
   let qtCls = '';
-  let slot = task ? `<button class="qt-ctl" data-qt="start" aria-label="スタート">${ICON_PLAY}</button>` : '';
-  let overlay = '';
+  let slot = task ? `${minusBtn(seconds)}<button class="qt-ctl" data-qt="start" aria-label="スタート">${ICON_PLAY}</button>${plusBtn(seconds)}` : '';
   if (phase === 'running' || phase === 'paused') {
     const rem = questRemainingSec(s);
     seconds = rem;
     offset = QT_LEN * (1 - rem / s.durationSec);
     if (s.timedOut) {
       qtCls = 'is-timeup';
-      slot = '<div class="qt-timeup">時間切れ</div>';
+      slot = `${minusBtn(0)}<div class="qt-timeup">時間切れ</div>${plusBtn(0)}`;
     } else if (phase === 'paused') {
       qtCls = 'is-paused';
-      slot = `<button class="qt-ctl" data-qt="resume" aria-label="再開">${ICON_PLAY}</button>`;
+      slot = `${minusBtn(rem)}<button class="qt-ctl" data-qt="resume" aria-label="再開">${ICON_PLAY}</button>${plusBtn(rem)}`;
     } else {
-      slot = `<button class="qt-ctl" data-qt="pause" aria-label="一時停止">${ICON_PAUSE}</button>`;
+      slot = `${minusBtn(rem)}<button class="qt-ctl" data-qt="pause" aria-label="一時停止">${ICON_PAUSE}</button>${plusBtn(rem)}`;
     }
   } else if (phase === 'countdown') {
-    slot = '';
-    overlay = `<div class="qt-next">
-      <div class="qt-next-label">次のクエストまで</div>
-      <div class="qt-next-num">${Math.max(1, countdownRemainingSec(s))}</div>
-      <div class="qt-next-sub">自動でスタートします</div>
+    // 次への待ち: 待機中と同じ構造のカードを透明にして下敷きにし、その上に専用の表示を重ねる。
+    // こうするとフォントや行数に関係なく、カードの高さが待機中と必ず一致する
+    const cdMeta = [areaName, DIFFICULTY_LABELS[task.difficulty], repeatLabel(task.repeat), dueText(task, status, now)]
+      .filter(Boolean).join(' · ');
+    const canSkip = !!pickNextQuest(s.taskId);
+    const left = Math.max(1, countdownRemainingSec(s));
+    return `<div class="focus-card focus-card--countdown" data-phase="countdown">
+      <div class="focus-title">${escapeHtml(task.title)}</div>
+      <div class="focus-meta">${escapeHtml(meta)}</div>
+      <div class="qt"><div class="qt-dial">${ringHtml(0)}<div class="qt-center"><div class="qt-seconds">${digitsHtml(s.durationSec)}</div><div class="qt-slot">${minusBtn(1)}<span class="qt-ctl">${ICON_PLAY}</span>${plusBtn(1)}</div></div></div></div>
+      <div class="qt-actions"><button class="btn btn-primary qt-main" disabled>${ICON_PLAY} スタート</button><div class="qt-subrow"><button class="btn qt-small" disabled>スキップ</button></div></div>
+      <div class="cd-overlay">
+        <div class="cd-body">
+          <div class="cd-title">${escapeHtml(task.title)}<span class="cd-sec">（${s.durationSec}秒）</span></div>
+          <div class="cd-meta">${escapeHtml(cdMeta)}</div>
+          <div class="cd-num is-pop" data-value="${left}">${left}</div>
+        </div>
+        <div class="qt-actions">
+          <div class="qt-subrow">
+            <button class="btn qt-small qt-quit" data-qt="quit">× やめる</button>
+            <button class="btn qt-small" data-qt="skip" ${canSkip ? '' : 'disabled'}>スキップ</button>
+          </div>
+        </div>
+      </div>
     </div>`;
   } else if (phase === 'done') {
     // 完了演出の間は、完了した時点の残り秒数とリングをそのまま見せる（戻ったように見せない）
     const lc = s.lastClear;
     if (lc && lc.durationSec) {
-      seconds = lc.remainingSec;
-      offset = QT_LEN * (1 - lc.remainingSec / lc.durationSec);
+      const shown = lc.shownRemainingSec !== undefined ? lc.shownRemainingSec : lc.remainingSec;
+      seconds = shown;
+      offset = QT_LEN * (1 - shown / lc.durationSec);
     }
     slot = '';
   } else if (phase === 'break' || phase === 'summary') {
@@ -189,21 +212,23 @@ function renderFocusCard(entry, areaName, now, remaining) {
   let main;
   let sub;
   if (phase === 'idle') {
-    main = `<button class="btn btn-primary qt-main is-start" data-qt="start">スタート</button>`;
+    main = `<button class="btn btn-primary qt-main is-start" data-qt="start">${ICON_PLAY} スタート</button>`;
     // 同じ期限日にほかのクエストがなければ「あとで」は意味がないので押せない
     const sameDay = state.tasks.filter((t) => t.id !== task.id && !t.done && ['overdue', 'due', 'todo'].includes(taskStatus(t, now)) && dueDayKey(t) === dueDayKey(task) && (!ui.areaFilter || t.areaId === ui.areaFilter));
-    sub = `<button class="btn qt-small" data-defer="${task.id}" ${sameDay.length === 0 ? 'disabled' : ''}>あとで</button>`;
+    sub = `<button class="btn qt-small" data-defer="${task.id}" ${sameDay.length === 0 ? 'disabled' : ''}>スキップ</button>`;
   } else {
     const canComplete = phase === 'running' || phase === 'paused';
-    main = `<button class="btn btn-primary qt-main" data-qt="complete" ${canComplete ? '' : 'disabled'}>クエスト完了</button>`;
-    sub = `<button class="btn qt-small qt-quit" data-qt="quit">× やめる</button>`;
+    main = `<button class="btn btn-primary qt-main" data-qt="complete" ${canComplete ? '' : 'disabled'}><svg class="icon" aria-hidden="true"><use href="#i-check-box"/></svg> クエスト完了</button>`;
+    // 「× やめる」の右に「スキップ」（いまのクエストを先送りして別のクエストで待ち直す。ほかに候補がなければ押せない）
+    const canSkip = !!pickNextQuest(s.taskId);
+    sub = `<button class="btn qt-small qt-quit" data-qt="quit">× やめる</button><button class="btn qt-small" data-qt="skip" ${canSkip ? '' : 'disabled'}>スキップ</button>`;
   }
 
   // コンボはタイマーの右上に円で出す（2コンボ以上のときだけ）
   const comboCircle = inSession && s.combo >= 2
     ? `<div class="qt-combo"><strong>${s.combo}</strong><small>コンボ</small></div>`
     : '';
-  return `<div class="focus-card ${comboCircle ? 'has-combo' : ''}" data-phase="${phase}">
+  return `<div class="focus-card ${comboCircle ? 'has-combo' : ''} ${phase === 'idle' ? 'is-editable' : ''}" data-phase="${phase}" data-task-id="${task ? task.id : ''}">
     <div class="focus-title">${task ? escapeHtml(task.title) : ''}</div>
     <div class="focus-meta">${escapeHtml(meta)}</div>
     ${task && task.note && phase === 'idle' ? `<div class="focus-note">${escapeHtml(task.note)}</div>` : ''}
@@ -211,7 +236,6 @@ function renderFocusCard(entry, areaName, now, remaining) {
       <div class="qt-dial">
         ${ringHtml(offset)}
         <div class="qt-center"><div class="qt-seconds">${digitsHtml(seconds)}</div><div class="qt-slot">${slot}</div></div>
-        ${overlay}
       </div>
     </div>
     <div class="qt-actions">
@@ -307,7 +331,7 @@ function sortDue(a, b) {
 function taskRow(entry, areaName, now, mode) {
   const { task, status } = entry;
   const meta = [areaName, DIFFICULTY_LABELS[task.difficulty], repeatLabel(task.repeat), dueText(task, status, now),
-    isDeferredToday(task, now) ? 'あとで' : '']
+    isDeferredToday(task, now) ? 'スキップ済み' : '']
     .filter(Boolean).join(' · ');
   let action;
   if (mode === 'undo') {
@@ -317,7 +341,7 @@ function taskRow(entry, areaName, now, mode) {
   } else if (mode === 'wait') {
     action = '<span class="task-check is-wait" aria-hidden="true"></span>';
   } else {
-    action = '<span class="task-check is-todo" aria-hidden="true"></span>';
+    action = ''; // 一覧からは完了できないので印は置かない
   }
   return `<li class="task-row" data-status="${status}">
     ${action}
@@ -363,8 +387,9 @@ function renderQuests() {
     const st = state.tasks.find((t) => t.id === state.session.taskId);
     if (st) focus = { task: st, status: taskStatus(st, now) };
   }
-  const focusHtml = renderFocusCard(focus, focus ? areaName[focus.task.areaId] || '' : '', now, todo.length);
+  const focusHtml = renderFocusCard(focus, focus ? areaName[focus.task.areaId] || '' : '', now);
   document.getElementById('focus-quests').innerHTML = focusHtml;
+
   document.getElementById('add-task-btn').hidden = sessionActive();
 
   // 「ほかのやること」は「いまやる」と同じ規則で並べる（上から順に次に来る）
@@ -518,6 +543,9 @@ function initQuests() {
       else if (action === 'resume') resumeQuest();
       else if (action === 'complete') completeQuest();
       else if (action === 'quit') quitSession();
+      else if (action === 'plus') adjustSeconds(ADJUST_SEC);
+      else if (action === 'minus') adjustSeconds(-ADJUST_SEC);
+      else if (action === 'skip') skipQuest();
       return;
     }
     const defer = e.target.closest('[data-defer]');
@@ -539,7 +567,11 @@ function initQuests() {
     if (edit) {
       if (sessionActive()) { showToast('セッション中は編集できません'); return; }
       openTaskSheet(edit.dataset.edit);
+      return;
     }
+    // 待機中のカードは、ボタン以外の場所をタップすると編集できる（一覧の行と同じ）
+    const card = e.target.closest('.focus-card[data-phase="idle"]');
+    if (card && card.dataset.taskId && !e.target.closest('button')) openTaskSheet(card.dataset.taskId);
   };
   document.getElementById('quest-list').addEventListener('click', handleTaskAction);
   document.getElementById('focus-quests').addEventListener('click', handleTaskAction);

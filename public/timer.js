@@ -67,7 +67,6 @@ function startSession(taskId) {
     timerStartedAt: null,
     pausedTotalSec: 0,
     pausedAt: null,
-    pausedFlag: false,
     timedOut: false,
     combo: 0,
     maxCombo: 0,
@@ -79,8 +78,11 @@ function startSession(taskId) {
   // 最初も5秒のカウントダウン（3・2・1の音つき）を経てからスタートする
   const task = state.tasks.find((t) => t.id === taskId);
   if (!task) { state.session = null; return; }
+  const extra = idleExtraFor(taskId); // 待機中に足した（引いた）分を持ち越す
+  ui.extraSec = 0;
+  ui.extraTaskId = null;
   state.session.taskId = taskId;
-  state.session.durationSec = QUEST_SECONDS[task.difficulty] || QUEST_SECONDS[1];
+  state.session.durationSec = (QUEST_SECONDS[task.difficulty] || QUEST_SECONDS[1]) + extra;
   state.session.phase = 'countdown';
   state.session.phaseStartedAt = now;
   lastCountdownBeep = 0;
@@ -94,15 +96,17 @@ function beginQuest(taskId) {
   const task = state.tasks.find((t) => t.id === taskId);
   if (!task) { endSession('empty'); return; }
   const now = nowIso();
+  const base = QUEST_SECONDS[task.difficulty] || QUEST_SECONDS[1];
+  // 次への待ちの間に決まっていた長さ（待機中の調整分を含む）をそのまま使う
+  const extra = (s.phase === 'countdown' && s.taskId === taskId) ? (s.durationSec - base) : 0;
   Object.assign(s, {
     phase: 'running',
     phaseStartedAt: now,
     taskId,
-    durationSec: QUEST_SECONDS[task.difficulty] || QUEST_SECONDS[1],
+    durationSec: base + extra,
     timerStartedAt: now,
     pausedTotalSec: 0,
     pausedAt: null,
-    pausedFlag: false,
     timedOut: false,
     lastActionAt: now,
   });
@@ -112,12 +116,65 @@ function beginQuest(taskId) {
   render();
 }
 
+// 「+ / −」ボタン: 10秒ずつ増減する。表示は 0〜999 秒の範囲に収める。
+// 待機中は次に始めるクエストの長さに、実行中・一時停止中は今のタイマーに効く
+const ADJUST_SEC = 10;
+const TIMER_MAX_SEC = 999;
+
+// 待機中に調整した分は、そのときの「いまやる」クエストだけに効く（スキップなどで別のクエストになったら0に戻る）
+function idleExtraFor(taskId) {
+  return ui.extraTaskId === taskId ? (ui.extraSec || 0) : 0;
+}
+
+function adjustSeconds(delta) {
+  const s = state.session;
+  if (!s) {
+    const next = pickNextQuest();
+    if (!next) return;
+    const base = QUEST_SECONDS[next.difficulty] || QUEST_SECONDS[1];
+    const target = Math.min(TIMER_MAX_SEC, Math.max(0, base + idleExtraFor(next.id) + delta));
+    ui.extraTaskId = next.id;
+    ui.extraSec = target - base;
+    render();
+    return;
+  }
+  if (s.phase !== 'running' && s.phase !== 'paused') return;
+  const remaining = questRemainingSec(s);
+  const target = Math.min(TIMER_MAX_SEC, Math.max(0, remaining + delta));
+  s.durationSec += target - remaining;
+  if (target > 0 && s.timedOut) s.timedOut = false; // 時間切れからでも延長できる
+  touchSession();
+  saveState();
+  render();
+}
+
+// 「スキップ」: いまのクエストを先送りして、別のクエストで5秒の待ちに入る。
+// 次への待ちでも実行中・一時停止中でも使える（走っていたタイマーは捨てる。コンボは続く）
+function skipQuest() {
+  const s = state.session;
+  if (!s || !['countdown', 'running', 'paused'].includes(s.phase)) return;
+  const alt = pickNextQuest(s.taskId); // いまのクエストを除いた先頭
+  if (!alt) return;
+  deferTask(s.taskId);
+  s.taskId = alt.id;
+  s.durationSec = QUEST_SECONDS[alt.difficulty] || QUEST_SECONDS[1];
+  s.timerStartedAt = null;
+  s.pausedAt = null;
+  s.pausedTotalSec = 0;
+  s.timedOut = false;
+  s.phase = 'countdown';
+  s.phaseStartedAt = nowIso(); // 5秒を数え直す
+  lastCountdownBeep = 0;
+  touchSession();
+  saveState();
+  render();
+}
+
 function pauseQuest() {
   const s = state.session;
   if (!s || s.phase !== 'running' || s.timedOut) return;
   s.phase = 'paused';
   s.pausedAt = nowIso();
-  s.pausedFlag = true; // 記録用。ボーナスとコンボには影響しない
   touchSession();
   saveState();
   render();
@@ -143,14 +200,17 @@ function completeQuest() {
   if (!task) { endSession('empty'); return; }
 
   // 一時停止してもボーナスとコンボは続く。時間切れだけが途切れる条件
+  // 「+ / −」で調整した分も含めた、いまの残り秒数でボーナスを計算する
   const remaining = s.timedOut ? 0 : questRemainingSec(s);
-  const eligible = !s.timedOut && remaining > 0;
-  const combo = eligible ? s.combo + 1 : 0;
+  const remainingForBonus = remaining;
+  // コンボは完了するたびに増え、「やめる」までは途切れない（時間切れでも続く）
+  const combo = s.combo + 1;
   const baseXp = baseXpForTask(task);
-  const bonusXp = eligible ? timerBonus(remaining, combo) : 0;
+  const bonusXp = remainingForBonus > 0 ? timerBonus(remainingForBonus, combo) : 0;
+  playTone([660, 880, 1100, 1320], 0.11, 0.4);
   const before = levelInfo(state.player.xp).level;
 
-  completeTask(task.id, { xp: baseXp + bonusXp, baseXp, bonusXp, combo, durationSec: s.durationSec, remainingSec: remaining });
+  completeTask(task.id, { xp: baseXp + bonusXp, baseXp, bonusXp, combo, durationSec: s.durationSec, remainingSec: remainingForBonus });
 
   const after = levelInfo(state.player.xp).level;
   s.combo = combo;
@@ -163,7 +223,8 @@ function completeQuest() {
     baseXp,
     bonusXp,
     combo,
-    remainingSec: remaining,
+    remainingSec: remainingForBonus,
+    shownRemainingSec: remaining, // 完了演出の裏のリングに出す実際の残り秒数
     durationSec: s.durationSec,
     multiplier: comboMultiplier(combo),
     levelUp: after > before ? after : null,
@@ -223,9 +284,9 @@ function nextOrEnd() {
   render();
 }
 
-function pickNextQuest() {
+function pickNextQuest(excludeId = null) {
   const now = new Date();
-  const tasks = state.tasks.filter((t) => !ui.areaFilter || t.areaId === ui.areaFilter);
+  const tasks = state.tasks.filter((t) => t.id !== excludeId && (!ui.areaFilter || t.areaId === ui.areaFilter));
   const entries = tasks.map((task) => ({ task, status: taskStatus(task, now) }))
     .filter((e) => ['overdue', 'due', 'todo'].includes(e.status));
   const focus = pickFocus(entries, now);
@@ -263,6 +324,7 @@ function endSession(reason) {
   s.summary = { ...record, rank, reason };
   saveState();
   render();
+  if (reason !== 'idle') playSparkle(); // まとめが出るときのキラリン（放置による自動終了では鳴らさない）
 }
 
 function closeSummary() {
@@ -291,7 +353,6 @@ function tickSession() {
     case 'running':
       if (!s.timedOut && questRemainingSec(s) <= 0) {
         s.timedOut = true;
-        s.combo = 0;
         saveState();
         playTone([660, 520, 400], 0.25);
         if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
@@ -334,12 +395,22 @@ function initSession() {
     // 待ちの間に閉じていたら、開いた時点から数え直す
     s.phaseStartedAt = nowIso();
   }
-  if (s.phase === 'running' && !s.timedOut && questRemainingSec(s) <= 0) { s.timedOut = true; s.combo = 0; }
+  if (s.phase === 'running' && !s.timedOut && questRemainingSec(s) <= 0) { s.timedOut = true; }
   saveState();
   ensureSessionLoop();
 }
 
 // --- 音 ----------------------------------------------------------------
+
+// まとめが出るときのキラリン（上昇する速いアルペジオ）
+function playSparkle() {
+  playTone([1319, 1760, 2093, 2637, 3136], 0.07, 0.5);
+}
+
+// 経験値が足し上がるときのチャリン
+function playCoin() {
+  playTone([1760, 2349], 0.045, 0.08);
+}
 
 // freqs: 鳴らす周波数の並び、gap: 音と音の間隔（秒）、length: 1音の長さ（秒）
 function playTone(freqs, gap, length = 0.3) {
@@ -373,16 +444,28 @@ function digitsHtml(n) {
 
 function renderTimerTick() {
   const s = state.session;
-  const secEl = document.querySelector('#focus-quests .qt-seconds');
-  const fillEl = document.querySelector('#focus-quests .qt-fill');
-  if (s && secEl && fillEl) {
-    if (s.phase === 'running' || s.phase === 'paused') {
+  if (s && (s.phase === 'running' || s.phase === 'paused')) {
+    const secEl = document.querySelector('#focus-quests .qt-seconds');
+    const fillEl = document.querySelector('#focus-quests .qt-fill');
+    if (secEl && fillEl) {
       const remaining = questRemainingSec(s);
       secEl.innerHTML = digitsHtml(remaining);
       fillEl.style.strokeDashoffset = String(QT_LEN * (1 - remaining / s.durationSec));
-    } else if (s.phase === 'countdown') {
-      const cd = document.querySelector('#focus-quests .qt-next-num');
-      if (cd) cd.textContent = String(Math.max(1, countdownRemainingSec(s)));
+      const minus = document.querySelector('#focus-quests [data-qt="minus"]');
+      const plus = document.querySelector('#focus-quests [data-qt="plus"]');
+      if (minus) minus.disabled = remaining <= 0;
+      if (plus) plus.disabled = remaining >= TIMER_MAX_SEC;
+    }
+  } else if (s && s.phase === 'countdown') {
+    const cd = document.querySelector('#focus-quests .cd-num');
+    const left = Math.max(1, countdownRemainingSec(s));
+    if (cd && cd.dataset.value !== String(left)) {
+      // 数字が変わるたびに、手前からふわっと縮小しながら出す
+      cd.dataset.value = String(left);
+      cd.textContent = String(left);
+      cd.classList.remove('is-pop');
+      void cd.offsetWidth;
+      cd.classList.add('is-pop');
     }
   }
   if (s && s.phase === 'break') {

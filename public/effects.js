@@ -164,6 +164,7 @@ function showClearModal(data) {
           strong.textContent = `+${cur}`;
           num.textContent = String(from + cur);
           boingEl(num);
+          if (typeof playCoin === 'function') playCoin();
           if (k === steps) total = from + v;
         }, Math.round(650 * k / steps));
       }
