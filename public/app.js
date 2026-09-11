@@ -231,7 +231,7 @@ function measureInsets() {
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.7.0';
+const APP_VERSION = 'v0.7.1';
 let waitingWorker = null;
 
 function registerServiceWorker() {
@@ -305,7 +305,7 @@ function init() {
   try { lastTab = localStorage.getItem(LAST_TAB_KEY); } catch (err) { lastTab = null; }
   switchTab(TAB_NAMES.includes(lastTab) ? lastTab : 'quests');
 
-  document.getElementById('app-version').textContent = `タスククエスト ${APP_VERSION}`;
+  document.getElementById('app-version').textContent = `やることクエスト ${APP_VERSION}`;
   measureInsets();
   setTimeout(measureInsets, 500);
   window.addEventListener('resize', measureInsets);
