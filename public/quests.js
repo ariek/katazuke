@@ -97,11 +97,11 @@ function sortFocusOrder(todoEntries, now = new Date()) {
 
 // 「クエストごと」のときはクエストの並び順に分け、各クエスト内を標準の並びにする
 function orderTodo(todoEntries, now = new Date()) {
-  const byArea = !ui.areaFilter && ui.sections && ui.sections.byArea;
-  if (!byArea) return sortFocusOrder(todoEntries, now);
-  const areas = [...state.areas].sort((a, b) => a.order - b.order);
+  const byCategory = !ui.categoryFilter && ui.sections && ui.sections.byCategory;
+  if (!byCategory) return sortFocusOrder(todoEntries, now);
+  const categories = [...state.categories].sort((a, b) => a.order - b.order);
   const out = [];
-  for (const a of areas) out.push(...sortFocusOrder(todoEntries.filter((e) => e.task.areaId === a.id), now));
+  for (const a of categories) out.push(...sortFocusOrder(todoEntries.filter((e) => e.task.categoryId === a.id), now));
   // どのクエストにも属さないものがあれば最後に
   const seen = new Set(out.map((e) => e.task.id));
   out.push(...sortFocusOrder(todoEntries.filter((e) => !seen.has(e.task.id)), now));
@@ -134,7 +134,7 @@ function comboBadge(combo) {
 }
 
 // 「いまやる」カード。セッションの状態に応じてタイマーとボタンを出し分ける
-function renderFocusCard(entry, areaName, now) {
+function renderFocusCard(entry, categoryName, now) {
   const s = state.session;
   const phase = sessionPhase();
   if (!entry && phase === 'idle') {
@@ -149,7 +149,7 @@ function renderFocusCard(entry, areaName, now) {
   if (phase === 'paused') metaTail = '一時停止中';
   else if (phase === 'running' && s.timedOut) metaTail = '時間切れ';
   else if (task) metaTail = dueText(task, status, now);
-  const meta = task ? [areaName, DIFFICULTY_LABELS[task.difficulty], repeatLabel(task.repeat), metaTail].filter(Boolean).join(' · ') : '';
+  const meta = task ? [categoryName, DIFFICULTY_LABELS[task.difficulty], repeatLabel(task.repeat), metaTail].filter(Boolean).join(' · ') : '';
 
   // リング
   let seconds = task ? (QUEST_SECONDS[task.difficulty] || QUEST_SECONDS[1]) + (phase === 'idle' ? idleExtraFor(task.id) : 0) : 0;
@@ -172,7 +172,7 @@ function renderFocusCard(entry, areaName, now) {
   } else if (phase === 'countdown') {
     // 次への待ち: 待機中と同じ構造のカードを透明にして下敷きにし、その上に専用の表示を重ねる。
     // こうするとフォントや行数に関係なく、カードの高さが待機中と必ず一致する
-    const cdMeta = [areaName, DIFFICULTY_LABELS[task.difficulty], repeatLabel(task.repeat), dueText(task, status, now)]
+    const cdMeta = [categoryName, DIFFICULTY_LABELS[task.difficulty], repeatLabel(task.repeat), dueText(task, status, now)]
       .filter(Boolean).join(' · ');
     const canSkip = !!pickNextQuest(s.taskId);
     const left = Math.max(1, countdownRemainingSec(s));
@@ -214,7 +214,7 @@ function renderFocusCard(entry, areaName, now) {
   if (phase === 'idle') {
     main = `<button class="btn btn-primary qt-main is-start" data-qt="start">${ICON_PLAY} スタート</button>`;
     // 同じ期限日にほかのクエストがなければ「あとで」は意味がないので押せない
-    const sameDay = state.tasks.filter((t) => t.id !== task.id && !t.done && ['overdue', 'due', 'todo'].includes(taskStatus(t, now)) && dueDayKey(t) === dueDayKey(task) && (!ui.areaFilter || t.areaId === ui.areaFilter));
+    const sameDay = state.tasks.filter((t) => t.id !== task.id && !t.done && ['overdue', 'due', 'todo'].includes(taskStatus(t, now)) && dueDayKey(t) === dueDayKey(task) && (!ui.categoryFilter || t.categoryId === ui.categoryFilter));
     sub = `<button class="btn qt-small" data-defer="${task.id}" ${sameDay.length === 0 ? 'disabled' : ''}>スキップ</button>`;
   } else {
     const canComplete = phase === 'running' || phase === 'paused';
@@ -265,7 +265,7 @@ function upsertTask(data) {
     const repeatChanged = JSON.stringify(task.repeat) !== JSON.stringify(data.repeat);
     Object.assign(task, {
       title: data.title,
-      areaId: data.areaId,
+      categoryId: data.categoryId,
       difficulty: data.difficulty,
       repeat: data.repeat,
       deadline: data.deadline,
@@ -279,7 +279,7 @@ function upsertTask(data) {
   } else {
     state.tasks.push({
       id: newId('t'),
-      areaId: data.areaId,
+      categoryId: data.categoryId,
       title: data.title,
       difficulty: data.difficulty,
       repeat: data.repeat,
@@ -328,10 +328,10 @@ function sortDue(a, b) {
   return ka < kb ? -1 : ka > kb ? 1 : 0;
 }
 
-function taskRow(entry, areaName, now, mode) {
+function taskRow(entry, categoryName, now, mode) {
   const { task, status } = entry;
-  const cat = state.areas.find((a) => a.id === task.areaId);
-  const meta = [areaName, DIFFICULTY_LABELS[task.difficulty], repeatLabel(task.repeat), dueText(task, status, now),
+  const cat = state.categories.find((a) => a.id === task.categoryId);
+  const meta = [categoryName, DIFFICULTY_LABELS[task.difficulty], repeatLabel(task.repeat), dueText(task, status, now),
     isDeferredToday(task, now) ? 'スキップ済み' : '']
     .filter(Boolean).join(' · ');
   let action;
@@ -356,20 +356,20 @@ function taskRow(entry, areaName, now, mode) {
 function renderQuests() {
   const now = new Date();
   const today = dateKey(now);
-  const areaName = Object.fromEntries(state.areas.map((a) => [a.id, a.name]));
+  const categoryName = Object.fromEntries(state.categories.map((a) => [a.id, a.name]));
 
   // クエスト絞り込みチップ
-  const chips = document.getElementById('area-chips');
-  const areas = [...state.areas].sort((a, b) => a.order - b.order);
-  const byArea = !ui.areaFilter && ui.sections.byArea;
+  const chips = document.getElementById('category-chips');
+  const categories = [...state.categories].sort((a, b) => a.order - b.order);
+  const byCategory = !ui.categoryFilter && ui.sections.byCategory;
   chips.innerHTML = [
-    `<button class="chip ${!ui.areaFilter && !byArea ? 'is-active' : ''}" data-area="">すべて</button>`,
-    `<button class="chip ${byArea ? 'is-active' : ''}" data-mode="area">クエストごと</button>`,
+    `<button class="chip ${!ui.categoryFilter && !byCategory ? 'is-active' : ''}" data-category="">すべて</button>`,
+    `<button class="chip ${byCategory ? 'is-active' : ''}" data-mode="category">クエストごと</button>`,
   ]
-    .concat(areas.map((a) => `<button class="chip chip--cat ${ui.areaFilter === a.id ? 'is-active' : ''}" data-area="${a.id}" style="--cat-color:${categoryColorHex(a.color)}"><svg class="icon" aria-hidden="true"><use href="#c-${categoryIconId(a.icon)}"/></svg>${escapeHtml(a.name)}</button>`))
+    .concat(categories.map((a) => `<button class="chip chip--cat ${ui.categoryFilter === a.id ? 'is-active' : ''}" data-category="${a.id}" style="--cat-color:${categoryColorHex(a.color)}"><svg class="icon" aria-hidden="true"><use href="#c-${categoryIconId(a.icon)}"/></svg>${escapeHtml(a.name)}</button>`))
     .join('');
 
-  const tasks = state.tasks.filter((t) => !ui.areaFilter || t.areaId === ui.areaFilter);
+  const tasks = state.tasks.filter((t) => !ui.categoryFilter || t.categoryId === ui.categoryFilter);
   const doneTodayIds = new Set(state.logs.filter((l) => dateKey(l.doneAt) === today).map((l) => l.taskId));
 
   const entries = tasks.map((task) => ({ task, status: taskStatus(task, now) }));
@@ -379,7 +379,7 @@ function renderQuests() {
     .sort((a, b) => (a.task.dueAt < b.task.dueAt ? -1 : 1));
   const finished = entries.filter((e) => e.status === 'done' && !doneTodayIds.has(e.task.id));
 
-  const row = (mode) => (e) => taskRow(e, areaName[e.task.areaId] || '', now, mode);
+  const row = (mode) => (e) => taskRow(e, categoryName[e.task.categoryId] || '', now, mode);
   let html = '';
 
   // いまやる1つ。セッション中はセッションが持っているクエスト
@@ -388,7 +388,7 @@ function renderQuests() {
     const st = state.tasks.find((t) => t.id === state.session.taskId);
     if (st) focus = { task: st, status: taskStatus(st, now) };
   }
-  const focusHtml = renderFocusCard(focus, focus ? areaName[focus.task.areaId] || '' : '', now);
+  const focusHtml = renderFocusCard(focus, focus ? categoryName[focus.task.categoryId] || '' : '', now);
   document.getElementById('focus-quests').innerHTML = focusHtml;
 
   document.getElementById('add-task-btn').hidden = sessionActive();
@@ -397,10 +397,10 @@ function renderQuests() {
   const others = orderTodo(todo.filter((e) => !focus || e.task.id !== focus.task.id), now);
   if (others.length) {
     let body;
-    if (byArea) {
+    if (byCategory) {
       // クエストごとに分けて、クエストの並び順で見出しを付ける。各クエスト内は標準の並び
-      body = areas.map((a) => {
-        const list = others.filter((e) => e.task.areaId === a.id);
+      body = categories.map((a) => {
+        const list = others.filter((e) => e.task.categoryId === a.id);
         if (!list.length) return '';
         return `<h3 class="quest-subheading">${categoryIconHtml(a, 'cat-icon cat-icon--sm')}${escapeHtml(a.name)} <span class="count">${list.length}</span></h3>
           <ul class="task-list">${list.map(row('todo')).join('')}</ul>`;
@@ -450,12 +450,12 @@ function renderQuests() {
 function openTaskSheet(taskId = null) {
   const form = document.getElementById('task-form');
   const task = taskId ? state.tasks.find((t) => t.id === taskId) : null;
-  const areas = [...state.areas].sort((a, b) => a.order - b.order);
+  const categories = [...state.categories].sort((a, b) => a.order - b.order);
 
   form.elements.id.value = task ? task.id : '';
   form.elements.title.value = task ? task.title : '';
-  form.elements.areaId.innerHTML = areas.map((a) => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
-  form.elements.areaId.value = task ? task.areaId : (ui.areaFilter || (areas[0] && areas[0].id) || '');
+  form.elements.categoryId.innerHTML = categories.map((a) => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
+  form.elements.categoryId.value = task ? task.categoryId : (ui.categoryFilter || (categories[0] && categories[0].id) || '');
   form.elements.difficulty.value = task ? String(task.difficulty) : '1';
   form.elements.repeatType.value = task ? task.repeat.type : 'none';
   form.elements.repeatEvery.value = task && task.repeat.type === 'days' ? task.repeat.every : 3;
@@ -495,7 +495,7 @@ function readTaskForm() {
   return {
     id: form.elements.id.value || null,
     title: form.elements.title.value.trim(),
-    areaId: form.elements.areaId.value,
+    categoryId: form.elements.categoryId.value,
     difficulty: parseInt(form.elements.difficulty.value, 10) || 1,
     repeat,
     deadline,
@@ -518,15 +518,15 @@ function showToast(message, kind = '') {
 // --- イベント ---------------------------------------------------------
 
 function initQuests() {
-  document.getElementById('area-chips').addEventListener('click', (e) => {
+  document.getElementById('category-chips').addEventListener('click', (e) => {
     const chip = e.target.closest('.chip');
     if (!chip) return;
-    if (chip.dataset.mode === 'area') {
-      ui.areaFilter = null;
-      ui.sections.byArea = true;
+    if (chip.dataset.mode === 'category') {
+      ui.categoryFilter = null;
+      ui.sections.byCategory = true;
     } else {
-      ui.areaFilter = chip.dataset.area || null;
-      if (!ui.areaFilter) ui.sections.byArea = false;
+      ui.categoryFilter = chip.dataset.category || null;
+      if (!ui.categoryFilter) ui.sections.byCategory = false;
     }
     saveSections();
     renderQuests();
@@ -589,7 +589,7 @@ function initQuests() {
     e.preventDefault();
     const data = readTaskForm();
     if (!data.title) { form.elements.title.focus(); return; }
-    if (!data.areaId) { showToast('先に設定でクエストを作ってください'); return; }
+    if (!data.categoryId) { showToast('先に設定でクエストを作ってください'); return; }
     const isNew = !data.id;
     const saveBtn = form.querySelector('button[type="submit"]');
     const at = centerOf(saveBtn);

@@ -1,48 +1,48 @@
 // 設定画面: クエスト（カテゴリー）編集、エクスポート/インポート、サンプル削除、初期化
 
 // 初期クエスト（名前、色、アイコン）
-const DEFAULT_AREAS = [
+const DEFAULT_CATEGORIES = [
   ['仕事', 'sky', 'briefcase'], ['家事', 'mint', 'house'], ['勉強', 'lav', 'book'], ['健康', 'pink', 'heart'], ['買い物', 'yellow', 'cart'],
 ];
 
 // まだ使われていない色から順に選ぶ
 function nextFreeColor() {
-  const used = new Set(state.areas.map((a) => a.color));
+  const used = new Set(state.categories.map((a) => a.color));
   const free = CATEGORY_COLORS.find((c) => !used.has(c.id));
-  return free ? free.id : CATEGORY_COLORS[state.areas.length % CATEGORY_COLORS.length].id;
+  return free ? free.id : CATEGORY_COLORS[state.categories.length % CATEGORY_COLORS.length].id;
 }
 
 // --- クエスト（カテゴリー）の操作 -----------------------------------------------------
 
-function sortedAreas() {
-  return [...state.areas].sort((a, b) => a.order - b.order);
+function sortedCategories() {
+  return [...state.categories].sort((a, b) => a.order - b.order);
 }
 
-function upsertArea(data) {
+function upsertCategory(data) {
   if (data.id) {
-    const area = state.areas.find((a) => a.id === data.id);
-    if (area) Object.assign(area, { name: data.name, color: data.color, icon: data.icon });
+    const category = state.categories.find((a) => a.id === data.id);
+    if (category) Object.assign(category, { name: data.name, color: data.color, icon: data.icon });
   } else {
-    const maxOrder = state.areas.reduce((m, a) => Math.max(m, a.order), -1);
-    state.areas.push({ id: newId('a'), name: data.name, color: data.color, icon: data.icon, order: maxOrder + 1 });
+    const maxOrder = state.categories.reduce((m, a) => Math.max(m, a.order), -1);
+    state.categories.push({ id: newId('c'), name: data.name, color: data.color, icon: data.icon, order: maxOrder + 1 });
   }
   saveState();
 }
 
-function deleteArea(areaId) {
-  const ids = new Set(state.tasks.filter((t) => t.areaId === areaId).map((t) => t.id));
-  state.tasks = state.tasks.filter((t) => t.areaId !== areaId);
+function deleteCategory(categoryId) {
+  const ids = new Set(state.tasks.filter((t) => t.categoryId === categoryId).map((t) => t.id));
+  state.tasks = state.tasks.filter((t) => t.categoryId !== categoryId);
   if (ids.size > 0) removeRegisterXp(ids.size);
   state.logs = state.logs.filter((l) => !ids.has(l.taskId));
-  state.areas = state.areas.filter((a) => a.id !== areaId);
-  sortedAreas().forEach((a, i) => { a.order = i; });
-  if (ui.areaFilter === areaId) ui.areaFilter = null;
+  state.categories = state.categories.filter((a) => a.id !== categoryId);
+  sortedCategories().forEach((a, i) => { a.order = i; });
+  if (ui.categoryFilter === categoryId) ui.categoryFilter = null;
   saveState();
 }
 
-function moveArea(areaId, delta) {
-  const list = sortedAreas();
-  const index = list.findIndex((a) => a.id === areaId);
+function moveCategory(categoryId, delta) {
+  const list = sortedCategories();
+  const index = list.findIndex((a) => a.id === categoryId);
   const target = index + delta;
   if (index < 0 || target < 0 || target >= list.length) return;
   [list[index], list[target]] = [list[target], list[index]];
@@ -58,8 +58,8 @@ function exportJson() {
 
 function validateImport(data) {
   if (!data || typeof data !== 'object') return 'JSON の形式が違います';
-  if (!Array.isArray(data.areas) || !Array.isArray(data.tasks) || !Array.isArray(data.logs)) {
-    return 'areas / tasks / logs が見つかりません';
+  if (!Array.isArray(data.categories) || !Array.isArray(data.tasks) || !Array.isArray(data.logs)) {
+    return 'categories / tasks / logs が見つかりません';
   }
   if (!data.player || typeof data.player.xp !== 'number') return 'player の情報が見つかりません';
   return null;
@@ -74,10 +74,10 @@ async function importJson(text) {
   }
   const error = validateImport(data);
   if (error) return error;
-  const summary = `クエスト ${data.areas.length} 件、タスク ${data.tasks.length} 件、記録 ${data.logs.length} 件を読み込みます。現在のデータは上書きされます。`;
+  const summary = `クエスト ${data.categories.length} 件、タスク ${data.tasks.length} 件、記録 ${data.logs.length} 件を読み込みます。現在のデータは上書きされます。`;
   if (!(await askConfirm(summary, { ok: '読み込む', danger: true }))) return null;
   state = migrate(data);
-  ui.areaFilter = null;
+  ui.categoryFilter = null;
   saveState();
   stopSessionLoop();
   initSession();
@@ -89,7 +89,7 @@ function downloadJson() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `katazuke-${dateKey(new Date())}.json`;
+  a.download = `todo-timer-${dateKey(new Date())}.json`;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -105,7 +105,7 @@ function clearSample() {
   state.session = null;
   state.sessions = [];
   state.sample = false;
-  ui.areaFilter = null;
+  ui.categoryFilter = null;
   stopSessionLoop();
   saveState();
 }
@@ -113,7 +113,7 @@ function clearSample() {
 function resetAll() {
   localStorage.removeItem(STORAGE_KEY);
   state = emptyState(); // クエストも含めてすべて消す
-  ui.areaFilter = null;
+  ui.categoryFilter = null;
   stopSessionLoop();
   saveState();
 }
@@ -121,49 +121,49 @@ function resetAll() {
 // --- 描画 -------------------------------------------------------------
 
 function renderSettings() {
-  const list = document.getElementById('area-list');
-  const areas = sortedAreas();
+  const list = document.getElementById('category-list');
+  const categories = sortedCategories();
   const taskCount = {};
-  for (const t of state.tasks) taskCount[t.areaId] = (taskCount[t.areaId] || 0) + 1;
+  for (const t of state.tasks) taskCount[t.categoryId] = (taskCount[t.categoryId] || 0) + 1;
 
-  list.innerHTML = areas.map((a, i) => `<li class="area-row">
+  list.innerHTML = categories.map((a, i) => `<li class="category-row">
     ${categoryIconHtml(a, 'cat-icon cat-icon--lg')}
-    <button class="area-body" data-area-edit="${a.id}">
-      <span class="area-name">${escapeHtml(a.name)}</span>
-      <span class="area-meta">タスク ${taskCount[a.id] || 0} 件</span>
+    <button class="category-body" data-category-edit="${a.id}">
+      <span class="category-name">${escapeHtml(a.name)}</span>
+      <span class="category-meta">タスク ${taskCount[a.id] || 0} 件</span>
     </button>
-    <span class="area-move">
-      <button class="icon-btn" data-area-move="${a.id}" data-delta="-1" ${i === 0 ? 'disabled' : ''} aria-label="上へ">▲</button>
-      <button class="icon-btn" data-area-move="${a.id}" data-delta="1" ${i === areas.length - 1 ? 'disabled' : ''} aria-label="下へ">▼</button>
+    <span class="category-move">
+      <button class="icon-btn" data-category-move="${a.id}" data-delta="-1" ${i === 0 ? 'disabled' : ''} aria-label="上へ">▲</button>
+      <button class="icon-btn" data-category-move="${a.id}" data-delta="1" ${i === categories.length - 1 ? 'disabled' : ''} aria-label="下へ">▼</button>
     </span>
   </li>`).join('') || '<li class="quest-empty">クエストがありません。下のボタンで追加してください。</li>';
 
   document.getElementById('sample-section').hidden = !state.sample;
   document.getElementById('data-summary').textContent =
-    `クエスト ${state.areas.length} 件 · タスク ${state.tasks.length} 件 · 記録 ${state.logs.length} 件 · データ形式 v${state.version}`;
+    `クエスト ${state.categories.length} 件 · タスク ${state.tasks.length} 件 · 記録 ${state.logs.length} 件 · データ形式 v${state.version}`;
 }
 
-function openAreaSheet(areaId = null) {
-  const form = document.getElementById('area-form');
-  const area = areaId ? state.areas.find((a) => a.id === areaId) : null;
-  form.elements.id.value = area ? area.id : '';
-  form.elements.name.value = area ? area.name : '';
-  form.elements.color.value = area ? area.color : nextFreeColor();
-  form.elements.icon.value = area ? area.icon : DEFAULT_ICON;
-  document.getElementById('area-sheet-title').textContent = area ? 'クエストを編集' : 'クエストを追加';
-  document.getElementById('area-delete').hidden = !area;
+function openCategorySheet(categoryId = null) {
+  const form = document.getElementById('category-form');
+  const category = categoryId ? state.categories.find((a) => a.id === categoryId) : null;
+  form.elements.id.value = category ? category.id : '';
+  form.elements.name.value = category ? category.name : '';
+  form.elements.color.value = category ? category.color : nextFreeColor();
+  form.elements.icon.value = category ? category.icon : DEFAULT_ICON;
+  document.getElementById('category-sheet-title').textContent = category ? 'クエストを編集' : 'クエストを追加';
+  document.getElementById('category-delete').hidden = !category;
   renderPickers();
-  document.getElementById('area-sheet').hidden = false;
+  document.getElementById('category-sheet').hidden = false;
   setTimeout(() => form.elements.name.focus(), 50);
 }
 
-function closeAreaSheet() {
-  document.getElementById('area-sheet').hidden = true;
+function closeCategorySheet() {
+  document.getElementById('category-sheet').hidden = true;
 }
 
 // 色とアイコンの選択肢
 function renderPickers() {
-  const form = document.getElementById('area-form');
+  const form = document.getElementById('category-form');
   const color = form.elements.color.value;
   const icon = form.elements.icon.value;
   document.getElementById('color-picker').innerHTML = CATEGORY_COLORS.map((c) =>
@@ -175,22 +175,22 @@ function renderPickers() {
 // --- イベント ---------------------------------------------------------
 
 function initSettings() {
-  document.getElementById('area-list').addEventListener('click', (e) => {
-    const move = e.target.closest('[data-area-move]');
+  document.getElementById('category-list').addEventListener('click', (e) => {
+    const move = e.target.closest('[data-category-move]');
     if (move) {
-      moveArea(move.dataset.areaMove, parseInt(move.dataset.delta, 10));
+      moveCategory(move.dataset.categoryMove, parseInt(move.dataset.delta, 10));
       render();
       return;
     }
-    const edit = e.target.closest('[data-area-edit]');
-    if (edit) openAreaSheet(edit.dataset.areaEdit);
+    const edit = e.target.closest('[data-category-edit]');
+    if (edit) openCategorySheet(edit.dataset.categoryEdit);
   });
-  document.getElementById('area-add-btn').addEventListener('click', () => openAreaSheet());
+  document.getElementById('category-add-btn').addEventListener('click', () => openCategorySheet());
 
-  const sheet = document.getElementById('area-sheet');
-  const form = document.getElementById('area-form');
-  sheet.addEventListener('click', (e) => { if (e.target === sheet) closeAreaSheet(); });
-  document.getElementById('area-cancel').addEventListener('click', closeAreaSheet);
+  const sheet = document.getElementById('category-sheet');
+  const form = document.getElementById('category-form');
+  sheet.addEventListener('click', (e) => { if (e.target === sheet) closeCategorySheet(); });
+  document.getElementById('category-cancel').addEventListener('click', closeCategorySheet);
   document.getElementById('color-picker').addEventListener('click', (e) => {
     const b = e.target.closest('[data-color]');
     if (!b) return;
@@ -207,65 +207,65 @@ function initSettings() {
     e.preventDefault();
     const name = form.elements.name.value.trim();
     if (!name) { form.elements.name.focus(); return; }
-    upsertArea({ id: form.elements.id.value || null, name, color: form.elements.color.value, icon: form.elements.icon.value });
-    closeAreaSheet();
+    upsertCategory({ id: form.elements.id.value || null, name, color: form.elements.color.value, icon: form.elements.icon.value });
+    closeCategorySheet();
     render();
   });
-  document.getElementById('area-delete').addEventListener('click', async () => {
+  document.getElementById('category-delete').addEventListener('click', async () => {
     const id = form.elements.id.value;
-    const area = state.areas.find((a) => a.id === id);
-    if (!area) return;
-    const n = state.tasks.filter((t) => t.areaId === id).length;
+    const category = state.categories.find((a) => a.id === id);
+    if (!category) return;
+    const n = state.tasks.filter((t) => t.categoryId === id).length;
     const msg = n > 0
-      ? `「${area.name}」と、所属するタスク ${n} 件をまとめて削除します。`
-      : `「${area.name}」を削除します。`;
+      ? `「${category.name}」と、所属するタスク ${n} 件をまとめて削除します。`
+      : `「${category.name}」を削除します。`;
     if (!(await askConfirm(msg, { ok: '削除する', danger: true }))) return;
-    deleteArea(id);
-    closeAreaSheet();
+    deleteCategory(id);
+    closeCategorySheet();
     render();
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !sheet.hidden) closeAreaSheet();
+    if (e.key === 'Escape' && !sheet.hidden) closeCategorySheet();
   });
 
   // エクスポート
-  const exportArea = document.getElementById('export-text');
+  const exportCategory = document.getElementById('export-text');
   document.getElementById('export-show').addEventListener('click', () => {
-    exportArea.value = exportJson();
+    exportCategory.value = exportJson();
     document.getElementById('export-box').hidden = false;
-    exportArea.focus();
-    exportArea.select();
+    exportCategory.focus();
+    exportCategory.select();
   });
   document.getElementById('export-copy').addEventListener('click', async () => {
-    exportArea.value = exportJson();
+    exportCategory.value = exportJson();
     try {
-      await navigator.clipboard.writeText(exportArea.value);
+      await navigator.clipboard.writeText(exportCategory.value);
       showToast('コピーしました');
     } catch (err) {
-      exportArea.focus();
-      exportArea.select();
+      exportCategory.focus();
+      exportCategory.select();
       showToast('選択したので手動でコピーしてください');
     }
   });
   document.getElementById('export-download').addEventListener('click', downloadJson);
 
   // インポート
-  const importArea = document.getElementById('import-text');
+  const importCategory = document.getElementById('import-text');
   document.getElementById('import-file').addEventListener('change', (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => { importArea.value = String(reader.result || ''); };
+    reader.onload = () => { importCategory.value = String(reader.result || ''); };
     reader.readAsText(file);
     e.target.value = '';
   });
   document.getElementById('import-run').addEventListener('click', async () => {
-    const text = importArea.value.trim();
+    const text = importCategory.value.trim();
     if (!text) { showToast('JSON を貼り付けるかファイルを選んでください'); return; }
     const result = await importJson(text);
     if (result === null) return;
     if (result) { showToast(result, 'is-levelup'); return; }
-    importArea.value = '';
+    importCategory.value = '';
     render();
     showToast('読み込みました');
   });

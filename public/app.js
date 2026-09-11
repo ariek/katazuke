@@ -1,16 +1,16 @@
 // 状態管理、保存、画面切り替え
 
-const STORAGE_KEY = 'katazuke.v1';
-const LAST_TAB_KEY = 'katazuke.lastTab'; // 最後に見ていたタブ。エクスポートには含めない
-const TAB_NAMES = ['quests', 'room', 'log', 'settings'];
+const STORAGE_KEY = 'todo-timer.v1';
+const LAST_TAB_KEY = 'todo-timer.lastTab'; // 最後に見ていたタブ。エクスポートには含めない
+const TAB_NAMES = ['quests', 'categories', 'log', 'settings'];
 const DATA_VERSION = 1;
 
 let state = null;
-const SECTIONS_KEY = 'katazuke.sections'; // クエスト画面の折りたたみ状態。エクスポートには含めない
-const ui = { tab: 'quests', areaFilter: null, logMonth: null, logDay: null, sections: loadSections(), extraSec: 0, extraTaskId: null };
+const SECTIONS_KEY = 'todo-timer.sections'; // タスク画面の折りたたみ状態。エクスポートには含めない
+const ui = { tab: 'quests', categoryFilter: null, logMonth: null, logDay: null, sections: loadSections(), extraSec: 0, extraTaskId: null };
 
 function loadSections() {
-  const defaults = { todo: false, done: false, byArea: false };
+  const defaults = { todo: false, done: false, byCategory: false };
   try {
     const saved = JSON.parse(localStorage.getItem(SECTIONS_KEY) || '{}');
     return { ...defaults, ...saved };
@@ -31,7 +31,7 @@ function emptyState() {
   return {
     version: DATA_VERSION,
     player: { xp: 0, level: 1, bestStreak: 0 },
-    areas: [],
+    categories: [],
     tasks: [],
     logs: [],
     session: null,
@@ -56,19 +56,15 @@ function loadState() {
 function migrate(data) {
   if (!data.version) data.version = DATA_VERSION;
   if (!data.player) data.player = { xp: 0, level: 1, bestStreak: 0 };
-  if (!Array.isArray(data.areas)) data.areas = [];
-  // 旧「エリアの絵（kind）」は色とアイコンに置き換える
-  const KIND_TO_ICON = { desk: 'laptop', floor: 'broom', bed: 'bed', closet: 'shirt', kitchen: 'pot', bath: 'bath', entrance: 'house', shelf: 'book', house: 'house' };
-  data.areas.forEach((a, i) => {
-    if (!a.color) a.color = CATEGORY_COLORS[i % CATEGORY_COLORS.length].id;
-    if (!a.icon) a.icon = KIND_TO_ICON[a.kind] || DEFAULT_ICON;
-    delete a.kind;
+  if (!Array.isArray(data.categories)) data.categories = [];
+  data.categories.forEach((c, i) => {
+    if (!c.color) c.color = CATEGORY_COLORS[i % CATEGORY_COLORS.length].id;
+    if (!c.icon) c.icon = DEFAULT_ICON;
   });
   if (!Array.isArray(data.tasks)) data.tasks = [];
   if (!Array.isArray(data.logs)) data.logs = [];
   if (!Array.isArray(data.sessions)) data.sessions = [];
   if (data.session === undefined) data.session = null;
-  delete data.timer; // 旧タイマーは使わない
   return data;
 }
 
@@ -86,17 +82,17 @@ function sampleState(now = new Date()) {
   const daysAgo = (n) => addDays(now, -n);
   const daysLater = (n) => addDays(now, n);
 
-  const areaDefs = DEFAULT_AREAS;
-  const areas = areaDefs.map(([name, color, icon], i) => ({ id: newId('a'), name, color, icon, order: i }));
-  s.areas = areas;
-  const A = Object.fromEntries(areaDefs.map(([name], i) => [name, areas[i].id]));
+  const categoryDefs = DEFAULT_CATEGORIES;
+  const categories = categoryDefs.map(([name, color, icon], i) => ({ id: newId('c'), name, color, icon, order: i }));
+  s.categories = categories;
+  const A = Object.fromEntries(categoryDefs.map(([name], i) => [name, categories[i].id]));
 
   // repeat: none | daily | weekly | {days: n}
-  const t = (areaName, title, difficulty, repeat, opts = {}) => {
+  const t = (categoryName, title, difficulty, repeat, opts = {}) => {
     const rep = typeof repeat === 'number' ? { type: 'days', every: repeat } : { type: repeat };
     return {
       id: newId('t'),
-      areaId: A[areaName],
+      categoryId: A[categoryName],
       title,
       difficulty,
       repeat: rep,
@@ -231,7 +227,7 @@ function measureInsets() {
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.7.1';
+const APP_VERSION = 'v0.7.2';
 let waitingWorker = null;
 
 function registerServiceWorker() {
@@ -284,10 +280,10 @@ function init() {
     if (btn) switchTab(btn.dataset.tab);
   });
 
-  document.getElementById('room-grid').addEventListener('click', (e) => {
+  document.getElementById('category-grid').addEventListener('click', (e) => {
     const card = e.target.closest('.cat-card');
     if (!card) return;
-    ui.areaFilter = card.dataset.area;
+    ui.categoryFilter = card.dataset.category;
     renderQuests();
     switchTab('quests');
   });

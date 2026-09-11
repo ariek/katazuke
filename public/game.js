@@ -69,35 +69,6 @@ function taskStatus(task, now = new Date()) {
   return new Date(task.dueAt).getTime() <= t ? 'due' : 'fresh';
 }
 
-function isDueStatus(status) {
-  return status === 'due' || status === 'overdue';
-}
-
-// クエストの達成度: 期限内のタスク数 ÷ 有効なタスク数。タスクなしは 1（件数表示に使う）
-function areaCleanliness(areaId, tasks, now = new Date()) {
-  const active = tasks.filter((task) => task.areaId === areaId && !task.done);
-  if (active.length === 0) return { ratio: 1, state: 'clean', dueCount: 0, todoCount: 0, total: 0 };
-  let fresh = 0;
-  let dueCount = 0; // 期限が来ているもの
-  let todoCount = 0; // やることに出るもの（期限切れ・今日・期限なし）
-  for (const task of active) {
-    const status = taskStatus(task, now);
-    if (isDueStatus(status)) { dueCount += 1; todoCount += 1; }
-    else if (status === 'todo') { fresh += 1; todoCount += 1; }
-    else fresh += 1;
-  }
-  const ratio = fresh / active.length;
-  return { ratio, state: cleanState(ratio), dueCount, todoCount, total: active.length };
-}
-
-function cleanState(ratio) {
-  if (ratio >= 0.8) return 'clean';
-  if (ratio >= 0.4) return 'normal';
-  return 'messy';
-}
-
-const CLEAN_LABELS = { clean: 'きれい', normal: 'ふつう', messy: '散らかり' };
-
 // ローカル日付キー YYYY-MM-DD
 function dateKey(date) {
   const d = new Date(date);

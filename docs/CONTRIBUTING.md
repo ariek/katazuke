@@ -93,7 +93,7 @@ cd public/icons && qlmanage -t -s 1024 -o . icon.svg && python3 -c "from PIL imp
 
 ## バージョン
 
-- 番号は `v メジャー.マイナー.パッチ` の3桁。`feat`（機能追加）でマイナーを、`fix` / `style`（修正や見た目の調整）でパッチを上げる。
+- 番号は `v メジャー.マイナー.パッチ` の3桁。`feat`（機能追加）でマイナーを、`fix` / `style` / `refactor` / `chore`（修正、見た目の調整、動作を変えない整理）でパッチを上げる。
 - アプリのファイルを変える PR では、`public/app.js` の `APP_VERSION` と `public/sw.js` の `CACHE_VERSION` を同じ番号に上げる。
 - その PR を `main` に取り込んだら、同じ番号のタグを打ってプッシュする（例: `v0.2.3`）。ドキュメントだけの変更ではタグを打たない。
 - 最初の遊べる版は `v0.1.0`。

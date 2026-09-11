@@ -117,11 +117,11 @@
   </header>
 
   <main class="main">
-    <section class="view" id="view-room" data-view="room" hidden>
-      <div class="room-grid" id="room-grid"></div>
+    <section class="view" id="view-categories" data-view="categories" hidden>
+      <div class="category-grid" id="category-grid"></div>
     </section>
     <section class="view" id="view-quests" data-view="quests">
-      <div class="chips" id="area-chips"></div>
+      <div class="chips" id="category-chips"></div>
       <div id="focus-quests"></div>
       <div id="quest-list"></div>
       <button class="fab" id="add-task-btn" aria-label="クエストを追加"><svg class="icon fab-svg" aria-hidden="true"><use href="#i-plus"/></svg></button>
@@ -147,7 +147,7 @@
       <section class="log-section">
         <h2 class="log-heading">今週のまとめ <span class="log-sub" id="log-week-label"></span></h2>
         <div class="week-stats" id="log-week-stats"></div>
-        <ul class="bar-list" id="log-week-areas"></ul>
+        <ul class="bar-list" id="log-week-categories"></ul>
       </section>
 
       <section class="log-section">
@@ -159,14 +159,14 @@
       <section class="settings-section">
         <h2 class="settings-heading">クエスト</h2>
         <p class="settings-help">タスクをまとめる箱です。名前をタップすると編集できます。▲▼で並び順を変えられます。</p>
-        <ul class="area-list" id="area-list"></ul>
-        <button class="btn" id="area-add-btn"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg> クエストを追加</button>
+        <ul class="category-list" id="category-list"></ul>
+        <button class="btn" id="category-add-btn"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg> クエストを追加</button>
       </section>
 
       <section class="settings-section">
         <h2 class="settings-heading">タスクの一括追加</h2>
         <p class="settings-help">1行に1つ、「クエスト：タイトル：期限：難易度：メモ」の形で貼り付けてください。区切りは「：」かタブ。期限以降は省略できます（期限は 9/20 や 明日、難易度は 1〜3 か ★）。クエストがない行は「なんでも」に入り、ないクエストは自動で作られます。</p>
-        <textarea class="json-area bulk-area" id="bulk-text" rows="6" placeholder="仕事：経費精算を出す：9/20：2&#10;家事：洗濯物をたたむ&#10;：牛乳を買う：明日&#10;勉強：参考書を1章読む：：3：付箋を貼りながら" spellcheck="false"></textarea>
+        <textarea class="json-category bulk-category" id="bulk-text" rows="6" placeholder="仕事：経費精算を出す：9/20：2&#10;家事：洗濯物をたたむ&#10;：牛乳を買う：明日&#10;勉強：参考書を1章読む：：3：付箋を貼りながら" spellcheck="false"></textarea>
         <div class="btn-row">
           <button class="btn btn-primary" id="bulk-parse">読み込む</button>
         </div>
@@ -188,14 +188,14 @@
           <button class="btn" id="export-download">ダウンロード</button>
         </div>
         <div id="export-box" hidden>
-          <textarea class="json-area" id="export-text" rows="8" readonly spellcheck="false"></textarea>
+          <textarea class="json-category" id="export-text" rows="8" readonly spellcheck="false"></textarea>
         </div>
       </section>
 
       <section class="settings-section">
         <h2 class="settings-heading">データのインポート</h2>
         <p class="settings-help">エクスポートした JSON を貼り付けるか、ファイルを選んでください。現在のデータは上書きされます。</p>
-        <textarea class="json-area" id="import-text" rows="5" placeholder='{"version": 1, ...}' spellcheck="false"></textarea>
+        <textarea class="json-category" id="import-text" rows="5" placeholder='{"version": 1, ...}' spellcheck="false"></textarea>
         <div class="btn-row">
           <label class="btn file-btn">ファイルを選ぶ<input type="file" id="import-file" accept=".json,application/json" hidden></label>
           <button class="btn btn-primary" id="import-run">読み込む</button>
@@ -227,7 +227,7 @@
       </label>
       <label class="field">
         <span class="field-label">クエスト</span>
-        <select name="areaId"></select>
+        <select name="categoryId"></select>
       </label>
       <div class="field">
         <span class="field-label">難易度</span>
@@ -267,9 +267,9 @@
     </form>
   </div>
 
-  <div class="sheet-backdrop" id="area-sheet" hidden>
-    <form class="sheet" id="area-form" autocomplete="off">
-      <h2 class="sheet-title" id="area-sheet-title">クエストを追加</h2>
+  <div class="sheet-backdrop" id="category-sheet" hidden>
+    <form class="sheet" id="category-form" autocomplete="off">
+      <h2 class="sheet-title" id="category-sheet-title">クエストを追加</h2>
       <input type="hidden" name="id">
       <input type="hidden" name="color">
       <input type="hidden" name="icon">
@@ -286,9 +286,9 @@
         <div class="icon-picker" id="icon-picker"></div>
       </div>
       <div class="sheet-actions">
-        <button type="button" class="btn btn-danger" id="area-delete" hidden>削除</button>
+        <button type="button" class="btn btn-danger" id="category-delete" hidden>削除</button>
         <span class="spacer"></span>
-        <button type="button" class="btn" id="area-cancel">キャンセル</button>
+        <button type="button" class="btn" id="category-cancel">キャンセル</button>
         <button type="submit" class="btn btn-primary">保存</button>
       </div>
     </form>
@@ -364,7 +364,7 @@
 
   <nav class="tabbar" id="tabbar">
     <button class="tab is-active" data-tab="quests" aria-label="タスク" title="タスク"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button>
-    <button class="tab" data-tab="room" aria-label="クエスト" title="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-flag-tab"/></svg></span></button>
+    <button class="tab" data-tab="categories" aria-label="クエスト" title="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-flag-tab"/></svg></span></button>
     <button class="tab" data-tab="log" aria-label="記録" title="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button>
     <button class="tab" data-tab="settings" aria-label="設定" title="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button>
   </nav>
