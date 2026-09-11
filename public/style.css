@@ -656,31 +656,29 @@ button.task-check:active { transform: scale(0.9); }
 .category-meta { font-size: 12px; color: var(--ink-soft); }
 
 /* 並べ替えのつまみ。押したまま動かせるよう、ここではブラウザのスクロールを止める */
-.category-grip {
+.drag-grip {
   flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
-  margin-right: -6px;
+  margin-right: -8px;
   color: var(--ink-soft);
   cursor: grab;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
 }
-.category-grip .icon { width: 24px; height: 24px; }
-.category-list { position: relative; }
-.category-list.is-reordering { user-select: none; -webkit-user-select: none; }
-.category-row.is-dragging {
+.drag-grip .icon { width: 24px; height: 24px; }
+.is-reordering { user-select: none; -webkit-user-select: none; }
+.is-dragging {
   position: relative;
   z-index: 2;
   box-shadow: 5px 6px 0 var(--line);
-  transform: translateY(0);
   cursor: grabbing;
 }
-.category-row.is-dragging .category-grip { cursor: grabbing; }
+.is-dragging .drag-grip { cursor: grabbing; }
 
 
 /* 記録画面 */

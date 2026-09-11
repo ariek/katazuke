@@ -62,11 +62,52 @@ function undoComplete(taskId, now = new Date()) {
 }
 
 // 「あとで」: 当日限りで後ろに回す
+// クエスト内のやることを、いまやるを決める順に並べたもの
+function categorySequence(categoryId, now = new Date()) {
+  const entries = state.tasks.filter((t) => t.categoryId === categoryId)
+    .map((task) => ({ task, status: taskStatus(task, now) }))
+    .filter((e) => ['overdue', 'due', 'todo'].includes(e.status));
+  return sortFocusOrder(entries, now).map((e) => e.task);
+}
+
+// スキップできるか: 同じクエストの中に、ひとつ後ろの候補があるか
+function canDeferTask(task, now = new Date()) {
+  const seq = categorySequence(task.categoryId, now);
+  const i = seq.findIndex((t) => t.id === task.id);
+  return i >= 0 && i < seq.length - 1;
+}
+
+// スキップ: クエスト内でひとつ後ろに回す（一覧には「スキップ済み」と出る）。入れ替えた相手のタスクを返す。
+// 期限切れのタスクが期限切れでないタスクを飛び越えるときは、今日だけ先頭固定を外す
 function deferTask(taskId, now = new Date()) {
   const task = state.tasks.find((t) => t.id === taskId);
-  if (!task) return;
+  if (!task) return null;
+  const seq = categorySequence(task.categoryId, now);
+  const i = seq.findIndex((t) => t.id === task.id);
+  if (i < 0 || i >= seq.length - 1) return null;
+  const other = seq[i + 1];
   task.deferredAt = now.toISOString();
+  if (isPinned(task, now) && !isPinned(other, now)) task.unpinnedAt = now.toISOString();
+  const next = [...seq];
+  [next[i], next[i + 1]] = [next[i + 1], next[i]];
+  assignOrders(next);
   saveState();
+  return other;
+}
+
+// 並び順の値を、いま持っている値を小さい順に配り直す（ほかのタスクとの前後関係は保つ）
+function assignOrders(tasks) {
+  const slots = tasks.map(taskOrder).sort((a, b) => a - b);
+  tasks.forEach((t, i) => { t.order = slots[i]; });
+}
+
+// 手動の並び順。新しいタスクは末尾
+function taskOrder(task) {
+  return typeof task.order === 'number' ? task.order : 0;
+}
+
+function nextTaskOrder() {
+  return state.tasks.reduce((m, t) => Math.max(m, taskOrder(t)), -1) + 1;
 }
 
 function isDeferredToday(task, now = new Date()) {
@@ -80,18 +121,24 @@ function dueDayKey(task) {
   return due ? dateKey(due) : '9999-99-99';
 }
 
+// 期限切れ: 期限日（繰り返しは次回期限）が今日より前
+function isPastDue(task, now = new Date()) {
+  return dueDayKey(task) < dateKey(now);
+}
+
+// 先頭固定: 期限切れで、今日スキップで固定を外していないもの
+function isPinned(task, now = new Date()) {
+  const off = !!task.unpinnedAt && dateKey(task.unpinnedAt) === dateKey(now);
+  return isPastDue(task, now) && !off;
+}
+
+// クエスト内の並び: 先頭固定（期限切れ）が先、あとは手動順
 function sortFocusOrder(todoEntries, now = new Date()) {
   return [...todoEntries].sort((a, b) => {
-    const ka = dueDayKey(a.task);
-    const kb = dueDayKey(b.task);
-    if (ka !== kb) return ka < kb ? -1 : 1;
-    const da = isDeferredToday(a.task, now);
-    const db = isDeferredToday(b.task, now);
-    if (da !== db) return da ? 1 : -1;
-    if (da && db) return a.task.deferredAt < b.task.deferredAt ? -1 : 1;
-    const ca = a.task.createdAt || '';
-    const cb = b.task.createdAt || '';
-    return ca < cb ? -1 : ca > cb ? 1 : 0;
+    const pa = isPinned(a.task, now);
+    const pb = isPinned(b.task, now);
+    if (pa !== pb) return pa ? -1 : 1;
+    return taskOrder(a.task) - taskOrder(b.task);
   });
 }
 
@@ -173,7 +220,7 @@ function renderFocusCard(entry, categoryName, now) {
     // こうするとフォントや行数に関係なく、カードの高さが待機中と必ず一致する
     const cdMeta = [categoryName, DIFFICULTY_LABELS[task.difficulty], repeatLabel(task.repeat), dueText(task, status, now)]
       .filter(Boolean).join(' · ');
-    const canSkip = !!pickNextQuest(s.taskId);
+    const canSkip = canDeferTask(task, now); // 同じクエストにひとつ後ろの候補がなければ押せない
     const left = Math.max(1, countdownRemainingSec(s));
     return `<div class="focus-card focus-card--countdown" data-phase="countdown">
       <div class="focus-title">${escapeHtml(task.title)}</div>
@@ -213,13 +260,13 @@ function renderFocusCard(entry, categoryName, now) {
   if (phase === 'idle') {
     main = `<button class="btn btn-primary qt-main is-start" data-qt="start">${ICON_PLAY} スタート</button>`;
     // 同じ期限日にほかのクエストがなければ「あとで」は意味がないので押せない
-    const sameDay = state.tasks.filter((t) => t.id !== task.id && !t.done && ['overdue', 'due', 'todo'].includes(taskStatus(t, now)) && dueDayKey(t) === dueDayKey(task) && (!ui.categoryFilter || t.categoryId === ui.categoryFilter));
-    sub = `<button class="btn qt-small" data-defer="${task.id}" ${sameDay.length === 0 ? 'disabled' : ''}>スキップ</button>`;
+    const canDefer = canDeferTask(task, now); // 同じクエストにひとつ後ろの候補がなければ押せない
+    sub = `<button class="btn qt-small" data-defer="${task.id}" ${canDefer ? '' : 'disabled'}>スキップ</button>`;
   } else {
     const canComplete = phase === 'running' || phase === 'paused';
     main = `<button class="btn btn-primary qt-main" data-qt="complete" ${canComplete ? '' : 'disabled'}><svg class="icon" aria-hidden="true"><use href="#i-check-box"/></svg> タスク完了</button>`;
-    // 「× やめる」の右に「スキップ」（いまのクエストを先送りして別のクエストで待ち直す。ほかに候補がなければ押せない）
-    const canSkip = !!pickNextQuest(s.taskId);
+    // 「× やめる」の右に「スキップ」（いまのタスクをひとつ後ろに回し、入れ替わったタスクで待ち直す）
+    const canSkip = canDeferTask(task, now); // 同じクエストにひとつ後ろの候補がなければ押せない
     sub = `<button class="btn qt-small qt-quit" data-qt="quit">× やめる</button><button class="btn qt-small" data-qt="skip" ${canSkip ? '' : 'disabled'}>スキップ</button>`;
   }
 
@@ -262,6 +309,7 @@ function upsertTask(data) {
     const task = state.tasks.find((t) => t.id === data.id);
     if (!task) return;
     const repeatChanged = JSON.stringify(task.repeat) !== JSON.stringify(data.repeat);
+    if (task.categoryId !== data.categoryId) task.order = nextTaskOrder(); // クエストを変えたら移った先の末尾に
     Object.assign(task, {
       title: data.title,
       categoryId: data.categoryId,
@@ -285,10 +333,12 @@ function upsertTask(data) {
       note: data.note,
       deadline: data.deadline,
       deferredAt: null,
+      unpinnedAt: null,
       lastDoneAt: null,
       dueAt: null,
       done: false,
       createdAt: now,
+      order: nextTaskOrder(),
     });
     addRegisterXp();
   }
@@ -327,7 +377,7 @@ function sortDue(a, b) {
   return ka < kb ? -1 : ka > kb ? 1 : 0;
 }
 
-function taskRow(entry, categoryName, now, mode) {
+function taskRow(entry, categoryName, now, mode, canDrag = false) {
   const { task, status } = entry;
   const cat = state.categories.find((a) => a.id === task.categoryId);
   const meta = [categoryName, DIFFICULTY_LABELS[task.difficulty], repeatLabel(task.repeat), dueText(task, status, now),
@@ -343,12 +393,19 @@ function taskRow(entry, categoryName, now, mode) {
   } else {
     action = categoryIconHtml(cat, 'cat-icon cat-icon--row'); // クエストの色とアイコン
   }
-  return `<li class="task-row" data-status="${status}">
+  // やることの行は、セッション中でなければつまみ（≡）で並べ替えられる。
+  // 期限切れは先頭に固定なので出さない。動かせる行が1つしかない一覧でも出さない（canDrag）
+  const fixed = mode === 'todo' && isPinned(task, now);
+  const grip = mode === 'todo' && canDrag && !sessionActive() && !fixed
+    ? '<span class="drag-grip" aria-label="押したまま動かして並べ替え" title="押したまま動かして並べ替え"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></span>'
+    : '';
+  return `<li class="task-row ${fixed ? 'is-fixed' : ''}" data-status="${status}" data-id="${task.id}">
     ${action}
     <button class="task-body" data-edit="${task.id}">
       <span class="task-title">${escapeHtml(task.title)}</span>
       <span class="task-meta">${escapeHtml(meta)}</span>
     </button>
+    ${grip}
   </li>`;
 }
 
@@ -377,7 +434,9 @@ function renderQuests() {
     .sort((a, b) => (a.task.dueAt < b.task.dueAt ? -1 : 1));
   const finished = entries.filter((e) => e.status === 'done' && !doneTodayIds.has(e.task.id));
 
-  const row = (mode) => (e) => taskRow(e, categoryName[e.task.categoryId] || '', now, mode);
+  const row = (mode, canDrag = false) => (e) => taskRow(e, categoryName[e.task.categoryId] || '', now, mode, canDrag);
+  // 動かせる行（期限切れでない）が2つ以上ある一覧だけ、つまみを出す
+  const dragOk = (list) => list.filter((e) => !isPinned(e.task, now)).length >= 2;
   let html = '';
 
   // いまやる1つ。セッション中はセッションが持っているクエスト
@@ -388,6 +447,7 @@ function renderQuests() {
   }
   const focusHtml = renderFocusCard(focus, focus ? categoryName[focus.task.categoryId] || '' : '', now);
   document.getElementById('focus-quests').innerHTML = focusHtml;
+  ui.focusTaskId = focus ? focus.task.id : null;
 
   document.getElementById('add-task-btn').hidden = sessionActive();
 
@@ -401,10 +461,10 @@ function renderQuests() {
         const list = others.filter((e) => e.task.categoryId === a.id);
         if (!list.length) return '';
         return `<h3 class="quest-subheading">${categoryIconHtml(a, 'cat-icon cat-icon--sm')}${escapeHtml(a.name)} <span class="count">${list.length}</span></h3>
-          <ul class="task-list">${list.map(row('todo')).join('')}</ul>`;
+          <ul class="task-list" data-category="${a.id}">${list.map(row('todo', dragOk(list))).join('')}</ul>`;
       }).join('');
     } else {
-      body = `<ul class="task-list">${others.map(row('todo')).join('')}</ul>`;
+      body = `<ul class="task-list" data-category="${ui.categoryFilter}">${others.map(row('todo', dragOk(others))).join('')}</ul>`;
     }
     html += `<details class="quest-section quest-details" data-section="todo" ${ui.sections.todo ? 'open' : ''}>
       <summary class="quest-heading">ほかのやること <span class="count">${others.length}</span></summary>
@@ -515,7 +575,31 @@ function showToast(message, kind = '') {
 
 // --- イベント ---------------------------------------------------------
 
+// 「ほかのやること」の並べ替え。一覧の順をそのクエストの手動順にする。
+// 一番上に置いたときは、いまやるタスク（期限切れでなければ）より前にして、いまやるにする
+function reorderTasksFromList(row, ul) {
+  const ids = [...ul.querySelectorAll('.task-row')].map((r) => r.dataset.id);
+  const categoryId = ul.dataset.category;
+  const focus = ui.focusTaskId ? state.tasks.find((t) => t.id === ui.focusTaskId) : null;
+  let seq = ids;
+  if (focus && focus.categoryId === categoryId) {
+    const focusPinned = isPinned(focus);
+    seq = ids[0] === row.dataset.id && !focusPinned ? [ids[0], focus.id, ...ids.slice(1)] : [focus.id, ...ids];
+  }
+  assignOrders(seq.map((id) => state.tasks.find((t) => t.id === id)).filter(Boolean));
+  saveState();
+}
+
 function initQuests() {
+  makeSortable(document.getElementById('view-quests'), {
+    row: '.task-row',
+    grip: '.drag-grip',
+    fixed: '.is-fixed', // 期限切れの行。動かせず、その上にも置けない
+    onDrop: (row, ul, info) => {
+      if (info.moved && !sessionActive()) reorderTasksFromList(row, ul);
+      render();
+    },
+  });
   document.getElementById('category-chips').addEventListener('click', (e) => {
     const chip = e.target.closest('.chip');
     if (!chip) return;

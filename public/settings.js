@@ -132,7 +132,7 @@ function renderSettings() {
       <span class="category-name">${escapeHtml(a.name)}</span>
       <span class="category-meta">タスク ${taskCount[a.id] || 0} 件</span>
     </button>
-    <span class="category-grip" aria-label="押したまま動かして並べ替え" title="押したまま動かして並べ替え"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></span>
+    <span class="drag-grip" aria-label="押したまま動かして並べ替え" title="押したまま動かして並べ替え"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></span>
   </li>`).join('') || '<li class="quest-empty">クエストがありません。下のボタンで追加してください。</li>';
 
   document.getElementById('sample-section').hidden = !state.sample;
@@ -174,59 +174,15 @@ function renderPickers() {
 // クエスト一覧のドラッグ＆ドロップ並べ替え。つまみ（≡）を押したまま上下に動かす
 function initCategoryDrag() {
   const list = document.getElementById('category-list');
-  const main = list.closest('.main') || document.scrollingElement;
-  let drag = null; // { row, grabY: つまんだ位置と行の上端の差, pointerId }
-
-  const listY = (clientY) => clientY - list.getBoundingClientRect().top;
-
-  const moveTo = (clientY) => {
-    const { row, grabY } = drag;
-    // 画面の端に近づいたら少しスクロールする
-    const mRect = main.getBoundingClientRect ? main.getBoundingClientRect() : { top: 0, bottom: window.innerHeight };
-    if (clientY < mRect.top + 48) main.scrollTop -= 8;
-    else if (clientY > mRect.bottom - 48) main.scrollTop += 8;
-    const y = listY(clientY);
-    // ほかの行の中央を越えたら、その行の前後に移す
-    const rows = [...list.querySelectorAll('.category-row')].filter((r) => r !== row);
-    for (const other of rows) {
-      const mid = other.offsetTop + other.offsetHeight / 2;
-      const before = other.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING; // row が other より後ろ
-      if (before && y < mid) { list.insertBefore(row, other); break; }
-      if (!before && y > mid) { other.after(row); break; }
-    }
-    row.style.transform = `translateY(${y - grabY - row.offsetTop}px)`;
-  };
-
-  const finish = (e) => {
-    if (!drag || e.pointerId !== drag.pointerId) return;
-    const { row } = drag;
-    drag = null;
-    row.classList.remove('is-dragging');
-    row.style.transform = '';
-    list.classList.remove('is-reordering');
-    try { row.releasePointerCapture(e.pointerId); } catch (err) { /* すでに解放済み */ }
-    const ids = [...list.querySelectorAll('.category-row')].map((r) => r.dataset.id);
-    reorderCategories(ids);
-    render();
-  };
-
-  list.addEventListener('pointerdown', (e) => {
-    const grip = e.target.closest('.category-grip');
-    if (!grip || drag) return;
-    const row = grip.closest('.category-row');
-    e.preventDefault();
-    drag = { row, grabY: listY(e.clientY) - row.offsetTop, pointerId: e.pointerId };
-    row.classList.add('is-dragging');
-    list.classList.add('is-reordering');
-    try { row.setPointerCapture(e.pointerId); } catch (err) { /* 取得できなくても続行 */ }
+  makeSortable(list, {
+    row: '.category-row',
+    grip: '.drag-grip',
+    onDrop: (row, ul) => {
+      const ids = [...ul.querySelectorAll('.category-row')].map((r) => r.dataset.id);
+      reorderCategories(ids);
+      render();
+    },
   });
-  list.addEventListener('pointermove', (e) => {
-    if (!drag || e.pointerId !== drag.pointerId) return;
-    e.preventDefault();
-    moveTo(e.clientY);
-  });
-  list.addEventListener('pointerup', finish);
-  list.addEventListener('pointercancel', finish);
 }
 
 function initSettings() {

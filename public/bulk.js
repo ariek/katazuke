@@ -164,10 +164,12 @@ function applyBulkPlan(plan) {
       note: e.note || '',
       deadline: e.deadline || null,
       deferredAt: null,
+      unpinnedAt: null,
       lastDoneAt: null,
       dueAt: null,
       done: false,
       createdAt: now,
+      order: nextTaskOrder(),
     };
     state.tasks.push(task);
     createdTaskIds.push(task.id);

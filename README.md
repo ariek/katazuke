@@ -62,6 +62,7 @@ public/       公開する本体（GitHub Pages に配信される）
   overview.js   クエスト画面（カテゴリーのカード）
   quests.js     タスク画面
   timer.js      タスクのタイマーとセッション
+  sortable.js   一覧のドラッグ＆ドロップ並べ替え
   settings.js   設定画面
   bulk.js       タスクの一括追加
   log.js        記録画面
