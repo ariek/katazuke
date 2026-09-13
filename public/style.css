@@ -112,11 +112,11 @@ button {
   white-space: nowrap;
 }
 
-/* ヘッダーの1行: 左に「Lv. 称号」の札（背景が経験値ゲージ）、右にナビ */
+/* ヘッダーの1行: 左にクエスト一覧、中央に「Lv. 称号」の札（背景が経験値ゲージ。押すと記録）、右に設定 */
 .hd-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .lv-gauge {
@@ -178,13 +178,6 @@ button {
 }
 
 /* タブバー */
-.hd-nav {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
 .tab {
   flex: none;
   width: 36px;
@@ -212,6 +205,11 @@ button {
 .tab.is-active { color: var(--ink); }
 .tab.is-active .tab-icon { transform: scale(1.1); }
 .tab.is-active .tab-svg { stroke-width: 2; }
+
+/* 札はナビの一員（押すと記録）。.tab の幅と色の指定を打ち消す */
+.tab.lv-gauge { flex: 1; width: auto; height: auto; justify-content: space-between; color: var(--ink); font-family: inherit; text-align: left; }
+.tab.lv-gauge.is-active { box-shadow: 2px 2px 0 var(--ink); }
+.tab.lv-gauge:active { transform: translate(1px, 1px); }
 .tab.is-active[data-tab="categories"] .tab-svg { --icon-fill-a: var(--yellow); --icon-fill-b: var(--peach); }
 .tab.is-active[data-tab="log"] .tab-svg { --icon-fill-a: var(--mint); --icon-fill-b: var(--ink); }
 .tab.is-active[data-tab="settings"] .tab-svg { --icon-fill-a: var(--lav); --icon-fill-b: var(--paper); }
