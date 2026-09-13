@@ -202,7 +202,7 @@ function renderFocusCard(entry, categoryName, now) {
   let offset = 0;
   let ringStroke = null; // 実行中だけ残り割合の色。一時停止・時間切れは CSS の色
   let qtCls = '';
-  let slot = task ? `${minusBtn(seconds)}<button class="qt-ctl" data-qt="start" aria-label="スタート">${ICON_PLAY}</button>${plusBtn(seconds)}` : '';
+  let slot = task ? `${minusBtn(seconds)}<button class="qt-ctl" data-qt="start" aria-label="はじめる">${ICON_PLAY}</button>${plusBtn(seconds)}` : '';
   if (phase === 'running' || phase === 'paused') {
     const rem = questRemainingSec(s);
     seconds = rem;
@@ -228,7 +228,7 @@ function renderFocusCard(entry, categoryName, now) {
       <div class="focus-title">${escapeHtml(task.title)}</div>
       <div class="focus-meta">${escapeHtml(meta)}</div>
       <div class="qt"><div class="qt-dial">${ringHtml(0)}<div class="qt-center"><div class="qt-seconds">${digitsHtml(s.durationSec)}</div><div class="qt-slot">${minusBtn(1)}<span class="qt-ctl">${ICON_PLAY}</span>${plusBtn(1)}</div></div></div></div>
-      <div class="qt-actions"><button class="btn btn-primary qt-main" disabled>${ICON_PLAY} スタート</button><div class="qt-subrow"><button class="btn qt-small" disabled>スキップ</button></div></div>
+      <div class="qt-actions"><button class="btn btn-primary qt-main" disabled>${ICON_PLAY} はじめる</button><div class="qt-subrow"><button class="btn qt-small" disabled>スキップ</button></div></div>
       <div class="cd-overlay">
         <div class="cd-body">
           <div class="cd-title">${escapeHtml(task.title)}<span class="cd-sec">（${s.durationSec}秒）</span></div>
@@ -260,7 +260,7 @@ function renderFocusCard(entry, categoryName, now) {
   let main;
   let sub;
   if (phase === 'idle') {
-    main = `<button class="btn btn-primary qt-main is-start" data-qt="start">${ICON_PLAY} スタート</button>`;
+    main = `<button class="btn btn-primary qt-main is-start" data-qt="start">${ICON_PLAY} はじめる</button>`;
     // 同じ日付にほかのクエストがなければ「あとで」は意味がないので押せない
     const canDefer = canDeferTask(task, now); // 同じクエストにひとつ後ろの候補がなければ押せない
     sub = `<button class="btn qt-small" data-defer="${task.id}" ${canDefer ? '' : 'disabled'}>スキップ</button>`;
