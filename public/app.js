@@ -262,7 +262,7 @@ function measureInsets() {
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.14.0';
+const APP_VERSION = 'v0.15.0';
 let waitingWorker = null;
 
 function registerServiceWorker() {
@@ -313,8 +313,8 @@ function init() {
   document.getElementById('tabbar').addEventListener('click', (e) => {
     const btn = e.target.closest('.tab');
     if (!btn) return;
-    // クエストタブは一覧に戻るボタンを兼ねる。セッション中だけはやること画面に戻す
-    if (btn.dataset.tab === 'categories') {
+    // 開いている画面のボタンをもう一度押すとクエスト一覧に戻る（セッション中はやること画面に戻す）
+    if (btn.dataset.tab === ui.tab) {
       if (sessionActive()) openTasks(ui.categoryFilter);
       else showCategoryList();
       return;
