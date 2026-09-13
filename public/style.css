@@ -235,45 +235,11 @@ button {
 }
 
 .tab.is-active .tab-svg { stroke-width: 2; }
-.tab.is-active[data-tab="categories"] .tab-svg { --icon-fill-a: var(--peach); }
-.tab.is-active[data-tab="quests"] .tab-svg { --icon-fill-a: var(--yellow); --icon-fill-b: var(--peach); }
-.tab.is-active[data-tab="timer"] .tab-svg { --icon-fill-a: var(--sky); --icon-fill-b: var(--yellow); }
+.tab.is-active[data-tab="categories"] .tab-svg { --icon-fill-a: var(--yellow); --icon-fill-b: var(--peach); }
 .tab.is-active[data-tab="log"] .tab-svg { --icon-fill-a: var(--mint); --icon-fill-b: var(--ink); }
 .tab.is-active[data-tab="settings"] .tab-svg { --icon-fill-a: var(--lav); --icon-fill-b: var(--paper); }
 
 /* クエスト画面 */
-.chips {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 2px 2px 10px;
-  margin-bottom: 6px;
-  scrollbar-width: none;
-}
-
-/* スマホでは画面の端まで横スクロールできるよう、本文の余白をはみ出させる */
-@media (max-width: 559px) {
-  .chips { margin-left: -16px; margin-right: -16px; padding-left: 16px; padding-right: 16px; }
-}
-
-.chips::-webkit-scrollbar { display: none; }
-
-.chip {
-  flex: none;
-  padding: 5px 12px;
-  border: 2px solid var(--ink);
-  border-radius: 14px 18px 16px 18px / 18px 14px 18px 16px;
-  background: var(--paper);
-  font-size: 13px;
-  color: var(--ink-soft);
-}
-
-.chip.is-active {
-  background: var(--yellow);
-  color: var(--ink);
-  font-weight: 700;
-}
-
 .quest-section { margin-bottom: 18px; }
 
 .quest-heading {
@@ -392,24 +358,6 @@ button.task-check:active { transform: scale(0.9); }
   background: var(--paper);
 }
 
-.fab {
-  position: fixed;
-  right: 18px;
-  bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 16px);
-  width: 56px;
-  height: 56px;
-  border: 2.5px solid var(--ink);
-  border-radius: 50% 45% 50% 45%;
-  background: var(--sky); /* 追加ボタンは青 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 3px 3px 0 var(--ink);
-  z-index: 9;
-}
-
-.fab:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
-.fab-svg { width: 28px; height: 28px; stroke-width: 2.6; }
 
 /* シート（追加・編集） */
 .sheet-backdrop {
@@ -540,7 +488,7 @@ button.task-check:active { transform: scale(0.9); }
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 84px);
+  bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 24px);
   transform: translateX(-50%);
   padding: 8px 18px;
   background: var(--yellow);
@@ -635,25 +583,77 @@ button.task-check:active { transform: scale(0.9); }
 .category-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
+  gap: 6px;
+  padding: 8px 8px 8px 10px;
   background: var(--paper);
   border: 2.2px solid var(--ink);
   border-radius: 14px 18px 16px 18px / 18px 14px 18px 16px;
-  box-shadow: 3px 3px 0 var(--line);
+  box-shadow: 3px 3px 0 var(--cat-color, var(--line)); /* 影はクエストの色 */
 }
 
 .category-body {
   flex: 1;
   min-width: 0;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 10px;
   text-align: left;
+  padding: 2px 0;
 }
 
-.category-name { font-size: 15px; font-weight: 700; }
+.category-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.category-name { font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
 .category-meta { font-size: 12px; color: var(--ink-soft); }
+.category-overdue { color: #c85c4a; font-weight: 700; }
+
+.category-edit {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.8px solid var(--line);
+  border-radius: 10px 12px 10px 12px / 12px 10px 12px 10px;
+  background: var(--bg);
+  color: var(--ink-soft);
+}
+.category-edit .icon { width: 18px; height: 18px; --icon-fill-a: var(--paper); stroke-width: 2; }
+.category-edit:active { background: var(--line); }
+
+/* 「すべて」の行 */
+.category-row--all { --cat-color: var(--line); }
+.category-row--all .cat-icon { background: var(--paper); }
+.category-row--all .cat-icon .icon { --icon-fill-a: var(--yellow); --icon-fill-b: var(--peach); }
+
+/* やること画面の上の帯: 左に戻るボタン、中央に開いているクエスト */
+.tasks-bar {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px; /* 左右を同じ幅にして見出しを中央に */
+  align-items: center;
+  margin: 0 0 8px;
+}
+.tasks-back {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  border-radius: 50%;
+}
+.tasks-back .icon { width: 24px; height: 24px; }
+.tasks-back:active { background: var(--line); }
+.tasks-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  min-width: 0;
+}
+.tasks-heading span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* 並べ替えのつまみ。押したまま動かせるよう、ここではブラウザのスクロールを止める */
 .drag-grip {
@@ -853,7 +853,7 @@ button.task-check:active { transform: scale(0.9); }
   border: 2.5px solid var(--ink);
   border-radius: var(--radius-wobbly);
   box-shadow: 4px 4px 0 var(--peach);
-  padding: 14px 16px 16px;
+  padding: 16px;
   margin-bottom: 16px;
   text-align: left;
 }
@@ -864,13 +864,15 @@ button.task-check:active { transform: scale(0.9); }
 
 
 .focus-title {
+  margin-top: 8px;
   font-size: 22px;
   font-weight: 700;
   line-height: 1.3;
   overflow-wrap: anywhere;
+  text-align: center;
 }
 
-.focus-meta { margin-top: 4px; font-size: 13px; color: var(--ink-soft); }
+.focus-meta { margin-top: 4px; font-size: 13px; color: var(--ink-soft); text-align: center; }
 
 .focus-note {
   margin-top: 8px;
@@ -1113,7 +1115,7 @@ button.task-check:active { transform: scale(0.9); }
 
 /* コンボの札と重ならないよう、タイトルとメモは右側を空けて折り返す */
 .focus-card.has-combo .focus-title,
-.focus-card.has-combo .focus-meta { padding-right: 60px; }
+.focus-card.has-combo .focus-meta { padding-left: 60px; padding-right: 60px; } /* コンボの札の分を左右そろえて中央を保つ */
 
 /* タイマーの数字は1桁ずつ同じ幅で並べる */
 .qt-seconds span { display: inline-block; width: 0.51em; text-align: center; }
@@ -1147,7 +1149,7 @@ button.task-check:active { transform: scale(0.9); }
 /* 次への待ちのカード: 待機中と同じ構造を透明な下敷きにして高さをそろえ、その上に専用の表示を重ねる */
 .focus-card--countdown { position: relative; }
 .focus-card--countdown > :not(.cd-overlay) { visibility: hidden; }
-.cd-overlay { position: absolute; inset: 0; padding: 14px 16px 16px; display: flex; flex-direction: column; text-align: center; }
+.cd-overlay { position: absolute; inset: 0; padding: 16px; /* カードの padding と合わせ、ボタンの位置をそろえる */ display: flex; flex-direction: column; text-align: center; }
 .cd-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .cd-title { font-size: 36px; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
 .cd-sec { display: block; margin-top: 4px; font-size: 24px; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
@@ -1181,39 +1183,6 @@ button.task-check:active { transform: scale(0.9); }
 .cat-icon--sm .icon { width: 13px; height: 13px; }
 .cat-icon--row { width: 34px; height: 34px; }
 .cat-icon--row .icon { width: 20px; height: 20px; }
-
-/* 絞り込みチップの色とアイコン */
-.chip { display: inline-flex; align-items: center; gap: 5px; }
-.chip--cat .icon { width: 15px; height: 15px; --icon-fill-a: var(--cat-color); stroke-width: 2; }
-.chip--cat.is-active { background: var(--cat-color); }
-
-/* クエスト画面のカード */
-.category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.cat-card {
-  display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; text-align: center;
-  padding: 14px 8px 12px; background: var(--paper); border: 2.2px solid var(--ink);
-  border-radius: var(--radius-wobbly); box-shadow: 3px 3px 0 var(--cat-color, var(--line));
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.cat-card:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--cat-color, var(--line)); }
-.cat-card-icon {
-  width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;
-  border: 2.2px solid var(--ink); border-radius: 50% 45% 50% 45%; background: var(--cat-color, var(--line));
-}
-.cat-card-icon .icon { width: 32px; height: 32px; --icon-fill-a: rgba(255, 253, 248, 0.7); stroke-width: 2; }
-.cat-card-name { font-size: 15px; font-weight: 700; overflow-wrap: anywhere; line-height: 1.2; }
-.cat-card-count { font-size: 12px; color: var(--ink-soft); }
-.cat-card-count strong { font-size: 15px; color: var(--ink); }
-.cat-card-count .is-zero { color: var(--ink-soft); }
-.cat-card-overdue { font-size: 11px; font-weight: 700; color: #c85c4a; }
-@media (max-width: 559px) {
-  .category-grid { gap: 8px; }
-  .cat-card { padding: 10px 6px 10px; gap: 4px; }
-  .cat-card-icon { width: 46px; height: 46px; }
-  .cat-card-icon .icon { width: 26px; height: 26px; }
-  .cat-card-name { font-size: 13px; }
-  .cat-card-count { font-size: 11px; }
-}
 
 /* 色とアイコンの選択 */
 .color-picker { display: flex; flex-wrap: wrap; gap: 8px; }

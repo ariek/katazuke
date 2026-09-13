@@ -416,15 +416,13 @@ function renderQuests() {
   const today = dateKey(now);
   const categoryName = Object.fromEntries(state.categories.map((a) => [a.id, a.name]));
 
-  // クエスト絞り込みチップ
-  const chips = document.getElementById('category-chips');
+  // 見出し: いま開いているクエスト（「すべて」か1つのクエスト）
   const categories = [...state.categories].sort((a, b) => a.order - b.order);
   const byCategory = !ui.categoryFilter;
-  chips.innerHTML = [
-    `<button class="chip ${byCategory ? 'is-active' : ''}" data-category="">すべて</button>`,
-  ]
-    .concat(categories.map((a) => `<button class="chip chip--cat ${ui.categoryFilter === a.id ? 'is-active' : ''}" data-category="${a.id}" style="--cat-color:${categoryColorHex(a.color)}"><svg class="icon" aria-hidden="true"><use href="#c-${categoryIconId(a.icon)}"/></svg>${escapeHtml(a.name)}</button>`))
-    .join('');
+  const current = ui.categoryFilter ? state.categories.find((c) => c.id === ui.categoryFilter) : null;
+  document.getElementById('tasks-heading').innerHTML = current
+    ? `${categoryIconHtml(current, 'cat-icon cat-icon--sm')}<span>${escapeHtml(current.name)}</span>`
+    : '<span class="cat-icon cat-icon--sm"><svg class="icon" aria-hidden="true"><use href="#i-scroll"/></svg></span><span>すべて</span>';
 
   const tasks = state.tasks.filter((t) => !ui.categoryFilter || t.categoryId === ui.categoryFilter);
   const doneTodayIds = new Set(state.logs.filter((l) => dateKey(l.doneAt) === today).map((l) => l.taskId));
@@ -493,7 +491,7 @@ function renderQuests() {
     </details>`;
   }
   if (state.tasks.length === 0) {
-    html = '<p class="quest-empty">右下の「＋」から最初のやることを登録しましょう。</p>';
+    html = '<p class="quest-empty">下の「やることを追加」から最初のやることを登録しましょう。</p>';
   }
   document.getElementById('quest-list').innerHTML = html;
   // 折りたたみの開閉を覚える
@@ -593,6 +591,7 @@ function reorderTasksFromList(row, ul) {
 }
 
 function initQuests() {
+  document.getElementById('tasks-back').addEventListener('click', () => showCategoryList());
   makeSortable(document.getElementById('view-quests'), {
     row: '.task-row',
     grip: '.drag-grip',
@@ -601,12 +600,6 @@ function initQuests() {
       if (info.moved && !sessionActive()) reorderTasksFromList(row, ul);
       render();
     },
-  });
-  document.getElementById('category-chips').addEventListener('click', (e) => {
-    const chip = e.target.closest('.chip');
-    if (!chip) return;
-    ui.categoryFilter = chip.dataset.category || null;
-    renderQuests();
   });
 
   const handleTaskAction = (e) => {

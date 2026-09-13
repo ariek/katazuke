@@ -26,13 +26,13 @@ src = '\n'.join(open(f, encoding='utf-8').read() for f in glob.glob('public/*.js
 defined = set(m.group(1) for m in re.finditer(r'\bfunction\s+([A-Za-z_$][\w$]*)\s*\(', src))
 required = [
     'init', 'render', 'switchTab', 'saveState', 'loadState', 'migrate', 'sampleState', 'newId', 'escapeHtml', 'iconHtml',
-    'measureInsets', 'registerServiceWorker', 'renderSessionModals', 'renderHeader', 'renderOverview', 'categoryIconHtml', 'categoryColorHex', 'categoryIconId', 'injectCategoryIcons', 'renderPickers', 'nextFreeColor',
+    'measureInsets', 'registerServiceWorker', 'renderSessionModals', 'renderHeader', 'renderOverview', 'initOverview', 'openTasks', 'showCategoryList', 'saveScreen', 'loadScreen', 'categoryIconHtml', 'categoryColorHex', 'categoryIconId', 'injectCategoryIcons', 'renderPickers', 'nextFreeColor',
     'initQuests', 'renderQuests', 'renderFocusCard', 'pickFocus', 'sortFocusOrder', 'orderTodo', 'reorderTasksFromList', 'nextTaskOrder', 'taskOrder', 'isPastDue', 'isPinned', 'categorySequence', 'canDeferTask', 'deferTask', 'assignOrders', 'completeTask', 'undoComplete',
     'upsertTask', 'deleteTask', 'deferTask', 'addRegisterXp', 'removeRegisterXp', 'openTaskSheet', 'closeTaskSheet', 'showToast', 'comboBadge',
     'initTimer', 'initSession', 'startSession', 'beginQuest', 'pauseQuest', 'resumeQuest', 'completeQuest', 'quitSession', 'endSession',
     'closeSummary', 'tickSession', 'ensureSessionLoop', 'stopSessionLoop', 'renderTimerTick', 'renderTimerMini', 'pickNextQuest',
     'questRemainingSec', 'sessionActive', 'sessionPhase', 'digitsHtml', 'playTone', 'skipQuest', 'adjustSeconds',
-    'initSettings', 'renderSettings', 'sortedCategories', 'reorderCategories', 'initCategoryDrag', 'makeSortable', 'deleteCategory', 'upsertCategory', 'importJson', 'exportJson', 'clearSample', 'resetAll',
+    'initSettings', 'renderSettings', 'sortedCategories', 'reorderCategories', 'makeSortable', 'deleteCategory', 'upsertCategory', 'importJson', 'exportJson', 'clearSample', 'resetAll',
     'initBulk', 'parseBulkText', 'applyBulkPlan', 'undoBulk',
     'initLog', 'renderLog', 'initEffects', 'burstAt', 'floatText', 'pulseXpBar', 'centerOf', 'showClearModal', 'hideClearModal', 'setModalVisible',
     'clearAnimationMs', 'initDialog', 'askConfirm', 'showAlert',

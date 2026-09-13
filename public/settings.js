@@ -1,4 +1,4 @@
-// 設定画面: クエスト（カテゴリー）編集、エクスポート/インポート、サンプル削除、初期化
+// 設定画面: エクスポート/インポート、サンプル削除、初期化。クエストの編集シートもここで持つ
 
 // 初期クエスト（名前、色、アイコン）
 const DEFAULT_CATEGORIES = [
@@ -121,20 +121,6 @@ function resetAll() {
 // --- 描画 -------------------------------------------------------------
 
 function renderSettings() {
-  const list = document.getElementById('category-list');
-  const categories = sortedCategories();
-  const taskCount = {};
-  for (const t of state.tasks) taskCount[t.categoryId] = (taskCount[t.categoryId] || 0) + 1;
-
-  list.innerHTML = categories.map((a) => `<li class="category-row" data-id="${a.id}">
-    ${categoryIconHtml(a, 'cat-icon cat-icon--lg')}
-    <button class="category-body" data-category-edit="${a.id}">
-      <span class="category-name">${escapeHtml(a.name)}</span>
-      <span class="category-meta">やること ${taskCount[a.id] || 0} 件</span>
-    </button>
-    <span class="drag-grip" aria-label="押したまま動かして並べ替え" title="押したまま動かして並べ替え"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></span>
-  </li>`).join('') || '<li class="quest-empty">クエストがありません。下のボタンで追加してください。</li>';
-
   document.getElementById('sample-section').hidden = !state.sample;
   document.getElementById('data-summary').textContent =
     `クエスト ${state.categories.length} 件 · やること ${state.tasks.length} 件 · 記録 ${state.logs.length} 件 · データ形式 v${state.version}`;
@@ -171,28 +157,8 @@ function renderPickers() {
 
 // --- イベント ---------------------------------------------------------
 
-// クエスト一覧のドラッグ＆ドロップ並べ替え。つまみ（≡）を押したまま上下に動かす
-function initCategoryDrag() {
-  const list = document.getElementById('category-list');
-  makeSortable(list, {
-    row: '.category-row',
-    grip: '.drag-grip',
-    onDrop: (row, ul) => {
-      const ids = [...ul.querySelectorAll('.category-row')].map((r) => r.dataset.id);
-      reorderCategories(ids);
-      render();
-    },
-  });
-}
-
 function initSettings() {
-  document.getElementById('category-list').addEventListener('click', (e) => {
-    const edit = e.target.closest('[data-category-edit]');
-    if (edit) openCategorySheet(edit.dataset.categoryEdit);
-  });
-  initCategoryDrag();
-  document.getElementById('category-add-btn').addEventListener('click', () => openCategorySheet());
-
+  // クエストの編集シート（開くのはクエスト一覧画面から）
   const sheet = document.getElementById('category-sheet');
   const form = document.getElementById('category-form');
   sheet.addEventListener('click', (e) => { if (e.target === sheet) closeCategorySheet(); });

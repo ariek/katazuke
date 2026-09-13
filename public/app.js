@@ -2,12 +2,13 @@
 
 const STORAGE_KEY = 'todo-timer.v1';
 const LAST_TAB_KEY = 'todo-timer.lastTab'; // 最後に見ていたタブ。エクスポートには含めない
-const TAB_NAMES = ['quests', 'categories', 'log', 'settings'];
+const TAB_NAMES = ['categories', 'log', 'settings'];
+const SCREEN_KEY = 'todo-timer.screen'; // クエストタブで開いていた画面（一覧かやることか、どのクエストか）。エクスポートには含めない
 const DATA_VERSION = 1;
 
 let state = null;
 const SECTIONS_KEY = 'todo-timer.sections'; // やること画面の折りたたみ状態。エクスポートには含めない
-const ui = { tab: 'quests', categoryFilter: null, focusTaskId: null, logMonth: null, logDay: null, sections: loadSections(), extraSec: 0, extraTaskId: null };
+const ui = { tab: 'categories', showTasks: false, categoryFilter: null, focusTaskId: null, logMonth: null, logDay: null, sections: loadSections(), extraSec: 0, extraTaskId: null };
 
 function loadSections() {
   const defaults = { todo: false, done: false };
@@ -207,10 +208,40 @@ function renderSessionModals() {
 function switchTab(tab) {
   ui.tab = tab;
   try { localStorage.setItem(LAST_TAB_KEY, tab); } catch (err) { /* 保存できなくても続行 */ }
-  document.querySelectorAll('.view').forEach((v) => { v.hidden = v.dataset.view !== tab; });
+  // クエストタブは、クエスト一覧かやること画面のどちらかを出す
+  const view = tab === 'categories' && ui.showTasks ? 'quests' : tab;
+  document.querySelectorAll('.view').forEach((v) => { v.hidden = v.dataset.view !== view; });
   document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('is-active', b.dataset.tab === tab));
   renderTimerMini();
   document.querySelector('.main').scrollTo(0, 0);
+}
+
+// クエスト一覧からやること画面へ（categoryId が null なら「すべて」）
+function openTasks(categoryId) {
+  ui.categoryFilter = categoryId || null;
+  ui.showTasks = true;
+  saveScreen();
+  renderQuests();
+  switchTab('categories');
+}
+
+// クエスト一覧へ戻る
+function showCategoryList() {
+  ui.showTasks = false;
+  saveScreen();
+  switchTab('categories');
+}
+
+function saveScreen() {
+  try { localStorage.setItem(SCREEN_KEY, JSON.stringify({ tasks: ui.showTasks, category: ui.categoryFilter })); } catch (err) { /* 保存できなくても続行 */ }
+}
+
+function loadScreen() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SCREEN_KEY) || '{}');
+    ui.categoryFilter = saved.category && state.categories.some((c) => c.id === saved.category) ? saved.category : null;
+    ui.showTasks = !!saved.tasks;
+  } catch (err) { ui.categoryFilter = null; ui.showTasks = false; }
 }
 
 // --- 端末の余白（セーフエリア）を実測して CSS に渡す ---------------------
@@ -233,7 +264,7 @@ function measureInsets() {
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.9.2';
+const APP_VERSION = 'v0.10.0';
 let waitingWorker = null;
 
 function registerServiceWorker() {
@@ -283,17 +314,17 @@ function init() {
 
   document.getElementById('tabbar').addEventListener('click', (e) => {
     const btn = e.target.closest('.tab');
-    if (btn) switchTab(btn.dataset.tab);
+    if (!btn) return;
+    // クエストタブは一覧に戻るボタンを兼ねる。セッション中だけはやること画面に戻す
+    if (btn.dataset.tab === 'categories') {
+      if (sessionActive()) openTasks(ui.categoryFilter);
+      else showCategoryList();
+      return;
+    }
+    switchTab(btn.dataset.tab);
   });
 
-  document.getElementById('category-grid').addEventListener('click', (e) => {
-    const card = e.target.closest('.cat-card');
-    if (!card) return;
-    ui.categoryFilter = card.dataset.category;
-    renderQuests();
-    switchTab('quests');
-  });
-
+  initOverview();
   initQuests();
   initSettings();
   initBulk();
@@ -305,7 +336,9 @@ function init() {
   // 前回見ていた画面から始める。なければクエスト
   let lastTab = null;
   try { lastTab = localStorage.getItem(LAST_TAB_KEY); } catch (err) { lastTab = null; }
-  switchTab(TAB_NAMES.includes(lastTab) ? lastTab : 'quests');
+  loadScreen();
+  if (ui.showTasks) renderQuests();
+  switchTab(TAB_NAMES.includes(lastTab) ? lastTab : 'categories');
 
   document.getElementById('app-version').textContent = `やることクエスト ${APP_VERSION}`;
   measureInsets();
