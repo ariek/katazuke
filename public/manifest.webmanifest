@@ -1,7 +1,7 @@
 {
   "name": "やることクエスト",
   "short_name": "やるクエ",
-  "description": "タスクをクエストにして片付けていくゲーム",
+  "description": "やることをクエストにして片付けていくゲーム",
   "lang": "ja",
   "start_url": "./",
   "scope": "./",

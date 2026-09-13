@@ -74,7 +74,7 @@ async function importJson(text) {
   }
   const error = validateImport(data);
   if (error) return error;
-  const summary = `クエスト ${data.categories.length} 件、タスク ${data.tasks.length} 件、記録 ${data.logs.length} 件を読み込みます。現在のデータは上書きされます。`;
+  const summary = `クエスト ${data.categories.length} 件、やること ${data.tasks.length} 件、記録 ${data.logs.length} 件を読み込みます。現在のデータは上書きされます。`;
   if (!(await askConfirm(summary, { ok: '読み込む', danger: true }))) return null;
   state = migrate(data);
   ui.categoryFilter = null;
@@ -130,14 +130,14 @@ function renderSettings() {
     ${categoryIconHtml(a, 'cat-icon cat-icon--lg')}
     <button class="category-body" data-category-edit="${a.id}">
       <span class="category-name">${escapeHtml(a.name)}</span>
-      <span class="category-meta">タスク ${taskCount[a.id] || 0} 件</span>
+      <span class="category-meta">やること ${taskCount[a.id] || 0} 件</span>
     </button>
     <span class="drag-grip" aria-label="押したまま動かして並べ替え" title="押したまま動かして並べ替え"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></span>
   </li>`).join('') || '<li class="quest-empty">クエストがありません。下のボタンで追加してください。</li>';
 
   document.getElementById('sample-section').hidden = !state.sample;
   document.getElementById('data-summary').textContent =
-    `クエスト ${state.categories.length} 件 · タスク ${state.tasks.length} 件 · 記録 ${state.logs.length} 件 · データ形式 v${state.version}`;
+    `クエスト ${state.categories.length} 件 · やること ${state.tasks.length} 件 · 記録 ${state.logs.length} 件 · データ形式 v${state.version}`;
 }
 
 function openCategorySheet(categoryId = null) {
@@ -223,7 +223,7 @@ function initSettings() {
     if (!category) return;
     const n = state.tasks.filter((t) => t.categoryId === id).length;
     const msg = n > 0
-      ? `「${category.name}」と、所属するタスク ${n} 件をまとめて削除します。`
+      ? `「${category.name}」と、所属するやること ${n} 件をまとめて削除します。`
       : `「${category.name}」を削除します。`;
     if (!(await askConfirm(msg, { ok: '削除する', danger: true }))) return;
     deleteCategory(id);
@@ -278,7 +278,7 @@ function initSettings() {
 
   // サンプル削除
   document.getElementById('sample-clear').addEventListener('click', async () => {
-    if (!(await askConfirm('サンプルのタスクと記録を削除します。クエストは残ります。', { ok: '消す', danger: true }))) return;
+    if (!(await askConfirm('サンプルのやることと記録を削除します。クエストは残ります。', { ok: '消す', danger: true }))) return;
     clearSample();
     render();
     showToast('サンプルを消しました');
@@ -286,7 +286,7 @@ function initSettings() {
 
   // 初期化
   document.getElementById('reset-all').addEventListener('click', async () => {
-    if (!(await askConfirm('すべてのデータ（クエスト、タスク、記録、レベル）を削除します。', { ok: '削除する', danger: true }))) return;
+    if (!(await askConfirm('すべてのデータ（クエスト、やること、記録、レベル）を削除します。', { ok: '削除する', danger: true }))) return;
     if (!(await askConfirm('本当に削除しますか？ この操作は取り消せません。', { ok: '本当に削除する', danger: true }))) return;
     resetAll();
     render();

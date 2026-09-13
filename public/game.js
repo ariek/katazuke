@@ -52,7 +52,7 @@ function baseXpForTask(task) {
   return XP_BY_DIFFICULTY[task.difficulty] || XP_BY_DIFFICULTY[1];
 }
 
-// タスクの状態
+// やることの状態
 //   done    : 繰り返しなしで達成済み
 //   todo    : 繰り返しなし。期限なし、または期限内。やることに出るが、きれい度では期限内扱い
 //   overdue : 繰り返しなしで期限切れ

@@ -153,7 +153,7 @@ function adjustSeconds(delta) {
 function skipQuest() {
   const s = state.session;
   if (!s || !['countdown', 'running', 'paused'].includes(s.phase)) return;
-  const alt = deferTask(s.taskId); // ひとつ後ろに回し、入れ替わったタスクに移る。候補がなければ何もしない
+  const alt = deferTask(s.taskId); // ひとつ後ろに回し、入れ替わったやることに移る。候補がなければ何もしない
   if (!alt) return;
   s.taskId = alt.id;
   s.durationSec = QUEST_SECONDS[alt.difficulty] || QUEST_SECONDS[1];
@@ -296,7 +296,7 @@ function pickNextQuest(excludeId = null) {
 
 async function quitSession() {
   if (!state.session) return;
-  if (!(await askConfirm('セッションをやめますか？ 走っているタスクは未完了のまま残ります。', { ok: 'やめる', cancel: '続ける', danger: true }))) return;
+  if (!(await askConfirm('セッションをやめますか？ 走っているやることは未完了のまま残ります。', { ok: 'やめる', cancel: '続ける', danger: true }))) return;
   if (!state.session) return; // 待っている間に終わっていたら何もしない
   endSession('quit');
 }

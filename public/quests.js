@@ -1,8 +1,8 @@
-// クエスト画面: タスク一覧、追加・編集・削除、完了と取り消し
+// クエスト画面: やること一覧、追加・編集・削除、完了と取り消し
 
 const DIFFICULTY_LABELS = { 1: '★', 2: '★★', 3: '★★★' };
 
-// --- タスクの操作 -----------------------------------------------------
+// --- やることの操作 -----------------------------------------------------
 
 // award: { xp, baseXp, bonusXp, combo, durationSec, remainingSec }（timer.js が計算する）
 function completeTask(taskId, award, now = new Date()) {
@@ -77,8 +77,8 @@ function canDeferTask(task, now = new Date()) {
   return i >= 0 && i < seq.length - 1;
 }
 
-// スキップ: クエスト内でひとつ後ろに回す（一覧には「スキップ済み」と出る）。入れ替えた相手のタスクを返す。
-// 期限切れのタスクが期限切れでないタスクを飛び越えるときは、今日だけ先頭固定を外す
+// スキップ: クエスト内でひとつ後ろに回す（一覧には「スキップ済み」と出る）。入れ替えた相手のやることを返す。
+// 期限切れのやることが期限切れでないやることを飛び越えるときは、今日だけ先頭固定を外す
 function deferTask(taskId, now = new Date()) {
   const task = state.tasks.find((t) => t.id === taskId);
   if (!task) return null;
@@ -95,13 +95,13 @@ function deferTask(taskId, now = new Date()) {
   return other;
 }
 
-// 並び順の値を、いま持っている値を小さい順に配り直す（ほかのタスクとの前後関係は保つ）
+// 並び順の値を、いま持っている値を小さい順に配り直す（ほかのやることとの前後関係は保つ）
 function assignOrders(tasks) {
   const slots = tasks.map(taskOrder).sort((a, b) => a - b);
   tasks.forEach((t, i) => { t.order = slots[i]; });
 }
 
-// 手動の並び順。新しいタスクは末尾
+// 手動の並び順。新しいやることは末尾
 function taskOrder(task) {
   return typeof task.order === 'number' ? task.order : 0;
 }
@@ -114,14 +114,14 @@ function isDeferredToday(task, now = new Date()) {
   return !!task.deferredAt && dateKey(task.deferredAt) === dateKey(now);
 }
 
-// やることの並び順: 期限日が早い順（期限なしは最後）、同じ日なら登録が早い順。
-// 「あとで」にしたものは、その期限日の中で最後に回る（先送りが早い順）。先頭が「いまやる」になる
+// やることの並び順: 日付が早い順（期限なしは最後）、同じ日なら登録が早い順。
+// 「あとで」にしたものは、その日付の中で最後に回る（先送りが早い順）。先頭が「いまやる」になる
 function dueDayKey(task) {
   const due = task.repeat.type === 'none' ? task.deadline : task.dueAt;
   return due ? dateKey(due) : '9999-99-99';
 }
 
-// 期限切れ: 期限日（繰り返しは次回期限）が今日より前
+// 期限切れ: 日付（繰り返しは次回期限）が今日より前
 function isPastDue(task, now = new Date()) {
   return dueDayKey(task) < dateKey(now);
 }
@@ -259,13 +259,13 @@ function renderFocusCard(entry, categoryName, now) {
   let sub;
   if (phase === 'idle') {
     main = `<button class="btn btn-primary qt-main is-start" data-qt="start">${ICON_PLAY} スタート</button>`;
-    // 同じ期限日にほかのクエストがなければ「あとで」は意味がないので押せない
+    // 同じ日付にほかのクエストがなければ「あとで」は意味がないので押せない
     const canDefer = canDeferTask(task, now); // 同じクエストにひとつ後ろの候補がなければ押せない
     sub = `<button class="btn qt-small" data-defer="${task.id}" ${canDefer ? '' : 'disabled'}>スキップ</button>`;
   } else {
     const canComplete = phase === 'running' || phase === 'paused';
-    main = `<button class="btn btn-primary qt-main" data-qt="complete" ${canComplete ? '' : 'disabled'}><svg class="icon" aria-hidden="true"><use href="#i-check-box"/></svg> タスク完了</button>`;
-    // 「× やめる」の右に「スキップ」（いまのタスクをひとつ後ろに回し、入れ替わったタスクで待ち直す）
+    main = `<button class="btn btn-primary qt-main" data-qt="complete" ${canComplete ? '' : 'disabled'}><svg class="icon" aria-hidden="true"><use href="#i-check-box"/></svg> やること完了</button>`;
+    // 「× やめる」の右に「スキップ」（いまのやることをひとつ後ろに回し、入れ替わったやることで待ち直す）
     const canSkip = canDeferTask(task, now); // 同じクエストにひとつ後ろの候補がなければ押せない
     sub = `<button class="btn qt-small qt-quit" data-qt="quit">× やめる</button><button class="btn qt-small" data-qt="skip" ${canSkip ? '' : 'disabled'}>スキップ</button>`;
   }
@@ -491,7 +491,7 @@ function renderQuests() {
     </details>`;
   }
   if (state.tasks.length === 0) {
-    html = '<p class="quest-empty">右下の「＋」から最初のタスクを登録しましょう。</p>';
+    html = '<p class="quest-empty">右下の「＋」から最初のやることを登録しましょう。</p>';
   }
   document.getElementById('quest-list').innerHTML = html;
   // 折りたたみの開閉を覚える
@@ -519,7 +519,7 @@ function openTaskSheet(taskId = null) {
   form.elements.repeatEvery.value = task && task.repeat.type === 'days' ? task.repeat.every : 3;
   form.elements.deadline.value = task && task.deadline ? dateKey(task.deadline) : '';
   form.elements.note.value = task ? task.note : '';
-  document.getElementById('task-sheet-title').textContent = task ? 'タスクを編集' : 'タスクを追加';
+  document.getElementById('task-sheet-title').textContent = task ? 'やることを編集' : 'やることを追加';
   document.getElementById('task-delete').hidden = !task;
   updateTaskFormVisibility();
   document.getElementById('task-sheet').hidden = false;
@@ -546,7 +546,7 @@ function readTaskForm() {
   const deadlineValue = form.elements.deadline.value;
   let deadline = null;
   if (type === 'none' && deadlineValue) {
-    // 期限日の 23:59:59 を期限にする
+    // 日付の 23:59:59 を期限にする
     const d = new Date(`${deadlineValue}T23:59:59`);
     if (!Number.isNaN(d.getTime())) deadline = d.toISOString();
   }
@@ -576,7 +576,7 @@ function showToast(message, kind = '') {
 // --- イベント ---------------------------------------------------------
 
 // 「ほかのやること」の並べ替え。一覧の順をそのクエストの手動順にする。
-// 一番上に置いたときは、いまやるタスク（期限切れでなければ）より前にして、いまやるにする
+// 一番上に置いたときは、いまやるやること（期限切れでなければ）より前にして、いまやるにする
 function reorderTasksFromList(row, ul) {
   const ids = [...ul.querySelectorAll('.task-row')].map((r) => r.dataset.id);
   const categoryId = ul.dataset.category;
@@ -680,7 +680,7 @@ function initQuests() {
   document.getElementById('task-delete').addEventListener('click', async () => {
     const id = form.elements.id.value;
     if (!id) return;
-    if (!(await askConfirm('このタスクを削除します。', { ok: '削除する', danger: true }))) return;
+    if (!(await askConfirm('このやることを削除します。', { ok: '削除する', danger: true }))) return;
     const at = centerOf(document.getElementById('task-delete'));
     const before = state.player.xp;
     deleteTask(id);

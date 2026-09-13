@@ -1,4 +1,4 @@
-// タスクの一括追加: 貼り付けた文字列を解釈し、内訳を出してから登録する
+// やることの一括追加: 貼り付けた文字列を解釈し、内訳を出してから登録する
 
 const BULK_DEFAULT_CATEGORY = 'なんでも';
 const BULK_TITLE_MAX = 60;
@@ -187,7 +187,7 @@ function undoBulk() {
   state.tasks = state.tasks.filter((t) => !taskIds.has(t.id));
   const removed = before - state.tasks.length;
   if (removed > 0) removeRegisterXp(removed);
-  // 今回作ったクエストは、ほかにタスクが残っていなければ消す
+  // 今回作ったクエストは、ほかにやることが残っていなければ消す
   for (const categoryId of lastBulk.createdCategoryIds) {
     if (!state.tasks.some((t) => t.categoryId === categoryId)) {
       state.categories = state.categories.filter((a) => a.id !== categoryId);
@@ -211,11 +211,11 @@ function renderBulkPreview(plan) {
     parts.push(`<p><strong>新しいクエスト ${plan.newCategories.length} 件</strong>: ${plan.newCategories.map((a) => escapeHtml(a.name)).join('、')}</p>`);
   }
   const categoryLines = Object.entries(plan.perCategory).map(([name, n]) => `${escapeHtml(name)} ${n}`).join('、');
-  parts.push(`<p><strong>タスク ${plan.entries.length} 件</strong>${categoryLines ? `: ${categoryLines}` : ''}</p>`);
+  parts.push(`<p><strong>やること ${plan.entries.length} 件</strong>${categoryLines ? `: ${categoryLines}` : ''}</p>`);
   if (plan.truncated) parts.push(`<p class="bulk-skip">切り詰め: ${BULK_TITLE_MAX}文字に短くした行 ${plan.truncated}</p>`);
   const skips = [];
   if (plan.skipped.empty) skips.push(`タイトルなし ${plan.skipped.empty}`);
-  if (plan.skipped.badDeadline) skips.push(`期限が読めない ${plan.skipped.badDeadline}`);
+  if (plan.skipped.badDeadline) skips.push(`日付が読めない ${plan.skipped.badDeadline}`);
   if (plan.skipped.badDifficulty) skips.push(`難易度が読めない ${plan.skipped.badDifficulty}`);
   if (plan.skipped.duplicate) skips.push(`重複 ${plan.skipped.duplicate}`);
   if (skips.length) parts.push(`<p class="bulk-skip">読み飛ばし: ${skips.join('、')}</p>`);
@@ -248,7 +248,7 @@ function initBulk() {
 
   document.getElementById('bulk-parse').addEventListener('click', () => {
     const text = textarea.value;
-    if (!bulkTrim(text)) { showToast('1行1タスクで貼り付けてください'); return; }
+    if (!bulkTrim(text)) { showToast('1行に1つずつ貼り付けてください'); return; }
     lastBulk = null;
     bulkPlan = parseBulkText(text, state.categories, state.tasks);
     renderBulkPreview(bulkPlan);
