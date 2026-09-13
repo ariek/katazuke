@@ -39,7 +39,7 @@ function renderOverview() {
   });
   list.innerHTML = cats.length
     ? allRow + rows.join('')
-    : '<li class="quest-empty">クエストがありません。下のボタンで追加するか、設定の一括追加で作れます。</li>';
+    : `<li class="focus-card is-empty" data-empty="none"><div class="focus-empty"><strong>まだクエストがありません</strong><span>下の「クエストを追加」から、最初のクエストを作ろう。設定の一括追加でまとめて作ることもできます</span></div></li>`;
 }
 
 function initOverview() {

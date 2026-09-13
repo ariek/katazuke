@@ -330,9 +330,7 @@ function closeSummary() {
   state.session = null;
   stopSessionLoop();
   saveState();
-  render();
-  // 開いていたクエストのやることが残っていなければ、クエスト一覧に戻る
-  if (!pickNextQuest()) showCategoryList();
+  render(); // やることが残っていなければ、そのまま「やることはありません」のカードになる
 }
 
 // --- ループ ------------------------------------------------------------
