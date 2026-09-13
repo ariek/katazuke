@@ -159,14 +159,14 @@
     <section class="view" id="view-settings" data-view="settings" hidden>
       <section class="settings-section">
         <h2 class="settings-heading">クエスト</h2>
-        <p class="settings-help">タスクをまとめる箱です。名前をタップすると編集できます。右の ≡ を押したまま上下に動かすと並び順を変えられます。</p>
+        <p class="settings-help">やることをまとめる箱です。名前をタップすると編集できます。右の ≡ を押したまま上下に動かすと並び順を変えられます。</p>
         <ul class="category-list" id="category-list"></ul>
         <button class="btn" id="category-add-btn"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg> クエストを追加</button>
       </section>
 
       <section class="settings-section">
-        <h2 class="settings-heading">タスクの一括追加</h2>
-        <p class="settings-help">1行に1つ、「クエスト：タイトル：期限：難易度：メモ」の形で貼り付けてください。区切りは「：」かタブ。期限以降は省略できます（期限は 9/20 や 明日、難易度は 1〜3 か ★）。クエストがない行は「なんでも」に入り、ないクエストは自動で作られます。</p>
+        <h2 class="settings-heading">やることの一括追加</h2>
+        <p class="settings-help">1行に1つ、「クエスト：タイトル：日付：難易度：メモ」の形で貼り付けてください。区切りは「：」かタブ。日付以降は省略できます（日付は 9/20 や 明日、難易度は 1〜3 か ★）。クエストがない行は「なんでも」に入り、ないクエストは自動で作られます。</p>
         <textarea class="json-category bulk-category" id="bulk-text" rows="6" placeholder="仕事：経費精算を出す：9/20：2&#10;家事：洗濯物をたたむ&#10;：牛乳を買う：明日&#10;勉強：参考書を1章読む：：3：付箋を貼りながら" spellcheck="false"></textarea>
         <div class="btn-row">
           <button class="btn btn-primary" id="bulk-parse">読み込む</button>
@@ -176,7 +176,7 @@
 
       <section class="settings-section" id="sample-section" hidden>
         <h2 class="settings-heading">サンプルデータ</h2>
-        <p class="settings-help">いま入っているタスクはサンプルです。自分のやることに合わせて登録し直すときに使ってください。</p>
+        <p class="settings-help">いま入っているやることはサンプルです。自分のやることに合わせて登録し直すときに使ってください。</p>
         <button class="btn btn-danger" id="sample-clear">サンプルを消して自分で登録する</button>
       </section>
 
@@ -220,7 +220,7 @@
 
   <div class="sheet-backdrop" id="task-sheet" hidden>
     <form class="sheet" id="task-form" autocomplete="off">
-      <h2 class="sheet-title" id="task-sheet-title">タスクを追加</h2>
+      <h2 class="sheet-title" id="task-sheet-title">やることを追加</h2>
       <input type="hidden" name="id">
       <label class="field">
         <span class="field-label">タイトル</span>
@@ -252,7 +252,7 @@
         <input type="number" name="repeatEvery" min="1" max="365" value="3" inputmode="numeric">
       </label>
       <label class="field" id="deadline-wrap">
-        <span class="field-label">期限（任意）</span>
+        <span class="field-label">日付（任意）</span>
         <input type="date" name="deadline">
       </label>
       <label class="field">
@@ -364,7 +364,7 @@
   </div>
 
   <nav class="tabbar" id="tabbar">
-    <button class="tab is-active" data-tab="quests" aria-label="タスク" title="タスク"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button>
+    <button class="tab is-active" data-tab="quests" aria-label="やること" title="やること"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button>
     <button class="tab" data-tab="categories" aria-label="クエスト" title="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-flag-tab"/></svg></span></button>
     <button class="tab" data-tab="log" aria-label="記録" title="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button>
     <button class="tab" data-tab="settings" aria-label="設定" title="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button>

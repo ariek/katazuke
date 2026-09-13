@@ -6,7 +6,7 @@ const TAB_NAMES = ['quests', 'categories', 'log', 'settings'];
 const DATA_VERSION = 1;
 
 let state = null;
-const SECTIONS_KEY = 'todo-timer.sections'; // タスク画面の折りたたみ状態。エクスポートには含めない
+const SECTIONS_KEY = 'todo-timer.sections'; // やること画面の折りたたみ状態。エクスポートには含めない
 const ui = { tab: 'quests', categoryFilter: null, focusTaskId: null, logMonth: null, logDay: null, sections: loadSections(), extraSec: 0, extraTaskId: null };
 
 function loadSections() {
@@ -62,7 +62,7 @@ function migrate(data) {
     if (!c.icon) c.icon = DEFAULT_ICON;
   });
   if (!Array.isArray(data.tasks)) data.tasks = [];
-  // 手動の並び順がないタスクは登録順で末尾に
+  // 手動の並び順がないやることは登録順で末尾に
   let nextOrder = data.tasks.reduce((m, t) => (typeof t.order === 'number' ? Math.max(m, t.order) : m), -1) + 1;
   data.tasks.filter((t) => typeof t.order !== 'number')
     .sort((a, b) => ((a.createdAt || '') < (b.createdAt || '') ? -1 : 1))
@@ -233,7 +233,7 @@ function measureInsets() {
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.9.0';
+const APP_VERSION = 'v0.9.1';
 let waitingWorker = null;
 
 function registerServiceWorker() {
