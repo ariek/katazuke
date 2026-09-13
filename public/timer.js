@@ -331,6 +331,8 @@ function closeSummary() {
   stopSessionLoop();
   saveState();
   render();
+  // 開いていたクエストのやることが残っていなければ、クエスト一覧に戻る
+  if (!pickNextQuest()) showCategoryList();
 }
 
 // --- ループ ------------------------------------------------------------
@@ -491,7 +493,7 @@ function renderTimerTick() {
 function renderTimerMini() {
   const el = document.getElementById('timer-mini');
   const s = state.session;
-  const show = s && (s.phase === 'running' || s.phase === 'paused') && ui.tab !== 'quests';
+  const show = s && (s.phase === 'running' || s.phase === 'paused') && !(ui.tab === 'categories' && ui.showTasks);
   el.hidden = !show;
   if (show) {
     el.innerHTML = `${iconHtml('i-timer', 'icon icon-timer')} 残り ${questRemainingSec(s)} 秒${s.phase === 'paused' ? '（一時停止中）' : ''}`;
@@ -499,7 +501,7 @@ function renderTimerMini() {
 }
 
 function initTimer() {
-  document.getElementById('timer-mini').addEventListener('click', () => switchTab('quests'));
+  document.getElementById('timer-mini').addEventListener('click', () => openTasks(ui.categoryFilter));
   document.getElementById('break-end').addEventListener('click', endBreak);
   document.getElementById('summary-close').addEventListener('click', closeSummary);
   initSession();
