@@ -68,11 +68,9 @@ function floatText(x, y, text, big = false, small = false) {
   setTimeout(() => el.remove(), 1700);
 }
 
-// 経験値バーを光らせる
+// 経験値ゲージ（ヘッダーの札）を光らせる
 function pulseXpBar() {
-  const bar = document.querySelector('.xp-bar');
-  const badge = document.getElementById('level-badge');
-  for (const el of [bar, badge]) {
+  for (const el of [document.getElementById('level-gauge')]) {
     if (!el) continue;
     el.classList.remove('is-gaining');
     void el.offsetWidth; // アニメーションをやり直すためのリフロー

@@ -14,7 +14,7 @@
   --normal: #f5d98a;
   --messy: #f2a9a0;
   --radius-wobbly: 18px 22px 20px 24px / 24px 18px 22px 20px;
-  --tabbar-h: 56px;
+  --gauge: #f8d3a3; /* 経験値ゲージの色（橙） */
   /* 端末の切り欠きやホームインジケーターの分。app.js が実測値（px）で上書きする */
   --inset-top: env(safe-area-inset-top, 0px);
   --inset-bottom: env(safe-area-inset-bottom, 0px);
@@ -25,15 +25,11 @@
 /* 全画面（ホーム画面から起動）のとき。メディアクエリが効かない端末向けに、JS で付ける印でも同じにする */
 @media (display-mode: standalone) {
   :root {
-    --tabbar-h: 50px;
-    --safe-bottom: max(0px, calc(var(--inset-bottom) - 24px));
     --header-top: max(4px, calc(var(--inset-top) - 6px));
   }
 }
 
 :root.is-standalone {
-  --tabbar-h: 50px;
-  --safe-bottom: max(0px, calc(var(--inset-bottom) - 24px));
   --header-top: max(4px, calc(var(--inset-top) - 6px));
 }
 
@@ -116,63 +112,53 @@ button {
   white-space: nowrap;
 }
 
-.streak {
-  flex: none;
-  margin-left: 4px;
-  padding-left: 10px;
-  border-left: 2px solid var(--line);
-  font-size: 13px;
-  color: var(--ink-soft);
-  white-space: nowrap;
-}
-
-.streak strong {
-  color: var(--ink);
-  font-size: 15px;
-}
-
-.level-row {
+/* ヘッダーの1行: 左に「Lv. 称号」の札（背景が経験値ゲージ）、右にナビ */
+.hd-row {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.level-badge {
-  flex: none;
-  padding: 3px 10px;
+.lv-gauge {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  overflow: hidden;
+  padding: 4px 10px 4px 12px;
   border: 2.2px solid var(--ink);
   border-radius: 14px 18px 16px 20px / 20px 14px 18px 16px;
-  background: var(--yellow);
+  background: var(--paper);
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
 }
 
-.xp-bar {
-  flex: 1;
-  height: 14px;
-  border: 2.2px solid var(--ink);
-  border-radius: 10px 14px 12px 14px / 14px 10px 14px 12px;
-  background: var(--paper);
-  overflow: hidden;
-}
-
-.xp-fill {
-  height: 100%;
+/* 塗りが経験値の進み具合。境界線は付けない */
+.lv-gauge-fill {
+  position: absolute;
+  inset: 0;
   width: 0%;
-  background: var(--mint);
-  border-right: 2px solid var(--ink);
+  background: var(--gauge);
   transition: width 0.5s ease;
 }
 
-.xp-text {
+.lv-gauge-text { position: relative; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* 現在の経験値は太字で大きく。「/ 次のレベルまで」は小さく添える */
+.xp-now {
+  position: relative;
   flex: none;
-  font-size: 12px;
-  color: var(--ink-soft);
-  min-width: 56px;
-  text-align: right;
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
   font-variant-numeric: tabular-nums;
 }
+.xp-now strong { font-size: 20px; line-height: 1; font-weight: 700; color: var(--ink); }
+.xp-now span { font-size: 11px; font-weight: 500; color: var(--ink-soft); }
 
 /* メイン */
 .main {
@@ -182,7 +168,7 @@ button {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   /* 本文は 900px までで中央寄せ。左右の余白で中央に置く */
-  padding: 16px max(16px, calc((100% - 900px) / 2)) 96px;
+  padding: 16px max(16px, calc((100% - 900px) / 2)) calc(32px + var(--safe-bottom));
 }
 
 .placeholder {
@@ -192,19 +178,17 @@ button {
 }
 
 /* タブバー */
-.tabbar {
+.hd-nav {
   flex: none;
-  height: calc(var(--tabbar-h) + var(--safe-bottom));
-  padding-top: 4px;
-  padding-bottom: var(--safe-bottom);
   display: flex;
-  background: var(--paper);
-  border-top: 2.5px solid var(--ink);
-  z-index: 10;
+  align-items: center;
+  gap: 2px;
 }
 
 .tab {
-  flex: 1;
+  flex: none;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -213,27 +197,20 @@ button {
 
 .tab-icon {
   display: block;
-  height: 28px;
+  height: 26px;
   transition: transform 0.15s ease;
 }
 
 .tab-svg {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   stroke-width: 1.8;
   --icon-fill-a: var(--line);
   --icon-fill-b: var(--paper);
 }
 
-.tab.is-active {
-  color: var(--ink);
-  font-weight: 700;
-}
-
-.tab.is-active .tab-icon {
-  transform: translateY(-2px) scale(1.1);
-}
-
+.tab.is-active { color: var(--ink); }
+.tab.is-active .tab-icon { transform: scale(1.1); }
 .tab.is-active .tab-svg { stroke-width: 2; }
 .tab.is-active[data-tab="categories"] .tab-svg { --icon-fill-a: var(--yellow); --icon-fill-b: var(--peach); }
 .tab.is-active[data-tab="log"] .tab-svg { --icon-fill-a: var(--mint); --icon-fill-b: var(--ink); }
@@ -488,7 +465,7 @@ button.task-check:active { transform: scale(0.9); }
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 24px);
+  bottom: calc(var(--safe-bottom) + 24px);
   transform: translateX(-50%);
   padding: 8px 18px;
   background: var(--yellow);
@@ -949,8 +926,8 @@ button.task-check:active { transform: scale(0.9); }
   100% { box-shadow: 0 0 0 0 rgba(191, 227, 208, 0); transform: scale(1); }
 }
 
-.xp-bar.is-gaining, .level-badge.is-gaining { animation: xp-gain 0.8s ease-out; }
-.xp-bar.is-gaining .xp-fill { background: var(--yellow); }
+.lv-gauge.is-gaining { animation: xp-gain 0.8s ease-out; }
+.lv-gauge.is-gaining .lv-gauge-fill { background: var(--yellow); }
 
 @keyframes levelup-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes levelup-out { from { opacity: 1; } to { opacity: 0; } }
@@ -961,14 +938,14 @@ button.task-check:active { transform: scale(0.9); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .modal, .clear-card, .xp-bar.is-gaining, .level-badge.is-gaining, .clear-num.is-boing { animation: none; }
+  .modal, .clear-card, .lv-gauge.is-gaining, .clear-num.is-boing { animation: none; }
 }
 
 /* 更新通知 */
 .update-bar {
   position: fixed;
   left: 50%;
-  bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 12px);
+  bottom: calc(var(--safe-bottom) + 16px);
   transform: translateX(-50%);
   display: flex;
   align-items: center;

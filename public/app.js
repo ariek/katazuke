@@ -150,15 +150,13 @@ function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+// ヘッダー: 「Lv. 称号」の札（背景が経験値ゲージ）と、現在の経験値 / 次のレベルまで
 function renderHeader() {
   const info = levelInfo(state.player.xp);
-  const streak = currentStreak(state.logs);
   document.getElementById('level-badge').textContent = `Lv.${info.level} ${titleForLevel(info.level)}`;
   document.getElementById('xp-fill').style.width = `${Math.round((info.xpInLevel / info.xpToNext) * 100)}%`;
-  document.getElementById('xp-text').textContent = `${info.xpInLevel} / ${info.xpToNext}`;
-  document.getElementById('streak').innerHTML = streak > 0
-    ? `${iconHtml('i-flame', 'icon icon-flame')} <strong>${streak}</strong>日`
-    : `${iconHtml('i-flame', 'icon icon-flame icon-off')} <strong>0</strong>日`;
+  document.getElementById('xp-now').textContent = String(info.xpInLevel);
+  document.getElementById('xp-next').textContent = `/ ${info.xpToNext}`;
 }
 
 function render() {
@@ -264,7 +262,7 @@ function measureInsets() {
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.11.0';
+const APP_VERSION = 'v0.12.0';
 let waitingWorker = null;
 
 function registerServiceWorker() {

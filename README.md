@@ -46,6 +46,7 @@ Claude Code から確認する場合は `.claude/launch.json` の `todo-timer` �
 | [docs/SPEC.md](docs/SPEC.md) | 仕様書。画面、ゲームルール、データ構造、検討事項、決定事項の記録 |
 | [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | ブランチ運用とコミットメッセージのルール |
 | [docs/design-timer.html](docs/design-timer.html) | タイマー付きカードと各モーダルのデザイン案 |
+| [docs/design-header.html](docs/design-header.html) | ヘッダー（経験値ゲージの札とナビ）のデザイン案 |
 | [CLAUDE.md](CLAUDE.md) | Claude Code に作業させるときの方針 |
 
 仕様を変えるときは、コードより先に `docs/SPEC.md` を直す。
