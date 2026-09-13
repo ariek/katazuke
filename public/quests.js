@@ -591,16 +591,12 @@ function showToast(message, kind = '') {
 // --- イベント ---------------------------------------------------------
 
 // 「ほかのやること」の並べ替え。一覧の順をそのクエストの手動順にする。
-// 一番上に置いたときは、いまやるやること（期限切れでなければ）より前にして、いまやるにする
+// いまやるやることは動かさない（同じクエストなら常に先頭のまま）。いまやるを替えたいときは「スキップ」を使う
 function reorderTasksFromList(row, ul) {
   const ids = [...ul.querySelectorAll('.task-row')].map((r) => r.dataset.id);
   const categoryId = ul.dataset.category;
   const focus = ui.focusTaskId ? state.tasks.find((t) => t.id === ui.focusTaskId) : null;
-  let seq = ids;
-  if (focus && focus.categoryId === categoryId) {
-    const focusPinned = isPinned(focus);
-    seq = ids[0] === row.dataset.id && !focusPinned ? [ids[0], focus.id, ...ids.slice(1)] : [focus.id, ...ids];
-  }
+  const seq = focus && focus.categoryId === categoryId ? [focus.id, ...ids] : ids;
   assignOrders(seq.map((id) => state.tasks.find((t) => t.id === id)).filter(Boolean));
   saveState();
 }
