@@ -180,13 +180,25 @@ function comboBadge(combo) {
 }
 
 // 「いまやる」カード。セッションの状態に応じてタイマーとボタンを出し分ける
-function renderFocusCard(entry, categoryName, now) {
+// やることがないときのカードの文言。状況で変える
+//   none: 開いているクエストにやることが1つもない / cleared: 今日やって空になった / rest: 今日の分はなく次回待ちだけ
+function emptyFocusHtml(kind, doneCount = 0) {
+  const sparkle = iconHtml('i-sparkle', 'icon icon-sparkle');
+  if (kind === 'none') {
+    return `<div class="focus-empty"><strong>まだやることがありません</strong><span>下の「やることを追加」から、最初のやることを書き出そう</span></div>`;
+  }
+  if (kind === 'cleared') {
+    return `<div class="focus-empty"><strong>クエストクリア！ ${sparkle}</strong><span>今日は ${doneCount} 件やり遂げました。おつかれさま！</span></div>`;
+  }
+  return `<div class="focus-empty"><strong>今日のやることはありません</strong><span>次回待ちのやることが来るまで、ひと休み ${sparkle}</span></div>`;
+}
+
+function renderFocusCard(entry, categoryName, now, empty = { kind: 'rest', doneCount: 0 }) {
   const s = state.session;
   const phase = sessionPhase();
-  if (!entry && phase === 'idle') {
-    return `<div class="focus-card is-empty">
-      <div class="focus-empty">やることはありません。おつかれさま！ ${iconHtml('i-sparkle', 'icon icon-sparkle')}</div>
-    </div>`;
+  // やることがなければ空のカード（まとめの表示中も、後ろに空のやることを出さない）
+  if (!entry && (phase === 'idle' || phase === 'summary')) {
+    return `<div class="focus-card is-empty" data-empty="${empty.kind}">${emptyFocusHtml(empty.kind, empty.doneCount)}</div>`;
   }
   const task = entry ? entry.task : null;
   const status = entry ? entry.status : 'todo';
@@ -222,7 +234,7 @@ function renderFocusCard(entry, categoryName, now) {
     // こうするとフォントや行数に関係なく、カードの高さが待機中と必ず一致する
     const cdMeta = [categoryName, DIFFICULTY_LABELS[task.difficulty], repeatLabel(task.repeat), dueText(task, status, now)]
       .filter(Boolean).join(' · ');
-    const canSkip = canDeferTask(task, now); // 同じクエストにひとつ後ろの候補がなければ押せない
+    const canSkip = !!task && canDeferTask(task, now); // 同じクエストにひとつ後ろの候補がなければ押せない（まとめ中はやることがないこともある）
     const left = Math.max(1, countdownRemainingSec(s));
     return `<div class="focus-card focus-card--countdown" data-phase="countdown">
       <div class="focus-title">${escapeHtml(task.title)}</div>
@@ -268,7 +280,7 @@ function renderFocusCard(entry, categoryName, now) {
     const canComplete = phase === 'running' || phase === 'paused';
     main = `<button class="btn btn-primary qt-main" data-qt="complete" ${canComplete ? '' : 'disabled'}><svg class="icon" aria-hidden="true"><use href="#i-check-box"/></svg> できた！</button>`;
     // 「× やめる」の右に「スキップ」（いまのやることをひとつ後ろに回し、入れ替わったやることで待ち直す）
-    const canSkip = canDeferTask(task, now); // 同じクエストにひとつ後ろの候補がなければ押せない
+    const canSkip = !!task && canDeferTask(task, now); // 同じクエストにひとつ後ろの候補がなければ押せない（まとめ中はやることがないこともある）
     sub = `<button class="btn qt-small qt-quit" data-qt="quit">× やめる</button><button class="btn qt-small" data-qt="skip" ${canSkip ? '' : 'disabled'}>スキップ</button>`;
   }
 
@@ -445,7 +457,9 @@ function renderQuests() {
     const st = state.tasks.find((t) => t.id === state.session.taskId);
     if (st) focus = { task: st, status: taskStatus(st, now) };
   }
-  const focusHtml = renderFocusCard(focus, focus ? categoryName[focus.task.categoryId] || '' : '', now);
+  // やることがないときの文言: 1つもない / 今日やって空になった / 次回待ちだけ
+  const emptyKind = tasks.length === 0 ? 'none' : (doneToday.length > 0 ? 'cleared' : 'rest');
+  const focusHtml = renderFocusCard(focus, focus ? categoryName[focus.task.categoryId] || '' : '', now, { kind: emptyKind, doneCount: doneToday.length });
   document.getElementById('focus-quests').innerHTML = focusHtml;
   ui.focusTaskId = focus ? focus.task.id : null;
 
