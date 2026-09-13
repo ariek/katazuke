@@ -872,6 +872,7 @@ button.task-check:active { transform: scale(0.9); }
 .focus-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 0 8px; color: var(--ink-soft); }
 .focus-empty strong { font-size: 18px; color: var(--ink); }
 .focus-empty span { font-size: 13px; }
+.focus-empty-btn { margin-top: 8px; }
 .focus-card.is-empty[data-empty="none"] { box-shadow: 4px 4px 0 var(--line); }
 .focus-card.is-empty[data-empty="cleared"] { box-shadow: 4px 4px 0 var(--yellow); }
 

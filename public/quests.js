@@ -188,7 +188,8 @@ function emptyFocusHtml(kind, doneCount = 0) {
     return `<div class="focus-empty"><strong>まだやることがありません</strong><span>下の「やることを追加」から、最初のやることを書き出そう</span></div>`;
   }
   if (kind === 'cleared') {
-    return `<div class="focus-empty"><strong>クエストクリア！ ${sparkle}</strong><span>今日は ${doneCount} 件やり遂げました。おつかれさま！</span></div>`;
+    return `<div class="focus-empty"><strong>クエストクリア！ ${sparkle}</strong><span>今日は ${doneCount} 件やり遂げました。おつかれさま！</span>
+      <button class="btn focus-empty-btn" data-back-to-list>ほかのクエストをやる</button></div>`;
   }
   return `<div class="focus-empty"><strong>今日のやることはありません</strong><span>次回待ちのやることが来るまで、ひと休み ${sparkle}</span></div>`;
 }
@@ -606,6 +607,9 @@ function reorderTasksFromList(row, ul) {
 
 function initQuests() {
   document.getElementById('tasks-back').addEventListener('click', () => showCategoryList());
+  document.getElementById('focus-quests').addEventListener('click', (e) => {
+    if (e.target.closest('[data-back-to-list]')) showCategoryList();
+  });
   makeSortable(document.getElementById('view-quests'), {
     row: '.task-row',
     grip: '.drag-grip',
