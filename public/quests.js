@@ -166,10 +166,10 @@ const ICON_MINUS = '<svg class="icon" aria-hidden="true"><use href="#i-minus"/><
 function plusBtn(sec) { return `<button class="qt-ctl" data-qt="plus" aria-label="10秒足す" ${sec >= 999 ? 'disabled' : ''}>${ICON_PLUS}</button>`; }
 function minusBtn(sec) { return `<button class="qt-ctl" data-qt="minus" aria-label="10秒引く" ${sec <= 0 ? 'disabled' : ''}>${ICON_MINUS}</button>`; }
 
-function ringHtml(offset) {
+function ringHtml(offset, color = null) {
   return `<svg class="qt-ring" viewBox="0 0 130 130"><g filter="url(#wobble)">
       <circle class="qt-track" cx="65" cy="65" r="54"/>
-      <circle class="qt-fill" cx="65" cy="65" r="54" stroke-dasharray="${QT_LEN.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"/>
+      <circle class="qt-fill" cx="65" cy="65" r="54" stroke-dasharray="${QT_LEN.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}" ${color ? `style="stroke:${color}"` : ''}/>
       <circle class="qt-edge" cx="65" cy="65" r="58.5"/><circle class="qt-edge" cx="65" cy="65" r="49.5"/>
     </g></svg>`;
 }
@@ -200,6 +200,7 @@ function renderFocusCard(entry, categoryName, now) {
   // リング
   let seconds = task ? (QUEST_SECONDS[task.difficulty] || QUEST_SECONDS[1]) + (phase === 'idle' ? idleExtraFor(task.id) : 0) : 0;
   let offset = 0;
+  let ringStroke = null; // 実行中だけ残り割合の色。一時停止・時間切れは CSS の色
   let qtCls = '';
   let slot = task ? `${minusBtn(seconds)}<button class="qt-ctl" data-qt="start" aria-label="スタート">${ICON_PLAY}</button>${plusBtn(seconds)}` : '';
   if (phase === 'running' || phase === 'paused') {
@@ -213,6 +214,7 @@ function renderFocusCard(entry, categoryName, now) {
       qtCls = 'is-paused';
       slot = `${minusBtn(rem)}<button class="qt-ctl" data-qt="resume" aria-label="再開">${ICON_PLAY}</button>${plusBtn(rem)}`;
     } else {
+      ringStroke = ringColor(rem / s.durationSec);
       slot = `${minusBtn(rem)}<button class="qt-ctl" data-qt="pause" aria-label="一時停止">${ICON_PAUSE}</button>${plusBtn(rem)}`;
     }
   } else if (phase === 'countdown') {
@@ -280,7 +282,7 @@ function renderFocusCard(entry, categoryName, now) {
     ${task && task.note && phase === 'idle' ? `<div class="focus-note">${escapeHtml(task.note)}</div>` : ''}
     <div class="qt ${qtCls}">
       <div class="qt-dial">
-        ${ringHtml(offset)}
+        ${ringHtml(offset, ringStroke)}
         <div class="qt-center"><div class="qt-seconds">${digitsHtml(seconds)}</div><div class="qt-slot">${slot}</div></div>
       </div>
     </div>

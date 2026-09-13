@@ -441,6 +441,15 @@ function digitsHtml(n) {
   return String(n).split('').map((d) => `<span>${d}</span>`).join('');
 }
 
+// リングの色: 残りの割合で 緑 → 黄緑 → 黄 → オレンジ → 赤
+function ringColor(ratio) {
+  if (ratio > 0.6) return '#7fcaa2';
+  if (ratio > 0.45) return '#b5d67f';
+  if (ratio > 0.3) return '#f2d66b';
+  if (ratio > 0.15) return '#f2a860';
+  return '#e6887a';
+}
+
 function renderTimerTick() {
   const s = state.session;
   if (s && (s.phase === 'running' || s.phase === 'paused')) {
@@ -450,6 +459,7 @@ function renderTimerTick() {
       const remaining = questRemainingSec(s);
       secEl.innerHTML = digitsHtml(remaining);
       fillEl.style.strokeDashoffset = String(QT_LEN * (1 - remaining / s.durationSec));
+      if (s.phase === 'running' && !s.timedOut) fillEl.style.stroke = ringColor(remaining / s.durationSec);
       const minus = document.querySelector('#focus-quests [data-qt="minus"]');
       const plus = document.querySelector('#focus-quests [data-qt="plus"]');
       if (minus) minus.disabled = remaining <= 0;

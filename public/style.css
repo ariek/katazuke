@@ -400,7 +400,7 @@ button.task-check:active { transform: scale(0.9); }
   height: 56px;
   border: 2.5px solid var(--ink);
   border-radius: 50% 45% 50% 45%;
-  background: var(--peach);
+  background: var(--sky); /* 追加ボタンは青 */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1001,8 +1001,8 @@ button.task-check:active { transform: scale(0.9); }
 .qt-ring .qt-track { fill: var(--paper); stroke: #f1ece3; stroke-width: 9; }
 .qt-ring .qt-fill { fill: none; stroke: #7fcaa2; stroke-width: 9; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.25s linear; }
 .qt-ring .qt-edge { fill: none; stroke: var(--ink); stroke-width: 2.4; }
-.qt.is-paused .qt-fill { stroke: #ab98e0; }
-.qt.is-timeup .qt-fill { stroke: #e6887a; }
+.qt.is-paused .qt-fill { stroke: #b9b0a6 !important; } /* 一時停止はグレー（実行中の色を上書き） */
+.qt.is-timeup .qt-fill { stroke: #e6887a !important; }
 .qt.is-break .qt-fill { stroke: #86b7e6; }
 .qt-center { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 22%; box-sizing: border-box; pointer-events: none; }
 .qt-seconds { height: 112px; display: flex; align-items: center; font-size: min(112px, 30vw); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
@@ -1016,7 +1016,7 @@ button.task-check:active { transform: scale(0.9); }
 
 .qt-actions { display: flex; flex-direction: column; align-items: center; gap: 24px; margin-top: 12px; }
 .qt-main { width: 78%; font-size: 20px; padding: 14px 16px; }
-.qt-main.is-start { background: var(--peach); }
+.qt-main.is-start { background: var(--mint); } /* スタートは緑（オレンジ系は怖い印象になるので避ける） */
 .qt-main:disabled { opacity: 0.4; box-shadow: none; }
 .qt-subrow { display: flex; justify-content: center; gap: 10px; width: 100%; }
 .qt-small { font-size: 12px; padding: 6px 14px; box-shadow: none; }
