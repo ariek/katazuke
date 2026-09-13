@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>デザイン案: アプリアイコン</title>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../public/style.css">
+  <style>
+    body { position: static; display: block; overflow: auto; height: auto; padding: 16px 16px 60px; }
+    .mock-section { margin: 0 auto 28px; max-width: 420px; }
+    .mock-label { font-size: 13px; font-weight: 700; margin: 0 0 4px; }
+    .mock-note { font-size: 12px; color: var(--ink-soft); margin: 0 0 10px; }
+    .cands { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px 12px; }
+    .cand { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .cand svg { display: block; border-radius: 22%; }
+    .cand .big { width: 120px; height: 120px; }
+    .cand .name { font-size: 12px; font-weight: 700; }
+    .cand .desc { font-size: 11px; color: var(--ink-soft); text-align: center; }
+    /* iPhone のホーム画面風: 濃い壁紙の上に 60px で並べる */
+    .home { background: #3b3f52; border-radius: 16px; padding: 18px 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 8px; }
+    .home .app { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #fff; font-size: 10px; }
+    .home .app svg { width: 60px; height: 60px; border-radius: 22%; }
+    .home--light { background: #e9e4d8; }
+    .home--light .app { color: #333; }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+    <!-- 0. 現在 -->
+    <symbol id="ic-now" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#fbf6ee"/>
+      <rect x="24" y="24" width="464" height="464" rx="96" fill="#c9ddf2" stroke="#5b4a3f" stroke-width="14"/>
+      <rect x="128" y="120" width="256" height="300" rx="26" fill="#fffdf8" stroke="#5b4a3f" stroke-width="16"/>
+      <rect x="104" y="100" width="304" height="52" rx="26" fill="#f7e3a1" stroke="#5b4a3f" stroke-width="14"/>
+      <rect x="104" y="392" width="304" height="52" rx="26" fill="#f7e3a1" stroke="#5b4a3f" stroke-width="14"/>
+      <path d="M176 210 l18 18 l34 -36" fill="none" stroke="#6fbf8f" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="246" y="196" width="100" height="18" rx="9" fill="#bfe3d0"/>
+      <path d="M176 280 l18 18 l34 -36" fill="none" stroke="#6fbf8f" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="246" y="266" width="80" height="18" rx="9" fill="#bfe3d0"/>
+      <rect x="172" y="336" width="42" height="42" rx="10" fill="#fffdf8" stroke="#5b4a3f" stroke-width="10"/>
+      <rect x="246" y="348" width="110" height="18" rx="9" fill="#f6c9b3"/>
+      <path d="M424 78 L436 112 L470 124 L436 136 L424 170 L412 136 L378 124 L412 112 Z" fill="#f7e3a1" stroke="#5b4a3f" stroke-width="10" stroke-linejoin="round"/>
+    </symbol>
+    <!-- A. 大きなチェック（黄） -->
+    <symbol id="ic-a" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#f7e3a1"/>
+      <path d="M128 268 L222 360 L392 168" fill="none" stroke="#5b4a3f" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <!-- B. 白い丸札にチェック（黄地） -->
+    <symbol id="ic-b" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#f7e3a1"/>
+      <circle cx="256" cy="256" r="176" fill="#fffdf8" stroke="#5b4a3f" stroke-width="22"/>
+      <path d="M160 262 L232 334 L360 190" fill="none" stroke="#5b4a3f" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <!-- C. チェックボックス（緑のチェック、生成り地） -->
+    <symbol id="ic-c" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#fbf6ee"/>
+      <rect x="96" y="96" width="320" height="320" rx="64" fill="#fffdf8" stroke="#5b4a3f" stroke-width="26"/>
+      <path d="M170 262 L236 328 L352 192" fill="none" stroke="#6fbf8f" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <!-- D. タイマーの輪にチェック（緑の輪、黄地） -->
+    <symbol id="ic-d" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#f7e3a1"/>
+      <circle cx="256" cy="268" r="164" fill="#fffdf8" stroke="#5b4a3f" stroke-width="22"/>
+      <circle cx="256" cy="268" r="164" fill="none" stroke="#7fcaa2" stroke-width="40" stroke-dasharray="820 1030" transform="rotate(-90 256 268)" stroke-linecap="round"/>
+      <rect x="226" y="52" width="60" height="44" rx="14" fill="#5b4a3f"/>
+      <path d="M176 276 L236 336 L344 208" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <!-- E. 3行リストの1行だけ大きなチェック（水色地） -->
+    <symbol id="ic-e" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#c9ddf2"/>
+      <rect x="88" y="88" width="336" height="336" rx="56" fill="#fffdf8" stroke="#5b4a3f" stroke-width="22"/>
+      <path d="M150 190 L196 236 L270 150" fill="none" stroke="#6fbf8f" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="292" y="176" width="80" height="26" rx="13" fill="#5b4a3f"/>
+      <rect x="150" y="276" width="56" height="56" rx="14" fill="none" stroke="#5b4a3f" stroke-width="18"/>
+      <rect x="240" y="292" width="132" height="26" rx="13" fill="#5b4a3f" opacity="0.35"/>
+    </symbol>
+    <!-- F. 星＋チェック（ピンク地） -->
+    <symbol id="ic-f" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#f4b8c8"/>
+      <path d="M256 78 L308 186 L426 202 L340 284 L362 402 L256 344 L150 402 L172 284 L86 202 L204 186 Z" fill="#f7e3a1" stroke="#5b4a3f" stroke-width="22" stroke-linejoin="round"/>
+      <path d="M204 262 L244 302 L316 220" fill="none" stroke="#5b4a3f" stroke-width="36" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-d1" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#f7e3a1"/>
+      <circle cx="256" cy="268" r="164" fill="#fffdf8" stroke="#5b4a3f" stroke-width="22"/>
+      <circle cx="256" cy="268" r="164" fill="none" stroke="#7fcaa2" stroke-width="40" stroke-dasharray="820 1030" transform="rotate(-90 256 268)" stroke-linecap="round"/>
+      <rect x="226" y="52" width="60" height="44" rx="14" fill="#5b4a3f"/>
+      <path d="M176 276 L236 336 L344 208" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-d2" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#fbf6ee"/>
+      <circle cx="256" cy="268" r="164" fill="#fffdf8" stroke="#5b4a3f" stroke-width="22"/>
+      <circle cx="256" cy="268" r="164" fill="none" stroke="#7fcaa2" stroke-width="40" stroke-dasharray="820 1030" transform="rotate(-90 256 268)" stroke-linecap="round"/>
+      <rect x="226" y="52" width="60" height="44" rx="14" fill="#5b4a3f"/>
+      <path d="M176 276 L236 336 L344 208" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-d3" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#c9ddf2"/>
+      <circle cx="256" cy="268" r="164" fill="#fffdf8" stroke="#5b4a3f" stroke-width="22"/>
+      <circle cx="256" cy="268" r="164" fill="none" stroke="#7fcaa2" stroke-width="40" stroke-dasharray="820 1030" transform="rotate(-90 256 268)" stroke-linecap="round"/>
+      <rect x="226" y="52" width="60" height="44" rx="14" fill="#5b4a3f"/>
+      <path d="M176 276 L236 336 L344 208" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-d4" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#bfe3d0"/>
+      <circle cx="256" cy="268" r="164" fill="#fffdf8" stroke="#5b4a3f" stroke-width="22"/>
+      <circle cx="256" cy="268" r="164" fill="none" stroke="#f2cf6b" stroke-width="40" stroke-dasharray="820 1030" transform="rotate(-90 256 268)" stroke-linecap="round"/>
+      <rect x="226" y="52" width="60" height="44" rx="14" fill="#5b4a3f"/>
+      <path d="M176 276 L236 336 L344 208" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-d5" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#f6c9b3"/>
+      <circle cx="256" cy="268" r="164" fill="#fffdf8" stroke="#5b4a3f" stroke-width="22"/>
+      <circle cx="256" cy="268" r="164" fill="none" stroke="#7fcaa2" stroke-width="40" stroke-dasharray="820 1030" transform="rotate(-90 256 268)" stroke-linecap="round"/>
+      <rect x="226" y="52" width="60" height="44" rx="14" fill="#5b4a3f"/>
+      <path d="M176 276 L236 336 L344 208" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-d6" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#f7e3a1"/>
+      <circle cx="256" cy="268" r="164" fill="#fffdf8" stroke="#5b4a3f" stroke-width="22"/>
+      <circle cx="256" cy="268" r="164" fill="none" stroke="#f2a860" stroke-width="40" stroke-dasharray="820 1030" transform="rotate(-90 256 268)" stroke-linecap="round"/>
+      <rect x="226" y="52" width="60" height="44" rx="14" fill="#5b4a3f"/>
+      <path d="M176 276 L236 336 L344 208" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-d7" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#dcd0f0"/>
+      <circle cx="256" cy="268" r="164" fill="#fffdf8" stroke="#5b4a3f" stroke-width="22"/>
+      <circle cx="256" cy="268" r="164" fill="none" stroke="#7fcaa2" stroke-width="40" stroke-dasharray="820 1030" transform="rotate(-90 256 268)" stroke-linecap="round"/>
+      <rect x="226" y="52" width="60" height="44" rx="14" fill="#5b4a3f"/>
+      <path d="M176 276 L236 336 L344 208" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-d8" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#5b4a3f"/>
+      <circle cx="256" cy="268" r="164" fill="#fffdf8" stroke="#fffdf8" stroke-width="22"/>
+      <circle cx="256" cy="268" r="164" fill="none" stroke="#f2cf6b" stroke-width="40" stroke-dasharray="820 1030" transform="rotate(-90 256 268)" stroke-linecap="round"/>
+      <rect x="226" y="52" width="60" height="44" rx="14" fill="#fffdf8"/>
+      <path d="M176 276 L236 336 L344 208" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-g1" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#bfe3d0"/>
+      <circle cx="256" cy="268" r="164" fill="#fffdf8" stroke="#5b4a3f" stroke-width="22"/>
+      <circle cx="256" cy="268" r="164" fill="none" stroke="#f2cf6b" stroke-width="40" stroke-dasharray="820 1030" transform="rotate(-90 256 268)" stroke-linecap="round"/>
+      <rect x="226" y="52" width="60" height="44" rx="14" fill="#5b4a3f"/>
+      <path d="M176 276 L236 336 L344 208" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-g2" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#bfe3d0"/>
+      <circle cx="256" cy="268" r="164" fill="#fffdf8" stroke="#5b4a3f" stroke-width="22"/>
+      <circle cx="256" cy="268" r="164" fill="none" stroke="#f2a860" stroke-width="40" stroke-dasharray="820 1030" transform="rotate(-90 256 268)" stroke-linecap="round"/>
+      <rect x="226" y="52" width="60" height="44" rx="14" fill="#5b4a3f"/>
+      <path d="M176 276 L236 336 L344 208" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-g3" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#bfe3d0"/>
+      <circle cx="256" cy="268" r="164" fill="#fbf6ee" stroke="#5b4a3f" stroke-width="22"/>
+      <circle cx="256" cy="268" r="164" fill="none" stroke="#fffdf8" stroke-width="40" stroke-dasharray="820 1030" transform="rotate(-90 256 268)" stroke-linecap="round"/>
+      <rect x="226" y="52" width="60" height="44" rx="14" fill="#5b4a3f"/>
+      <path d="M176 276 L236 336 L344 208" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-g4" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#bfe3d0"/>
+      <circle cx="256" cy="268" r="164" fill="#fffdf8" stroke="#5b4a3f" stroke-width="22"/>
+      <circle cx="256" cy="268" r="164" fill="none" stroke="#5fae86" stroke-width="40" stroke-dasharray="820 1030" transform="rotate(-90 256 268)" stroke-linecap="round"/>
+      <rect x="226" y="52" width="60" height="44" rx="14" fill="#5b4a3f"/>
+      <path d="M176 276 L236 336 L344 208" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-g5" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#7fcaa2"/>
+      <circle cx="256" cy="268" r="164" fill="#fffdf8" stroke="#5b4a3f" stroke-width="22"/>
+      <circle cx="256" cy="268" r="164" fill="none" stroke="#f2cf6b" stroke-width="40" stroke-dasharray="820 1030" transform="rotate(-90 256 268)" stroke-linecap="round"/>
+      <rect x="226" y="52" width="60" height="44" rx="14" fill="#5b4a3f"/>
+      <path d="M176 276 L236 336 L344 208" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-g6" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#7fcaa2"/>
+      <circle cx="256" cy="268" r="164" fill="#fbf6ee" stroke="#5b4a3f" stroke-width="22"/>
+      <circle cx="256" cy="268" r="164" fill="none" stroke="#fffdf8" stroke-width="40" stroke-dasharray="820 1030" transform="rotate(-90 256 268)" stroke-linecap="round"/>
+      <rect x="226" y="52" width="60" height="44" rx="14" fill="#5b4a3f"/>
+      <path d="M176 276 L236 336 L344 208" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-g7" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#bfe3d0"/>
+      <circle cx="256" cy="268" r="164" fill="#fffdf8" stroke="#5b4a3f" stroke-width="22"/>
+      <circle cx="256" cy="268" r="164" fill="none" stroke="#f4b8c8" stroke-width="40" stroke-dasharray="820 1030" transform="rotate(-90 256 268)" stroke-linecap="round"/>
+      <rect x="226" y="52" width="60" height="44" rx="14" fill="#5b4a3f"/>
+      <path d="M176 276 L236 336 L344 208" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-g8" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#3f8f6b"/>
+      <circle cx="256" cy="268" r="164" fill="#fffdf8" stroke="#fffdf8" stroke-width="22"/>
+      <circle cx="256" cy="268" r="164" fill="none" stroke="#f2cf6b" stroke-width="40" stroke-dasharray="820 1030" transform="rotate(-90 256 268)" stroke-linecap="round"/>
+      <rect x="226" y="52" width="60" height="44" rx="14" fill="#fffdf8"/>
+      <path d="M176 276 L236 336 L344 208" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-h1" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#f7e3a1"/>
+      <circle cx="256" cy="272" r="170" fill="#fffdf8"/>
+      <circle cx="256" cy="272" r="170" fill="none" stroke="#efe9de" stroke-width="40"/>
+      <circle cx="256" cy="272" r="170" fill="none" stroke="#7fcaa2" stroke-width="40" stroke-dasharray="850 1070" transform="rotate(-90 256 272)" stroke-linecap="butt"/>
+      <circle cx="256" cy="272" r="190" fill="none" stroke="#5b4a3f" stroke-width="14"/>
+      <circle cx="256" cy="272" r="150" fill="none" stroke="#5b4a3f" stroke-width="14"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#5b4a3f"/>
+      <path d="M182 282 L238 338 L336 218" fill="none" stroke="#5b4a3f" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-h2" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#bfe3d0"/>
+      <circle cx="256" cy="272" r="170" fill="#fffdf8"/>
+      <circle cx="256" cy="272" r="170" fill="none" stroke="#efe9de" stroke-width="40"/>
+      <circle cx="256" cy="272" r="170" fill="none" stroke="#f2cf6b" stroke-width="40" stroke-dasharray="850 1070" transform="rotate(-90 256 272)" stroke-linecap="butt"/>
+      <circle cx="256" cy="272" r="190" fill="none" stroke="#5b4a3f" stroke-width="14"/>
+      <circle cx="256" cy="272" r="150" fill="none" stroke="#5b4a3f" stroke-width="14"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#5b4a3f"/>
+      <path d="M182 282 L238 338 L336 218" fill="none" stroke="#5b4a3f" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-h3" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#7fcaa2"/>
+      <circle cx="256" cy="272" r="170" fill="#fffdf8"/>
+      <circle cx="256" cy="272" r="170" fill="none" stroke="#efe9de" stroke-width="40"/>
+      <circle cx="256" cy="272" r="170" fill="none" stroke="#f2cf6b" stroke-width="40" stroke-dasharray="850 1070" transform="rotate(-90 256 272)" stroke-linecap="butt"/>
+      <circle cx="256" cy="272" r="190" fill="none" stroke="#5b4a3f" stroke-width="14"/>
+      <circle cx="256" cy="272" r="150" fill="none" stroke="#5b4a3f" stroke-width="14"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#5b4a3f"/>
+      <path d="M182 282 L238 338 L336 218" fill="none" stroke="#5b4a3f" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-h4" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#3f8f6b"/>
+      <circle cx="256" cy="272" r="170" fill="#fffdf8"/>
+      <circle cx="256" cy="272" r="170" fill="none" stroke="#efe9de" stroke-width="40"/>
+      <circle cx="256" cy="272" r="170" fill="none" stroke="#f2cf6b" stroke-width="40" stroke-dasharray="850 1070" transform="rotate(-90 256 272)" stroke-linecap="butt"/>
+      <circle cx="256" cy="272" r="190" fill="none" stroke="#5b4a3f" stroke-width="14"/>
+      <circle cx="256" cy="272" r="150" fill="none" stroke="#5b4a3f" stroke-width="14"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#5b4a3f"/>
+      <path d="M182 282 L238 338 L336 218" fill="none" stroke="#5b4a3f" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-h5" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#bfe3d0"/>
+      <circle cx="256" cy="272" r="170" fill="#fffdf8"/>
+      <circle cx="256" cy="272" r="170" fill="none" stroke="#efe9de" stroke-width="40"/>
+      <circle cx="256" cy="272" r="170" fill="none" stroke="#7fcaa2" stroke-width="40" stroke-dasharray="850 1070" transform="rotate(-90 256 272)" stroke-linecap="butt"/>
+      <circle cx="256" cy="272" r="190" fill="none" stroke="#5b4a3f" stroke-width="14"/>
+      <circle cx="256" cy="272" r="150" fill="none" stroke="#5b4a3f" stroke-width="14"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#5b4a3f"/>
+      <path d="M182 282 L238 338 L336 218" fill="none" stroke="#5b4a3f" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-h6" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#7fcaa2"/>
+      <circle cx="256" cy="272" r="170" fill="#fffdf8"/>
+      <circle cx="256" cy="272" r="170" fill="none" stroke="#efe9de" stroke-width="40"/>
+      <circle cx="256" cy="272" r="170" fill="none" stroke="#fffdf8" stroke-width="40" stroke-dasharray="850 1070" transform="rotate(-90 256 272)" stroke-linecap="butt"/>
+      <circle cx="256" cy="272" r="190" fill="none" stroke="#5b4a3f" stroke-width="14"/>
+      <circle cx="256" cy="272" r="150" fill="none" stroke="#5b4a3f" stroke-width="14"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#5b4a3f"/>
+      <path d="M182 282 L238 338 L336 218" fill="none" stroke="#5b4a3f" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-i1" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#3f8f6b"/>
+      <circle cx="256" cy="272" r="172" fill="#fffdf8"/>
+      <circle cx="256" cy="272" r="172" fill="none" stroke="#f2cf6b" stroke-width="44" stroke-dasharray="860 1080" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#fffdf8"/>
+      <path d="M182 282 L238 338 L336 218" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-i2" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#5fae86"/>
+      <circle cx="256" cy="272" r="172" fill="#fffdf8"/>
+      <circle cx="256" cy="272" r="172" fill="none" stroke="#f2cf6b" stroke-width="44" stroke-dasharray="860 1080" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#fffdf8"/>
+      <path d="M182 282 L238 338 L336 218" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-i3" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#3f8f6b"/>
+      <circle cx="256" cy="272" r="172" fill="#fffdf8"/>
+      <circle cx="256" cy="272" r="172" fill="none" stroke="#bfe3d0" stroke-width="44" stroke-dasharray="860 1080" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#fffdf8"/>
+      <path d="M182 282 L238 338 L336 218" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-i4" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#5b4a3f"/>
+      <circle cx="256" cy="272" r="172" fill="#fffdf8"/>
+      <circle cx="256" cy="272" r="172" fill="none" stroke="#f2cf6b" stroke-width="44" stroke-dasharray="860 1080" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#fffdf8"/>
+      <path d="M182 282 L238 338 L336 218" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-i5" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#2f7370"/>
+      <circle cx="256" cy="272" r="172" fill="#fffdf8"/>
+      <circle cx="256" cy="272" r="172" fill="none" stroke="#f2cf6b" stroke-width="44" stroke-dasharray="860 1080" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#fffdf8"/>
+      <path d="M182 282 L238 338 L336 218" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-i6" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#f7e3a1"/>
+      <circle cx="256" cy="272" r="172" fill="#fffdf8"/>
+      <circle cx="256" cy="272" r="172" fill="none" stroke="#3f8f6b" stroke-width="44" stroke-dasharray="860 1080" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#fffdf8"/>
+      <path d="M182 282 L238 338 L336 218" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-i7" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#fbf6ee"/>
+      <circle cx="256" cy="272" r="172" fill="#fffdf8"/>
+      <circle cx="256" cy="272" r="172" fill="none" stroke="#3f8f6b" stroke-width="44" stroke-dasharray="860 1080" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#fffdf8"/>
+      <path d="M182 282 L238 338 L336 218" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-i8" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#3b4a6b"/>
+      <circle cx="256" cy="272" r="172" fill="#fffdf8"/>
+      <circle cx="256" cy="272" r="172" fill="none" stroke="#f2cf6b" stroke-width="44" stroke-dasharray="860 1080" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#fffdf8"/>
+      <path d="M182 282 L238 338 L336 218" fill="none" stroke="#5b4a3f" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <!-- J: 生成り地、タイマーは黒、ゲージは濃い緑、円の中は白、チェックは黒 -->
+    <symbol id="ic-j1" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#fbf6ee"/>
+      <circle cx="256" cy="272" r="172" fill="#fffdf8"/>
+      <circle cx="256" cy="272" r="172" fill="none" stroke="#2b2622" stroke-width="44"/>
+      <circle cx="256" cy="272" r="172" fill="none" stroke="#3f8f6b" stroke-width="44" stroke-dasharray="860 1080" transform="rotate(-90 256 272)" stroke-linecap="butt"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#2b2622"/>
+      <path d="M182 282 L238 338 L336 218" fill="none" stroke="#2b2622" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-j2" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#fbf6ee"/>
+      <circle cx="256" cy="272" r="172" fill="#fffdf8"/>
+      <circle cx="256" cy="272" r="172" fill="none" stroke="#e6dccd" stroke-width="40"/>
+      <circle cx="256" cy="272" r="172" fill="none" stroke="#3f8f6b" stroke-width="40" stroke-dasharray="860 1080" transform="rotate(-90 256 272)" stroke-linecap="butt"/>
+      <circle cx="256" cy="272" r="192" fill="none" stroke="#2b2622" stroke-width="16"/>
+      <circle cx="256" cy="272" r="152" fill="none" stroke="#2b2622" stroke-width="16"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#2b2622"/>
+      <path d="M182 282 L238 338 L336 218" fill="none" stroke="#2b2622" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-j3" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#fbf6ee"/>
+      <circle cx="256" cy="272" r="176" fill="#fffdf8" stroke="#2b2622" stroke-width="20"/>
+      <circle cx="256" cy="272" r="140" fill="none" stroke="#3f8f6b" stroke-width="36" stroke-dasharray="700 880" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#2b2622"/>
+      <path d="M186 284 L238 336 L330 224" fill="none" stroke="#2b2622" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-j4" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#fbf6ee"/>
+      <circle cx="256" cy="272" r="172" fill="#fffdf8"/>
+      <circle cx="256" cy="272" r="172" fill="none" stroke="#2b2622" stroke-width="44"/>
+      <circle cx="256" cy="272" r="172" fill="none" stroke="#3f8f6b" stroke-width="44" stroke-dasharray="860 1080" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#2b2622"/>
+      <path d="M182 282 L238 338 L336 218" fill="none" stroke="#2b2622" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-k1" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#fbf6ee"/>
+      <circle cx="256" cy="272" r="176" fill="#fbf6ee" stroke="#2b2622" stroke-width="20"/>
+      <circle cx="256" cy="272" r="140" fill="none" stroke="#3f8f6b" stroke-width="36" stroke-dasharray="700 880" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#2b2622"/>
+      <path d="M186 284 L238 336 L330 224" fill="none" stroke="#2b2622" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-k2" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#fbf6ee"/>
+      <circle cx="256" cy="272" r="176" fill="#fffdf8" stroke="#2b2622" stroke-width="20"/>
+      <circle cx="256" cy="272" r="140" fill="none" stroke="#3f8f6b" stroke-width="36" stroke-dasharray="700 880" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#2b2622"/>
+      <path d="M186 284 L238 336 L330 224" fill="none" stroke="#3f8f6b" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-k3" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#fbf6ee"/>
+      <circle cx="256" cy="272" r="176" fill="#fbf6ee" stroke="#2b2622" stroke-width="20"/>
+      <circle cx="256" cy="272" r="140" fill="none" stroke="#3f8f6b" stroke-width="36" stroke-dasharray="700 880" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#2b2622"/>
+      <path d="M186 284 L238 336 L330 224" fill="none" stroke="#3f8f6b" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-l1" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#bfe3d0"/>
+      <circle cx="256" cy="272" r="176" fill="#fffdf8" stroke="#2b2622" stroke-width="20"/>
+      <circle cx="256" cy="272" r="140" fill="none" stroke="#3f8f6b" stroke-width="36" stroke-dasharray="700 880" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#2b2622"/>
+      <path d="M186 284 L238 336 L330 224" fill="none" stroke="#3f8f6b" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-l2" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#dcefe3"/>
+      <circle cx="256" cy="272" r="176" fill="#fffdf8" stroke="#2b2622" stroke-width="20"/>
+      <circle cx="256" cy="272" r="140" fill="none" stroke="#3f8f6b" stroke-width="36" stroke-dasharray="700 880" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#2b2622"/>
+      <path d="M186 284 L238 336 L330 224" fill="none" stroke="#3f8f6b" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-l3" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#a9d9bd"/>
+      <circle cx="256" cy="272" r="176" fill="#fffdf8" stroke="#2b2622" stroke-width="20"/>
+      <circle cx="256" cy="272" r="140" fill="none" stroke="#3f8f6b" stroke-width="36" stroke-dasharray="700 880" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#2b2622"/>
+      <path d="M186 284 L238 336 L330 224" fill="none" stroke="#3f8f6b" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-m1" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#f7e3a1"/>
+      <circle cx="256" cy="272" r="176" fill="#fffdf8" stroke="#2b2622" stroke-width="20"/>
+      <circle cx="256" cy="272" r="140" fill="none" stroke="#3f8f6b" stroke-width="36" stroke-dasharray="700 880" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#2b2622"/>
+      <path d="M186 284 L238 336 L330 224" fill="none" stroke="#3f8f6b" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-n1" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#a9d9bd"/>
+      <circle cx="256" cy="272" r="176" fill="#fffdf8" stroke="#3f8f6b" stroke-width="20"/>
+      <circle cx="256" cy="272" r="140" fill="none" stroke="#3f8f6b" stroke-width="36" stroke-dasharray="700 880" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#3f8f6b"/>
+      <path d="M186 284 L238 336 L330 224" fill="none" stroke="#3f8f6b" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-n2" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#a9d9bd"/>
+      <circle cx="256" cy="272" r="176" fill="#fffdf8" stroke="#3f8f6b" stroke-width="20"/>
+      <circle cx="256" cy="272" r="140" fill="none" stroke="#2f6f52" stroke-width="36" stroke-dasharray="700 880" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#3f8f6b"/>
+      <path d="M186 284 L238 336 L330 224" fill="none" stroke="#2f6f52" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-n3" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#a9d9bd"/>
+      <circle cx="256" cy="272" r="176" fill="#fffdf8" stroke="#3f8f6b" stroke-width="20"/>
+      <circle cx="256" cy="272" r="140" fill="none" stroke="#3f8f6b" stroke-width="36" stroke-dasharray="700 880" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#3f8f6b"/>
+      <path d="M186 284 L238 336 L330 224" fill="none" stroke="#2b2622" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-o1" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#a9d9bd"/>
+      <circle cx="256" cy="272" r="176" fill="#fffdf8" stroke="#f2cf6b" stroke-width="20"/>
+      <circle cx="256" cy="272" r="140" fill="none" stroke="#f2cf6b" stroke-width="36" stroke-dasharray="700 880" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#f2cf6b"/>
+      <path d="M186 284 L238 336 L330 224" fill="none" stroke="#2b2622" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-o2" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#a9d9bd"/>
+      <circle cx="256" cy="272" r="176" fill="#fffdf8" stroke="#5b4a3f" stroke-width="20"/>
+      <circle cx="256" cy="272" r="140" fill="none" stroke="#5b4a3f" stroke-width="36" stroke-dasharray="700 880" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#5b4a3f"/>
+      <path d="M186 284 L238 336 L330 224" fill="none" stroke="#2b2622" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-o3" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#a9d9bd"/>
+      <circle cx="256" cy="272" r="176" fill="#fffdf8" stroke="#5b4a3f" stroke-width="20"/>
+      <circle cx="256" cy="272" r="140" fill="none" stroke="#f2cf6b" stroke-width="36" stroke-dasharray="700 880" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#5b4a3f"/>
+      <path d="M186 284 L238 336 L330 224" fill="none" stroke="#2b2622" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-o4" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#a9d9bd"/>
+      <circle cx="256" cy="272" r="176" fill="#fffdf8" stroke="#f2cf6b" stroke-width="20"/>
+      <circle cx="256" cy="272" r="140" fill="none" stroke="#5b4a3f" stroke-width="36" stroke-dasharray="700 880" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#f2cf6b"/>
+      <path d="M186 284 L238 336 L330 224" fill="none" stroke="#2b2622" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-p1" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#fbf6ee"/>
+      <circle cx="256" cy="272" r="176" fill="#fffdf8" stroke="#5b4a3f" stroke-width="20"/>
+      <circle cx="256" cy="272" r="140" fill="none" stroke="#5b4a3f" stroke-width="36" stroke-dasharray="700 880" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#5b4a3f"/>
+      <path d="M186 284 L238 336 L330 224" fill="none" stroke="#5b4a3f" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-p2" viewBox="0 0 512 512">
+      <rect width="512" height="512" fill="#fbf6ee"/>
+      <circle cx="256" cy="272" r="176" fill="#fffdf8" stroke="#5b4a3f" stroke-width="20"/>
+      <circle cx="256" cy="272" r="140" fill="none" stroke="#3f8f6b" stroke-width="36" stroke-dasharray="700 880" transform="rotate(-90 256 272)" stroke-linecap="round"/>
+      <rect x="224" y="40" width="64" height="48" rx="14" fill="#5b4a3f"/>
+      <path d="M186 284 L238 336 L330 224" fill="none" stroke="#5b4a3f" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+  </defs></svg>
+
+  <section class="mock-section">
+    <p class="mock-label">ホーム画面での見え方（60px）</p>
+    <p class="mock-note">濃い壁紙と明るい壁紙の2種類。まわりのアプリと並んでどれが目に入るかで判断</p>
+    <div class="home" id="home-dark"></div>
+    <div style="height:10px"></div>
+    <div class="home home--light" id="home-light"></div>
+  </section>
+
+  <section class="mock-section">
+    <p class="mock-label">候補（120px）</p>
+    <div class="cands" id="cands"></div>
+  </section>
+
+  <section class="mock-section">
+    <p class="mock-label">D の色違い（60px、濃い壁紙と明るい壁紙）</p>
+    <div class="home" id="home-d-dark"></div>
+    <div style="height:10px"></div>
+    <div class="home home--light" id="home-d-light"></div>
+    <p class="mock-label" style="margin-top:16px">D の色違い（120px）</p>
+    <div class="cands" id="cands-d"></div>
+  </section>
+
+  <section class="mock-section">
+    <p class="mock-label">緑地の色違い（60px、濃い壁紙と明るい壁紙）</p>
+    <div class="home" id="home-g-dark"></div>
+    <div style="height:10px"></div>
+    <div class="home home--light" id="home-g-light"></div>
+    <p class="mock-label" style="margin-top:16px">緑地の色違い（120px）</p>
+    <div class="cands" id="cands-g"></div>
+  </section>
+
+  <section class="mock-section">
+    <p class="mock-label">枠線付き（実際のタイマーと同じく、輪の外側と内側に濃い茶の線）</p>
+    <div class="home" id="home-h-dark"></div>
+    <div style="height:10px"></div>
+    <div class="home home--light" id="home-h-light"></div>
+    <p class="mock-label" style="margin-top:16px">枠線付き（120px）</p>
+    <div class="cands" id="cands-h"></div>
+  </section>
+
+  <section class="mock-section">
+    <p class="mock-label">枠線なし・円と背景のコントラスト重視</p>
+    <p class="mock-note">地を濃くして白い円を浮かせるか、輪を濃くして地と差をつける。針は白</p>
+    <div class="home" id="home-i-dark"></div>
+    <div style="height:10px"></div>
+    <div class="home home--light" id="home-i-light"></div>
+    <p class="mock-label" style="margin-top:16px">120px</p>
+    <div class="cands" id="cands-i"></div>
+  </section>
+
+  <section class="mock-section">
+    <p class="mock-label">J. 生成り地・タイマー黒・ゲージ濃い緑・円の中は白・チェック黒</p>
+    <p class="mock-note">J-1: 黒い輪の上に緑のゲージ（端は角）。J-2: 輪の外側と内側に黒い線、輪の残りは薄いグレー。J-3: 黒い縁の白い円の中に緑のゲージ。J-4: J-1 でゲージの端を丸く</p>
+    <div class="home" id="home-j-dark"></div>
+    <div style="height:10px"></div>
+    <div class="home home--light" id="home-j-light"></div>
+    <p class="mock-label" style="margin-top:16px">120px</p>
+    <div class="cands" id="cands-j"></div>
+  </section>
+
+  <section class="mock-section">
+    <p class="mock-label">K. J-3 の変化</p>
+    <p class="mock-note">K-1: 円の中を生成りに（地と同じ色）。K-2: チェックを緑に。K-3: チェックを緑に、円の中を生成りに</p>
+    <div class="home" id="home-k-dark"></div>
+    <div style="height:10px"></div>
+    <div class="home home--light" id="home-k-light"></div>
+    <p class="mock-label" style="margin-top:16px">120px</p>
+    <div class="cands" id="cands-k"></div>
+  </section>
+
+  <section class="mock-section">
+    <p class="mock-label">L. K-2 の地を薄い緑に</p>
+    <p class="mock-note">L-1: パレットの緑 #bfe3d0。L-2: さらに薄い緑 #dcefe3。L-3: 少し濃い薄緑 #a9d9bd</p>
+    <div class="home" id="home-l-dark"></div>
+    <div style="height:10px"></div>
+    <div class="home home--light" id="home-l-light"></div>
+    <p class="mock-label" style="margin-top:16px">120px</p>
+    <div class="cands" id="cands-l"></div>
+  </section>
+
+  <section class="mock-section">
+    <p class="mock-label">M. K-2 の地を D-1 の黄 #f7e3a1 に</p>
+    <div class="home" id="home-m-dark"></div>
+    <div style="height:10px"></div>
+    <div class="home home--light" id="home-m-light"></div>
+    <p class="mock-label" style="margin-top:16px">120px</p>
+    <div class="cands" id="cands-m"></div>
+  </section>
+
+  <section class="mock-section">
+    <p class="mock-label">N. L-3 のタイマー（縁と針）を緑に</p>
+    <p class="mock-note">N-1: 縁・ゲージ・チェックをすべて濃い緑。N-2: 縁は濃い緑、ゲージとチェックはさらに深い緑。N-3: 縁は濃い緑、チェックは黒</p>
+    <div class="home" id="home-n-dark"></div>
+    <div style="height:10px"></div>
+    <div class="home home--light" id="home-n-light"></div>
+    <p class="mock-label" style="margin-top:16px">120px</p>
+    <div class="cands" id="cands-n"></div>
+  </section>
+
+  <section class="mock-section">
+    <p class="mock-label">O. N-3 の緑（縁とゲージ）を黄と濃い茶に</p>
+    <p class="mock-note">地は薄い緑のまま、チェックは黒のまま。O-1: 両方黄。O-2: 両方濃い茶。O-3: 縁は濃い茶、ゲージは黄。O-4: 縁は黄、ゲージは濃い茶</p>
+    <div class="home" id="home-o-dark"></div>
+    <div style="height:10px"></div>
+    <div class="home home--light" id="home-o-light"></div>
+    <p class="mock-label" style="margin-top:16px">120px</p>
+    <div class="cands" id="cands-o"></div>
+  </section>
+
+  <section class="mock-section">
+    <p class="mock-label">P. 生成り地・タイマー濃茶・円の中は白・チェック濃茶</p>
+    <p class="mock-note">P-1: ゲージも濃茶。P-2: ゲージは緑</p>
+    <div class="home" id="home-p-dark"></div>
+    <div style="height:10px"></div>
+    <div class="home home--light" id="home-p-light"></div>
+    <p class="mock-label" style="margin-top:16px">120px</p>
+    <div class="cands" id="cands-p"></div>
+  </section>
+
+  <script>
+    const P = [["ic-p1","P-1 ゲージ濃茶"],["ic-p2","P-2 ゲージ緑"]];
+    const O = [["ic-n3","N-3 元"]].concat([["ic-o1", "O-1 縁とゲージを黄（地は薄い緑）"], ["ic-o2", "O-2 縁とゲージを濃い茶（地は薄い緑）"], ["ic-o3", "O-3 縁を濃い茶・ゲージを黄（地は薄い緑）"], ["ic-o4", "O-4 縁を黄・ゲージを濃い茶（地は薄い緑）"]]);
+    const N = [["ic-l3","L-3 元"],["ic-n1","N-1 全部濃い緑"],["ic-n2","N-2 ゲージとチェックは深い緑"],["ic-n3","N-3 チェックは黒"]];
+    const M = [["ic-k2","K-2 元"],["ic-l1","L-1 薄い緑"],["ic-m1","M-1 黄（D-1 の地）"],["ic-d1","D-1 元"]];
+    const L = [["ic-k2","K-2 元"],["ic-l1","L-1 薄い緑"],["ic-l2","L-2 さらに薄い緑"],["ic-l3","L-3 少し濃い薄緑"]];
+    const K = [["ic-j3","J-3 元"],["ic-k1","K-1 円の中を生成り"],["ic-k2","K-2 チェックを緑"],["ic-k3","K-3 緑のチェック・円の中を生成り"]];
+    const J = [["ic-j1","J-1 黒い輪に緑のゲージ"],["ic-j2","J-2 黒い枠線・薄い輪"],["ic-j3","J-3 黒縁の円の中に緑"],["ic-j4","J-4 J-1 で端を丸く"]];
+    const I = [["ic-i1", "I-1 深緑地・黄の輪"], ["ic-i2", "I-2 濃い緑地・黄の輪"], ["ic-i3", "I-3 深緑地・薄緑の輪"], ["ic-i4", "I-4 濃い茶地・黄の輪"], ["ic-i5", "I-5 青緑地・黄の輪"], ["ic-i6", "I-6 黄地・深緑の輪"], ["ic-i7", "I-7 生成り地・深緑の輪"], ["ic-i8", "I-8 紺地・黄の輪"]];
+    const H = [["ic-h1", "H-1 黄地・緑の輪・枠線"], ["ic-h2", "H-2 緑地・黄の輪・枠線"], ["ic-h3", "H-3 濃い緑地・黄の輪・枠線"], ["ic-h4", "H-4 深緑地・黄の輪・枠線"], ["ic-h5", "H-5 緑地・緑の輪・枠線"], ["ic-h6", "H-6 濃い緑地・白い輪・枠線"]];
+    const G = [["ic-g1", "G-1 緑地・黄の輪"], ["ic-g2", "G-2 緑地・橙の輪"], ["ic-g3", "G-3 緑地・白い輪（円は生成り）"], ["ic-g4", "G-4 緑地・濃い緑の輪"], ["ic-g5", "G-5 濃い緑地・黄の輪"], ["ic-g6", "G-6 濃い緑地・白い輪"], ["ic-g7", "G-7 緑地・ピンクの輪"], ["ic-g8", "G-8 深緑地・黄の輪"]];
+    const D = [["ic-d1", "D-1 黄地・緑の輪（元）"], ["ic-d2", "D-2 生成り地・緑の輪"], ["ic-d3", "D-3 水色地・緑の輪"], ["ic-d4", "D-4 緑地・黄の輪"], ["ic-d5", "D-5 桃地・緑の輪"], ["ic-d6", "D-6 黄地・橙の輪"], ["ic-d7", "D-7 薄紫地・緑の輪"], ["ic-d8", "D-8 濃い茶地・黄の輪（白い円）"]];
+    const C = [
+      ['ic-now', '0. 現在', '巻物に2つのチェックと星。要素が多く小さいとつぶれる'],
+      ['ic-a', 'A. 大きなチェック', '黄地に太いチェックだけ。いちばん単純で遠目にも分かる'],
+      ['ic-b', 'B. 丸札にチェック', '黄地に白い丸、中に太いチェック。アプリのボタンの雰囲気'],
+      ['ic-c', 'C. チェックボックス', '生成り地に白い四角、緑のチェック。「やること」らしさ'],
+      ['ic-d', 'D. タイマーの輪', '黄地に緑の輪（残り時間）とチェック。タイマーであることが伝わる'],
+      ['ic-e', 'E. 2行のリスト', '水色地に、済んだ行と次の行。今の案を要素を減らして整理'],
+      ['ic-f', 'F. 星にチェック', 'ピンク地に黄色の星。ゲームらしさを前に出す'],
+    ];
+    const svg = (id, cls = '') => `<svg class="${cls}" viewBox="0 0 512 512"><use href="#${id}"/></svg>`;
+    const dummy = ['メール', 'カメラ', 'メモ', '天気'];
+    const homeHtml = () => C.map(([id, name]) => `<div class="app">${svg(id)}<span>やるクエ</span></div>`).join('') + dummy.map((n) => `<div class="app"><svg viewBox="0 0 512 512"><rect width="512" height="512" fill="#8a94a6"/></svg><span>${n}</span></div>`).join('');
+    document.getElementById('home-dark').innerHTML = homeHtml();
+    document.getElementById('home-light').innerHTML = homeHtml();
+    document.getElementById('cands').innerHTML = C.map(([id, name, desc]) => `<div class="cand">${svg(id, 'big')}<span class="name">${name}</span><span class="desc">${desc}</span></div>`).join('');
+    const homeD = () => D.map(([id, name]) => `<div class="app">${svg(id)}<span>${name.split(' ')[0]}</span></div>`).join('');
+    document.getElementById('home-d-dark').innerHTML = homeD();
+    document.getElementById('home-d-light').innerHTML = homeD();
+    document.getElementById('cands-d').innerHTML = D.map(([id, name]) => `<div class="cand">${svg(id, 'big')}<span class="name">${name}</span></div>`).join('');
+    const homeG = () => G.map(([id, name]) => `<div class="app">${svg(id)}<span>${name.split(' ')[0]}</span></div>`).join('');
+    document.getElementById('home-g-dark').innerHTML = homeG();
+    document.getElementById('home-g-light').innerHTML = homeG();
+    document.getElementById('cands-g').innerHTML = G.map(([id, name]) => `<div class="cand">${svg(id, 'big')}<span class="name">${name}</span></div>`).join('');
+    const homeH = () => H.map(([id, name]) => `<div class="app">${svg(id)}<span>${name.split(' ')[0]}</span></div>`).join('');
+    document.getElementById('home-h-dark').innerHTML = homeH();
+    document.getElementById('home-h-light').innerHTML = homeH();
+    document.getElementById('cands-h').innerHTML = H.map(([id, name]) => `<div class="cand">${svg(id, 'big')}<span class="name">${name}</span></div>`).join('');
+    const homeI = () => I.map(([id, name]) => `<div class="app">${svg(id)}<span>${name.split(' ')[0]}</span></div>`).join('');
+    document.getElementById('home-i-dark').innerHTML = homeI();
+    document.getElementById('home-i-light').innerHTML = homeI();
+    document.getElementById('cands-i').innerHTML = I.map(([id, name]) => `<div class="cand">${svg(id, 'big')}<span class="name">${name}</span></div>`).join('');
+    const homeJ = () => J.map(([id, name]) => `<div class="app">${svg(id)}<span>${name.split(' ')[0]}</span></div>`).join('');
+    document.getElementById('home-j-dark').innerHTML = homeJ();
+    document.getElementById('home-j-light').innerHTML = homeJ();
+    document.getElementById('cands-j').innerHTML = J.map(([id, name]) => `<div class="cand">${svg(id, 'big')}<span class="name">${name}</span></div>`).join('');
+    const homeK = () => K.map(([id, name]) => `<div class="app">${svg(id)}<span>${name.split(' ')[0]}</span></div>`).join('');
+    document.getElementById('home-k-dark').innerHTML = homeK();
+    document.getElementById('home-k-light').innerHTML = homeK();
+    document.getElementById('cands-k').innerHTML = K.map(([id, name]) => `<div class="cand">${svg(id, 'big')}<span class="name">${name}</span></div>`).join('');
+    const homeL = () => L.map(([id, name]) => `<div class="app">${svg(id)}<span>${name.split(' ')[0]}</span></div>`).join('');
+    document.getElementById('home-l-dark').innerHTML = homeL();
+    document.getElementById('home-l-light').innerHTML = homeL();
+    document.getElementById('cands-l').innerHTML = L.map(([id, name]) => `<div class="cand">${svg(id, 'big')}<span class="name">${name}</span></div>`).join('');
+    const homeM = () => M.map(([id, name]) => `<div class="app">${svg(id)}<span>${name.split(' ')[0]}</span></div>`).join('');
+    document.getElementById('home-m-dark').innerHTML = homeM();
+    document.getElementById('home-m-light').innerHTML = homeM();
+    document.getElementById('cands-m').innerHTML = M.map(([id, name]) => `<div class="cand">${svg(id, 'big')}<span class="name">${name}</span></div>`).join('');
+    const homeN = () => N.map(([id, name]) => `<div class="app">${svg(id)}<span>${name.split(' ')[0]}</span></div>`).join('');
+    document.getElementById('home-n-dark').innerHTML = homeN();
+    document.getElementById('home-n-light').innerHTML = homeN();
+    document.getElementById('cands-n').innerHTML = N.map(([id, name]) => `<div class="cand">${svg(id, 'big')}<span class="name">${name}</span></div>`).join('');
+    const homeO = () => O.map(([id, name]) => `<div class="app">${svg(id)}<span>${name.split(' ')[0]}</span></div>`).join('');
+    document.getElementById('home-o-dark').innerHTML = homeO();
+    document.getElementById('home-o-light').innerHTML = homeO();
+    document.getElementById('cands-o').innerHTML = O.map(([id, name]) => `<div class="cand">${svg(id, 'big')}<span class="name">${name}</span></div>`).join('');
+    const homeP = () => P.map(([id, name]) => `<div class="app">${svg(id)}<span>${name.split(' ')[0]}</span></div>`).join('');
+    document.getElementById('home-p-dark').innerHTML = homeP();
+    document.getElementById('home-p-light').innerHTML = homeP();
+    document.getElementById('cands-p').innerHTML = P.map(([id, name]) => `<div class="cand">${svg(id, 'big')}<span class="name">${name}</span></div>`).join('');
+  </script>
+</body>
+</html>

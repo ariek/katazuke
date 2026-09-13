@@ -47,6 +47,7 @@ Claude Code から確認する場合は `.claude/launch.json` の `todo-timer` �
 | [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | ブランチ運用とコミットメッセージのルール |
 | [docs/design-timer.html](docs/design-timer.html) | タイマー付きカードと各モーダルのデザイン案 |
 | [docs/design-header.html](docs/design-header.html) | ヘッダー（経験値ゲージの札とナビ）のデザイン案 |
+| [docs/design-app-icon.html](docs/design-app-icon.html) | ホーム画面のアプリアイコンのデザイン案 |
 | [CLAUDE.md](CLAUDE.md) | Claude Code に作業させるときの方針 |
 
 仕様を変えるときは、コードより先に `docs/SPEC.md` を直す。
