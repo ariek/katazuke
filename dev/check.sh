@@ -34,7 +34,7 @@ required = [
     'questRemainingSec', 'sessionActive', 'sessionPhase', 'digitsHtml', 'playTone', 'skipQuest', 'adjustSeconds',
     'initSettings', 'renderSettings', 'sortedCategories', 'reorderCategories', 'makeSortable', 'deleteCategory', 'upsertCategory', 'importJson', 'exportJson', 'clearSample', 'resetAll',
     'initBulk', 'parseBulkText', 'applyBulkPlan', 'undoBulk',
-    'initLog', 'renderLog', 'initEffects', 'burstAt', 'floatText', 'pulseXpBar', 'centerOf', 'showClearModal', 'hideClearModal', 'setModalVisible',
+    'initLog', 'formatDuration', 'renderLog', 'initEffects', 'burstAt', 'floatText', 'pulseXpBar', 'centerOf', 'showClearModal', 'hideClearModal', 'setModalVisible',
     'clearAnimationMs', 'initDialog', 'askConfirm', 'showAlert',
     'levelInfo', 'titleForLevel', 'baseXpForTask', 'timerBonus', 'comboMultiplier', 'taskStatus', 'currentStreak',
     'dateKey', 'addDays', 'startOfDay', 'nextDueDate', 'daysBetween', 'formatShortDate', 'repeatLabel',
