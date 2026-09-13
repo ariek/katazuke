@@ -650,7 +650,7 @@ function initQuests() {
     }
     const edit = e.target.closest('[data-edit]');
     if (edit) {
-      if (sessionActive()) { showToast('セッション中は編集できません'); return; }
+      if (sessionActive()) { showToast('作業中は編集できません'); return; }
       openTaskSheet(edit.dataset.edit);
       return;
     }
@@ -673,7 +673,7 @@ function initQuests() {
     e.preventDefault();
     const data = readTaskForm();
     if (!data.title) { form.elements.title.focus(); return; }
-    if (!data.categoryId) { showToast('先に設定でクエストを作ってください'); return; }
+    if (!data.categoryId) { showToast('先にクエスト一覧でクエストを作ってください'); return; }
     const isNew = !data.id;
     const saveBtn = form.querySelector('button[type="submit"]');
     const at = centerOf(saveBtn);

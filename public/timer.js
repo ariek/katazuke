@@ -296,7 +296,7 @@ function pickNextQuest(excludeId = null) {
 
 async function quitSession() {
   if (!state.session) return;
-  if (!(await askConfirm('セッションをやめますか？ 走っているやることは未完了のまま残ります。', { ok: 'やめる', cancel: '続ける', danger: true }))) return;
+  if (!(await askConfirm('ここでやめますか？ いまのやることは未完了のまま残り、コンボは 0 に戻ります。', { ok: 'やめる', cancel: '続ける', danger: true }))) return;
   if (!state.session) return; // 待っている間に終わっていたら何もしない
   endSession('quit');
 }
