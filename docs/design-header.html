@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>デザイン案: ヘッダー</title>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../public/style.css">
+  <style>
+    /* モックアップ用: 本文だけスクロールさせる構造を外し、縦に並べる */
+    body { position: static; display: block; overflow: auto; height: auto; padding: 16px 16px 60px; }
+    .mock-section { margin: 0 auto 28px; max-width: 420px; }
+    .mock-label { font-size: 12px; color: var(--ink-soft); margin: 0 0 8px; padding-left: 4px; }
+    .mock-note { font-size: 12px; color: var(--ink-soft); margin: 6px 0 0; padding-left: 4px; }
+    /* スマホの幅（375px）で見た枠 */
+    .frame { width: 375px; max-width: 100%; margin: 0 auto; border: 2px dashed var(--line); border-radius: 12px; overflow: hidden; background: var(--bg); }
+    .frame .header { padding-top: 10px; }
+    .frame .header-inner { max-width: none; }
+    .frame + .frame { margin-top: 6px; }
+    .frame-body { height: 70px; padding: 12px 16px; font-size: 12px; color: var(--ink-soft); }
+
+    /* ---- ここから実装で style.css に移す予定の指定 ---- */
+    .hd-row { display: flex; align-items: center; gap: 10px; }
+
+    /* Lv. 職業名 の札。背景そのものが経験値ゲージ */
+    .lv-gauge {
+      position: relative; flex: none; overflow: hidden;
+      padding: 4px 12px; border: 2.2px solid var(--ink);
+      border-radius: 14px 18px 16px 20px / 20px 14px 18px 16px;
+      background: var(--paper); font-size: 13px; font-weight: 700; white-space: nowrap;
+    }
+    .lv-gauge-fill { position: absolute; inset: 0; width: 0%; background: var(--mint); border-right: 2px solid var(--ink); }
+    /* 境界線なし */
+    .lv-gauge--noline .lv-gauge-fill { border-right: none; }
+    .lv-gauge-text { position: relative; }
+
+    /* 現在の獲得XP: 太字で大きく。「/ 次のレベルまで」は小さく添える */
+    .xp-now { flex: none; display: flex; align-items: baseline; gap: 3px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .xp-now strong { font-size: 20px; line-height: 1; font-weight: 700; color: var(--ink); }
+    .xp-now span { font-size: 11px; color: var(--ink-soft); }
+
+    /* ヘッダー右のナビ（クエスト・記録・設定） */
+    .hd-nav { flex: none; display: flex; align-items: center; gap: 2px; margin-left: auto; }
+    .hd-nav .tab { flex: none; width: 36px; height: 36px; border-radius: 10px 12px 10px 12px / 12px 10px 12px 10px; }
+    .hd-nav .tab-icon { height: 26px; }
+    .hd-nav .tab-svg { width: 26px; height: 26px; }
+    .hd-nav .tab.is-active .tab-icon { transform: scale(1.1); }
+    .hd-nav .tab.is-active { background: transparent; border: none; box-shadow: none; } /* 選択中は枠なし。アイコンの色と少し大きい表示だけで示す */
+
+    /* ヘッダーの背景を白（紙の色）にした場合 */
+    .frame--white .header { background: var(--paper); }
+    .frame--white .lv-gauge { background: var(--bg); }
+
+    /* ヘッダー生成りのまま、札の地も生成りにする（枠と塗りだけが見える） */
+    .screen--cream-gauge .lv-gauge { background: var(--bg); }
+
+    /* 画面全体（ヘッダー＋やること画面）の枠 */
+    .screen { width: 375px; max-width: 100%; margin: 0 auto; border: 2px dashed var(--line); border-radius: 12px; overflow: hidden; background: var(--bg); }
+    .screen .header { padding-top: 10px; }
+    .screen .header-inner { max-width: none; }
+    .screen-body { padding: 16px 16px 20px; }
+    .screen-body .btn { margin-top: 14px; }
+    .screens { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+
+    /* 案B: ゲージの札を幅いっぱいに伸ばし、XP を札の中の右端に入れる */
+    .lv-gauge--wide { flex: 1; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-width: 0; padding-right: 10px; }
+    .lv-gauge--wide .xp-now { position: relative; }
+
+    /* 案C: 2段。上の段に札とナビ、下の段に細いゲージと XP */
+    .hd-bar { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+    .hd-bar .xp-bar { flex: 1; }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-scroll" viewBox="0 0 24 24">
+        <path d="M6 5.5h12a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H6" style="fill:var(--icon-fill-a, none)"/>
+        <path d="M6 5.5a2 2 0 0 0-2 2V17a2 2 0 0 0 2 2 2 2 0 0 0 2-2V7.5a2 2 0 0 0-2-2Z" style="fill:var(--icon-fill-b, none)"/>
+        <path d="M11 10h6M11 13.5h6" fill="none"/>
+      </symbol>
+      <symbol id="i-calendar" viewBox="0 0 24 24">
+        <rect x="4" y="6" width="16" height="14" rx="2.5" style="fill:var(--icon-fill-a, none)"/>
+        <path d="M4 10.5h16" fill="none"/>
+        <path d="M8 3.5v4M16 3.5v4" fill="none"/>
+        <circle cx="9" cy="15" r="1.2" style="fill:var(--icon-fill-b, currentColor)" stroke="none"/>
+        <circle cx="12.5" cy="15" r="1.2" style="fill:var(--icon-fill-b, currentColor)" stroke="none"/>
+      </symbol>
+      <symbol id="i-gear" viewBox="0 0 24 24">
+        <path d="m12 3 1.6 2.2 2.6-.8.5 2.7 2.6.9-.9 2.6 2 1.9-2 1.9.9 2.6-2.6.9-.5 2.7-2.6-.8L12 21l-1.6-2.2-2.6.8-.5-2.7-2.6-.9.9-2.6-2-1.9 2-1.9-.9-2.6 2.6-.9.5-2.7 2.6.8Z" style="fill:var(--icon-fill-a, none)"/>
+        <circle cx="12" cy="12" r="3" style="fill:var(--icon-fill-b, none)"/>
+      </symbol>
+      <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5Z" style="fill:var(--icon-fill-a, none)"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none"/></symbol>
+      <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14" fill="none"/></symbol>
+      <symbol id="c-briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2.5" style="fill:var(--icon-fill-a, none)"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3 12h18" fill="none"/></symbol>
+      <symbol id="i-timer" viewBox="0 0 24 24">
+        <circle cx="12" cy="13" r="7.5" style="fill:var(--icon-fill-a, none)"/>
+        <path d="M12 9.5V13l2.5 1.5M10 3.5h4M12 3.5v2" fill="none"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <section class="mock-section">
+    <p class="mock-label">0. 現在のヘッダー（比較用）</p>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="level-row">
+          <span class="level-badge">Lv.2 かけだし</span>
+          <div class="xp-bar"><div class="xp-fill" style="width:18%"></div></div>
+          <span class="xp-text">37 / 200</span>
+          <div class="streak">🔥 <strong>3</strong>日</div>
+        </div>
+      </div></header>
+      <div class="frame-body">（本文）</div>
+    </div>
+  </section>
+
+  <section class="mock-section">
+    <p class="mock-label">A. 1段。札の背景がゲージ。右に XP（太字・大きく）、右端にナビ</p>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge"><span class="lv-gauge-fill" style="width:18%"></span><span class="lv-gauge-text">Lv.2 かけだし</span></span>
+          <span class="xp-now"><strong>37</strong><span>/ 200</span></span>
+          <nav class="hd-nav">
+            <button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button>
+            <button class="tab" data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button>
+            <button class="tab" data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button>
+          </nav>
+        </div>
+      </div></header>
+      <div class="frame-body">（本文。下のナビはなくなる）</div>
+    </div>
+    <p class="mock-note">称号が長いとき（例「熟練冒険者」）の見え方:</p>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge"><span class="lv-gauge-fill" style="width:62%"></span><span class="lv-gauge-text">Lv.8 熟練冒険者</span></span>
+          <span class="xp-now"><strong>1240</strong><span>/ 2000</span></span>
+          <nav class="hd-nav">
+            <button class="tab" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button>
+            <button class="tab is-active" data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button>
+            <button class="tab" data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button>
+          </nav>
+        </div>
+      </div></header>
+      <div class="frame-body">（本文）</div>
+    </div>
+  </section>
+
+  <section class="mock-section">
+    <p class="mock-label">A2. A のゲージの境界線をなくしたもの</p>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--noline"><span class="lv-gauge-fill" style="width:18%"></span><span class="lv-gauge-text">Lv.2 かけだし</span></span>
+          <span class="xp-now"><strong>37</strong><span>/ 200</span></span>
+          <nav class="hd-nav">
+            <button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button>
+            <button class="tab" data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button>
+            <button class="tab" data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button>
+          </nav>
+        </div>
+      </div></header>
+      <div class="frame-body">（本文）</div>
+    </div>
+    <p class="mock-note">62% のとき:</p>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--noline"><span class="lv-gauge-fill" style="width:62%"></span><span class="lv-gauge-text">Lv.8 熟練冒険者</span></span>
+          <span class="xp-now"><strong>1240</strong><span>/ 2000</span></span>
+          <nav class="hd-nav">
+            <button class="tab" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button>
+            <button class="tab is-active" data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button>
+            <button class="tab" data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button>
+          </nav>
+        </div>
+      </div></header>
+      <div class="frame-body">（本文）</div>
+    </div>
+    <p class="mock-note">B の形で境界線なし（62%）:</p>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:62%"></span><span class="lv-gauge-text">Lv.8 熟練冒険者</span><span class="xp-now"><strong>1240</strong><span>/ 2000</span></span></span>
+          <nav class="hd-nav">
+            <button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button>
+            <button class="tab" data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button>
+            <button class="tab" data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button>
+          </nav>
+        </div>
+      </div></header>
+      <div class="frame-body">（本文）</div>
+    </div>
+  </section>
+
+  <section class="mock-section">
+    <p class="mock-label">A3. A2 の形でヘッダーの背景を白（カードと同じ紙の色）にしたもの。本文の背景との差で帯に見える</p>
+    <div class="frame frame--white">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--noline"><span class="lv-gauge-fill" style="width:18%"></span><span class="lv-gauge-text">Lv.2 かけだし</span></span>
+          <span class="xp-now"><strong>37</strong><span>/ 200</span></span>
+          <nav class="hd-nav">
+            <button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button>
+            <button class="tab" data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button>
+            <button class="tab" data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button>
+          </nav>
+        </div>
+      </div></header>
+      <div class="frame-body">（本文。こちらは今までどおり生成りの色）</div>
+    </div>
+    <p class="mock-note">62% のとき。札の地は本文と同じ生成りにして、白い帯の上で浮かないようにしている:</p>
+    <div class="frame frame--white">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--noline"><span class="lv-gauge-fill" style="width:62%"></span><span class="lv-gauge-text">Lv.8 熟練冒険者</span></span>
+          <span class="xp-now"><strong>1240</strong><span>/ 2000</span></span>
+          <nav class="hd-nav">
+            <button class="tab" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button>
+            <button class="tab is-active" data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button>
+            <button class="tab" data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button>
+          </nav>
+        </div>
+      </div></header>
+      <div class="frame-body">（本文）</div>
+    </div>
+    <p class="mock-note">タイマー中:</p>
+    <div class="frame frame--white">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--noline"><span class="lv-gauge-fill" style="width:18%"></span><span class="lv-gauge-text">Lv.2 かけだし</span></span>
+          <span class="xp-now"><strong>37</strong><span>/ 200</span></span>
+          <nav class="hd-nav">
+            <button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button>
+            <button class="tab" data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button>
+            <button class="tab" data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button>
+          </nav>
+        </div>
+        <button class="timer-mini"><svg class="icon icon-timer" aria-hidden="true"><use href="#i-timer"/></svg> 残り 176 秒</button>
+      </div></header>
+      <div class="frame-body">（本文）</div>
+    </div>
+  </section>
+
+  <section class="mock-section">
+    <p class="mock-label">B. 1段。札を幅いっぱいに伸ばしてゲージを長くし、XP を札の中の右端に入れる</p>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide"><span class="lv-gauge-fill" style="width:18%"></span><span class="lv-gauge-text">Lv.2 かけだし</span><span class="xp-now"><strong>37</strong><span>/ 200</span></span></span>
+          <nav class="hd-nav">
+            <button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button>
+            <button class="tab" data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button>
+            <button class="tab" data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button>
+          </nav>
+        </div>
+      </div></header>
+      <div class="frame-body">（本文）</div>
+    </div>
+    <p class="mock-note">ゲージが 62% のとき:</p>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide"><span class="lv-gauge-fill" style="width:62%"></span><span class="lv-gauge-text">Lv.8 熟練冒険者</span><span class="xp-now"><strong>1240</strong><span>/ 2000</span></span></span>
+          <nav class="hd-nav">
+            <button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button>
+            <button class="tab" data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button>
+            <button class="tab" data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button>
+          </nav>
+        </div>
+      </div></header>
+      <div class="frame-body">（本文）</div>
+    </div>
+  </section>
+
+  <section class="mock-section">
+    <p class="mock-label">B2. B の形で境界線なし、ヘッダーの背景を白にしたもの</p>
+    <div class="frame frame--white">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:18%"></span><span class="lv-gauge-text">Lv.2 かけだし</span><span class="xp-now"><strong>37</strong><span>/ 200</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+      <div class="frame-body">（本文）</div>
+    </div>
+    <p class="mock-note">62% のとき:</p>
+    <div class="frame frame--white">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:62%"></span><span class="lv-gauge-text">Lv.8 熟練冒険者</span><span class="xp-now"><strong>1240</strong><span>/ 2000</span></span></span>
+          <nav class="hd-nav"><button class="tab " data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab is-active" data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+      <div class="frame-body">（本文）</div>
+    </div>
+    <p class="mock-note">95% のとき（塗りが数字の後ろまで来る）:</p>
+    <div class="frame frame--white">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:95%"></span><span class="lv-gauge-text">Lv.8 熟練冒険者</span><span class="xp-now"><strong>1900</strong><span>/ 2000</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+      <div class="frame-body">（本文）</div>
+    </div>
+    <p class="mock-note">タイマー中:</p>
+    <div class="frame frame--white">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:18%"></span><span class="lv-gauge-text">Lv.2 かけだし</span><span class="xp-now"><strong>37</strong><span>/ 200</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+        <button class="timer-mini"><svg class="icon icon-timer" aria-hidden="true"><use href="#i-timer"/></svg> 残り 176 秒</button>
+      </div></header>
+      <div class="frame-body">（本文）</div>
+    </div>
+  </section>
+
+  <section class="mock-section" style="max-width: 800px;">
+    <p class="mock-label">D. B の形（境界線なし）で、やること画面まで含めた全体。1: ヘッダー生成り（札は白）、2: ヘッダー白（札は生成り）、3: ヘッダー生成りで札も生成り</p>
+    <div class="screens">
+      <div class="screen">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:18%"></span><span class="lv-gauge-text">Lv.2 かけだし</span><span class="xp-now"><strong>37</strong><span>/ 200</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+      <div class="screen-body">
+        <div class="tasks-bar">
+          <button class="tasks-back" aria-label="クエスト一覧に戻る"><svg class="icon" aria-hidden="true"><use href="#i-back"/></svg></button>
+          <div class="tasks-heading"><span class="cat-icon cat-icon--sm" style="--cat-color:#c9ddf2"><svg class="icon" aria-hidden="true"><use href="#c-briefcase"/></svg></span><span>仕事</span></div>
+        </div>
+        <div class="focus-card">
+          <div class="focus-title">メールの返信</div>
+          <div class="focus-meta">仕事 · ★ · 毎日 · 1日遅れ</div>
+          <div class="qt">
+            <div class="qt-dial">
+              <svg class="qt-ring" viewBox="0 0 130 130"><g>
+                <circle class="qt-track" cx="65" cy="65" r="54"/>
+                <circle class="qt-fill" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="0"/>
+                <circle class="qt-edge" cx="65" cy="65" r="58.5"/><circle class="qt-edge" cx="65" cy="65" r="49.5"/>
+              </g></svg>
+              <div class="qt-center"><div class="qt-seconds"><span>1</span><span>8</span><span>0</span></div><div class="qt-slot"><button class="qt-ctl" aria-label="10秒引く"><svg class="icon" aria-hidden="true"><use href="#i-minus"/></svg></button><button class="qt-ctl" aria-label="スタート"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg></button><button class="qt-ctl" aria-label="10秒足す"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></button></div></div>
+            </div>
+          </div>
+          <div class="qt-actions">
+            <button class="btn btn-primary qt-main is-start"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg> スタート</button>
+            <div class="qt-subrow"><button class="btn qt-small">スキップ</button></div>
+          </div>
+        </div>
+        <details class="quest-section quest-details"><summary class="quest-heading">ほかのやること <span class="count">2</span></summary></details>
+        <button class="btn"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg> やることを追加</button>
+      </div>
+      </div>
+      <div class="screen frame--white">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:18%"></span><span class="lv-gauge-text">Lv.2 かけだし</span><span class="xp-now"><strong>37</strong><span>/ 200</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+      <div class="screen-body">
+        <div class="tasks-bar">
+          <button class="tasks-back" aria-label="クエスト一覧に戻る"><svg class="icon" aria-hidden="true"><use href="#i-back"/></svg></button>
+          <div class="tasks-heading"><span class="cat-icon cat-icon--sm" style="--cat-color:#c9ddf2"><svg class="icon" aria-hidden="true"><use href="#c-briefcase"/></svg></span><span>仕事</span></div>
+        </div>
+        <div class="focus-card">
+          <div class="focus-title">メールの返信</div>
+          <div class="focus-meta">仕事 · ★ · 毎日 · 1日遅れ</div>
+          <div class="qt">
+            <div class="qt-dial">
+              <svg class="qt-ring" viewBox="0 0 130 130"><g>
+                <circle class="qt-track" cx="65" cy="65" r="54"/>
+                <circle class="qt-fill" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="0"/>
+                <circle class="qt-edge" cx="65" cy="65" r="58.5"/><circle class="qt-edge" cx="65" cy="65" r="49.5"/>
+              </g></svg>
+              <div class="qt-center"><div class="qt-seconds"><span>1</span><span>8</span><span>0</span></div><div class="qt-slot"><button class="qt-ctl" aria-label="10秒引く"><svg class="icon" aria-hidden="true"><use href="#i-minus"/></svg></button><button class="qt-ctl" aria-label="スタート"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg></button><button class="qt-ctl" aria-label="10秒足す"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></button></div></div>
+            </div>
+          </div>
+          <div class="qt-actions">
+            <button class="btn btn-primary qt-main is-start"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg> スタート</button>
+            <div class="qt-subrow"><button class="btn qt-small">スキップ</button></div>
+          </div>
+        </div>
+        <details class="quest-section quest-details"><summary class="quest-heading">ほかのやること <span class="count">2</span></summary></details>
+        <button class="btn"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg> やることを追加</button>
+      </div>
+      </div>
+      <div class="screen screen--cream-gauge">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:18%"></span><span class="lv-gauge-text">Lv.2 かけだし</span><span class="xp-now"><strong>37</strong><span>/ 200</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+      <div class="screen-body">
+        <div class="tasks-bar">
+          <button class="tasks-back" aria-label="クエスト一覧に戻る"><svg class="icon" aria-hidden="true"><use href="#i-back"/></svg></button>
+          <div class="tasks-heading"><span class="cat-icon cat-icon--sm" style="--cat-color:#c9ddf2"><svg class="icon" aria-hidden="true"><use href="#c-briefcase"/></svg></span><span>仕事</span></div>
+        </div>
+        <div class="focus-card">
+          <div class="focus-title">メールの返信</div>
+          <div class="focus-meta">仕事 · ★ · 毎日 · 1日遅れ</div>
+          <div class="qt">
+            <div class="qt-dial">
+              <svg class="qt-ring" viewBox="0 0 130 130"><g>
+                <circle class="qt-track" cx="65" cy="65" r="54"/>
+                <circle class="qt-fill" cx="65" cy="65" r="54" stroke-dasharray="339.3" stroke-dashoffset="0"/>
+                <circle class="qt-edge" cx="65" cy="65" r="58.5"/><circle class="qt-edge" cx="65" cy="65" r="49.5"/>
+              </g></svg>
+              <div class="qt-center"><div class="qt-seconds"><span>1</span><span>8</span><span>0</span></div><div class="qt-slot"><button class="qt-ctl" aria-label="10秒引く"><svg class="icon" aria-hidden="true"><use href="#i-minus"/></svg></button><button class="qt-ctl" aria-label="スタート"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg></button><button class="qt-ctl" aria-label="10秒足す"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></button></div></div>
+            </div>
+          </div>
+          <div class="qt-actions">
+            <button class="btn btn-primary qt-main is-start"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg> スタート</button>
+            <div class="qt-subrow"><button class="btn qt-small">スキップ</button></div>
+          </div>
+        </div>
+        <details class="quest-section quest-details"><summary class="quest-heading">ほかのやること <span class="count">2</span></summary></details>
+        <button class="btn"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg> やることを追加</button>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mock-section">
+    <p class="mock-label">E. 案1（ヘッダー生成り、札は白）でゲージの色を変えたもの。各色 62% と 18%</p>
+    <p class="mock-note">緑（今） #bfe3d0</p>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:62%; background:#bfe3d0"></span><span class="lv-gauge-text">Lv.8 熟練冒険者</span><span class="xp-now"><strong>1240</strong><span>/ 2000</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+    </div>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:18%; background:#bfe3d0"></span><span class="lv-gauge-text">Lv.2 かけだし</span><span class="xp-now"><strong>37</strong><span>/ 200</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+    </div>
+    <p class="mock-note">黄 #f7e3a1</p>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:62%; background:#f7e3a1"></span><span class="lv-gauge-text">Lv.8 熟練冒険者</span><span class="xp-now"><strong>1240</strong><span>/ 2000</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+    </div>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:18%; background:#f7e3a1"></span><span class="lv-gauge-text">Lv.2 かけだし</span><span class="xp-now"><strong>37</strong><span>/ 200</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+    </div>
+    <p class="mock-note">橙 #f8d3a3</p>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:62%; background:#f8d3a3"></span><span class="lv-gauge-text">Lv.8 熟練冒険者</span><span class="xp-now"><strong>1240</strong><span>/ 2000</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+    </div>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:18%; background:#f8d3a3"></span><span class="lv-gauge-text">Lv.2 かけだし</span><span class="xp-now"><strong>37</strong><span>/ 200</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+    </div>
+    <p class="mock-note">水色 #c9ddf2</p>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:62%; background:#c9ddf2"></span><span class="lv-gauge-text">Lv.8 熟練冒険者</span><span class="xp-now"><strong>1240</strong><span>/ 2000</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+    </div>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:18%; background:#c9ddf2"></span><span class="lv-gauge-text">Lv.2 かけだし</span><span class="xp-now"><strong>37</strong><span>/ 200</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+    </div>
+    <p class="mock-note">薄紫 #dcd0f0</p>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:62%; background:#dcd0f0"></span><span class="lv-gauge-text">Lv.8 熟練冒険者</span><span class="xp-now"><strong>1240</strong><span>/ 2000</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+    </div>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:18%; background:#dcd0f0"></span><span class="lv-gauge-text">Lv.2 かけだし</span><span class="xp-now"><strong>37</strong><span>/ 200</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+    </div>
+    <p class="mock-note">ピンク #f4b8c8</p>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:62%; background:#f4b8c8"></span><span class="lv-gauge-text">Lv.8 熟練冒険者</span><span class="xp-now"><strong>1240</strong><span>/ 2000</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+    </div>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:18%; background:#f4b8c8"></span><span class="lv-gauge-text">Lv.2 かけだし</span><span class="xp-now"><strong>37</strong><span>/ 200</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+    </div>
+    <p class="mock-note">桃 #f6c9b3</p>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:62%; background:#f6c9b3"></span><span class="lv-gauge-text">Lv.8 熟練冒険者</span><span class="xp-now"><strong>1240</strong><span>/ 2000</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+    </div>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:18%; background:#f6c9b3"></span><span class="lv-gauge-text">Lv.2 かけだし</span><span class="xp-now"><strong>37</strong><span>/ 200</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+    </div>
+    <p class="mock-note">金（少し濃い黄） #f2cf6b</p>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:62%; background:#f2cf6b"></span><span class="lv-gauge-text">Lv.8 熟練冒険者</span><span class="xp-now"><strong>1240</strong><span>/ 2000</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+    </div>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge lv-gauge--wide lv-gauge--noline"><span class="lv-gauge-fill" style="width:18%; background:#f2cf6b"></span><span class="lv-gauge-text">Lv.2 かけだし</span><span class="xp-now"><strong>37</strong><span>/ 200</span></span></span>
+          <nav class="hd-nav"><button class="tab is-active" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button><button class="tab " data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button><button class="tab " data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button></nav>
+        </div>
+      </div></header>
+    </div>
+  </section>
+
+  <section class="mock-section">
+    <p class="mock-label">C. タイマー中のヘッダー（A の下に残り秒数の帯。今と同じ）</p>
+    <div class="frame">
+      <header class="header"><div class="header-inner">
+        <div class="hd-row">
+          <span class="lv-gauge"><span class="lv-gauge-fill" style="width:18%"></span><span class="lv-gauge-text">Lv.2 かけだし</span></span>
+          <span class="xp-now"><strong>37</strong><span>/ 200</span></span>
+          <nav class="hd-nav">
+            <button class="tab" data-tab="categories" aria-label="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button>
+            <button class="tab is-active" data-tab="log" aria-label="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button>
+            <button class="tab" data-tab="settings" aria-label="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button>
+          </nav>
+        </div>
+        <button class="timer-mini"><svg class="icon icon-timer" aria-hidden="true"><use href="#i-timer"/></svg> 残り 176 秒</button>
+      </div></header>
+      <div class="frame-body">（本文）</div>
+    </div>
+  </section>
+</body>
+</html>

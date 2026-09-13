@@ -106,13 +106,17 @@
   <header class="header">
     <div class="header-inner">
     <h1 class="visually-hidden">やることクエスト</h1>
-    <div class="level-row">
-      <span class="level-badge" id="level-badge"></span>
-      <div class="xp-bar" role="progressbar" aria-label="経験値">
-        <div class="xp-fill" id="xp-fill"></div>
-      </div>
-      <span class="xp-text" id="xp-text"></span>
-      <div class="streak" id="streak" title="連続達成日数"></div>
+    <div class="hd-row">
+      <span class="lv-gauge" id="level-gauge" role="progressbar" aria-label="経験値">
+        <span class="lv-gauge-fill" id="xp-fill"></span>
+        <span class="lv-gauge-text" id="level-badge"></span>
+        <span class="xp-now"><strong id="xp-now"></strong><span id="xp-next"></span></span>
+      </span>
+      <nav class="hd-nav" id="tabbar">
+        <button class="tab is-active" data-tab="categories" aria-label="クエスト" title="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button>
+        <button class="tab" data-tab="log" aria-label="記録" title="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button>
+        <button class="tab" data-tab="settings" aria-label="設定" title="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button>
+      </nav>
     </div>
     <button class="timer-mini" id="timer-mini" hidden></button>
     </div>
@@ -366,11 +370,6 @@
 
   </div>
 
-  <nav class="tabbar" id="tabbar">
-    <button class="tab is-active" data-tab="categories" aria-label="クエスト" title="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button>
-    <button class="tab" data-tab="log" aria-label="記録" title="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button>
-    <button class="tab" data-tab="settings" aria-label="設定" title="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button>
-  </nav>
 
   <script src="game.js"></script>
   <script src="icons.js"></script>
