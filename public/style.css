@@ -57,6 +57,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  touch-action: pan-x pan-y; /* ピンチズームとダブルタップ拡大を効かせない（スクロールだけ） */
 }
 
 button {

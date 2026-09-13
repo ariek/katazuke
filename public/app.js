@@ -262,7 +262,7 @@ function measureInsets() {
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.15.2';
+const APP_VERSION = 'v0.15.3';
 let waitingWorker = null;
 
 function registerServiceWorker() {
@@ -339,6 +339,9 @@ function init() {
   switchTab(TAB_NAMES.includes(lastTab) ? lastTab : 'categories');
 
   document.getElementById('app-version').textContent = `やることクエスト ${APP_VERSION}`;
+  // iOS はビューポート指定だけではピンチズームを止められないので、ジェスチャー自体を止める
+  document.addEventListener('gesturestart', (e) => e.preventDefault());
+  document.addEventListener('touchmove', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
   measureInsets();
   setTimeout(measureInsets, 500);
   window.addEventListener('resize', measureInsets);
