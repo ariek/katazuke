@@ -210,6 +210,10 @@ function switchTab(tab) {
   const view = tab === 'categories' && ui.showTasks ? 'quests' : tab;
   document.querySelectorAll('.view').forEach((v) => { v.hidden = v.dataset.view !== view; });
   document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('is-active', b.dataset.tab === tab));
+  // 記録・設定を開いている間は、ヘッダーに閉じるボタン（×）だけを出す
+  const sub = tab !== 'categories';
+  document.querySelectorAll('#tabbar .tab').forEach((b) => { b.hidden = sub; });
+  document.getElementById('hd-close').hidden = !sub;
   renderTimerMini();
   document.querySelector('.main').scrollTo(0, 0);
 }
@@ -262,7 +266,7 @@ function measureInsets() {
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.15.4';
+const APP_VERSION = 'v0.16.0';
 let waitingWorker = null;
 
 function registerServiceWorker() {
@@ -311,14 +315,9 @@ function init() {
   render();
 
   document.getElementById('tabbar').addEventListener('click', (e) => {
+    if (e.target.closest('#hd-close')) { showCategoryList(); return; } // × でクエスト一覧へ
     const btn = e.target.closest('.tab');
     if (!btn) return;
-    // 開いている画面のボタンをもう一度押すとクエスト一覧に戻る（セッション中はやること画面に戻す）
-    if (btn.dataset.tab === ui.tab) {
-      if (sessionActive()) openTasks(ui.categoryFilter);
-      else showCategoryList();
-      return;
-    }
     switchTab(btn.dataset.tab);
   });
 
