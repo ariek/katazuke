@@ -216,7 +216,7 @@ function initSettings() {
     } catch (err) {
       exportCategory.focus();
       exportCategory.select();
-      showToast('選択したので手動でコピーしてください');
+      showToast('コピーできませんでした。選んだ文字を長押しでコピーしてください');
     }
   });
   document.getElementById('export-download').addEventListener('click', downloadJson);

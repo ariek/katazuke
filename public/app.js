@@ -197,7 +197,7 @@ function renderSessionModals() {
     const best = document.getElementById('summary-best');
     best.hidden = !(r.rank >= 1 && r.rank <= 5);
     best.textContent = r.rank === 1 ? '自己ベスト更新！' : `自己ベスト${r.rank}位！`;
-    document.getElementById('summary-title').textContent = r.completed > 0 ? 'おつかれさま！' : 'セッションを終えました';
+    document.getElementById('summary-title').textContent = r.completed > 0 ? 'おつかれさま！' : '中止しました';
   }
 }
 
@@ -262,7 +262,7 @@ function measureInsets() {
 
 // --- PWA: サービスワーカーの登録と更新通知 ---------------------------
 
-const APP_VERSION = 'v0.13.0';
+const APP_VERSION = 'v0.13.1';
 let waitingWorker = null;
 
 function registerServiceWorker() {
@@ -283,7 +283,7 @@ function registerServiceWorker() {
         if (reg.waiting) offerUpdate(reg.waiting);
         else showToast('最新の版です');
       } catch (err) {
-        showToast('確認できませんでした（オフライン？）');
+        showToast('確認できませんでした。オフラインかもしれません');
       }
     });
   }).catch((err) => console.warn('サービスワーカーを登録できませんでした', err));

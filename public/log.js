@@ -74,7 +74,7 @@ function renderLog() {
     workSec += Math.round(secondsSince(live.startedAt));
   }
   document.getElementById('log-day-stats').innerHTML = [
-    [selLogs.length, '完了'],
+    [selLogs.length, '達成'],
     [maxCombo, '最大コンボ'],
     [selLogs.reduce((sum, l) => sum + l.xp, 0), 'XP'],
     [formatDuration(workSec), '作業'],
@@ -158,7 +158,7 @@ function renderLog() {
   document.getElementById('log-week-label').textContent =
     `${formatShortDate(weekStart)} 〜 ${formatShortDate(addDays(weekEnd, -1))}`;
   document.getElementById('log-week-stats').innerHTML = [
-    [weekLogs.length, '完了'], [weekXp, 'XP'], [activeDays, '日活動'],
+    [weekLogs.length, '達成'], [weekXp, 'XP'], [activeDays, '日活動'],
   ].map(([v, l]) => `<span class="week-stat"><strong>${v}</strong>${l}</span>`).join('');
 
   const perCategory = {};
@@ -191,7 +191,7 @@ function renderLog() {
         <span class="rank-xp">${r.xp}<small> XP</small></span>
       </li>`;
     }).join('')
-    : '<li class="quest-empty">セッションを終えると、ここに上位5件が並びます</li>';
+    : '<li class="quest-empty">作業を終えると、ここに上位5件が並びます</li>';
 }
 
 function initLog() {
