@@ -649,6 +649,8 @@ button.task-check:active { transform: scale(0.9); }
 }
 .drag-grip .icon { width: 24px; height: 24px; }
 .is-reordering { user-select: none; -webkit-user-select: none; }
+/* ドラッグ中、ほかの行はすっと場所を空ける */
+.is-reordering > :not(.is-dragging) { transition: transform 0.15s ease; }
 .is-dragging {
   position: relative;
   z-index: 2;
