@@ -47,6 +47,13 @@ function formatDuration(sec) {
   return h > 0 ? `${h}時間${m % 60}分` : `${m}分`;
 }
 
+// 選んだ日の呼び方: 今日なら「今日」、それ以外は「9月12日（土）」
+function logDayLabel(dayKey, today) {
+  if (dayKey === today) return '今日';
+  const d = new Date(`${dayKey}T00:00:00`);
+  return `${d.getMonth() + 1}月${d.getDate()}日（${WEEKDAYS[(d.getDay() + 6) % 7]}）`;
+}
+
 function renderLog() {
   const now = new Date();
   const today = dateKey(now);
@@ -54,20 +61,22 @@ function renderLog() {
   if (!ui.logMonth) ui.logMonth = { year: now.getFullYear(), month: now.getMonth() };
   if (!ui.logDay) ui.logDay = today;
 
-  // 今日のまとめ: 完了数、最大コンボ、XP、作業時間（セッションの開始から終了までの合計。進行中のセッションも含める）
-  const todayLogs = state.logs.filter((l) => dateKey(l.doneAt) === today);
-  const todaySessions = state.sessions.filter((r) => dateKey(r.startedAt) === today);
-  let maxCombo = todaySessions.reduce((m, r) => Math.max(m, r.maxCombo || 0), 0);
-  let workSec = todaySessions.reduce((sum, r) => sum + (r.durationSec || 0), 0);
+  // 選んだ日の記録の先頭に出すまとめ: 完了数、最大コンボ、XP、作業時間（セッションの開始から終了までの合計）。
+  // 今日を選んでいるときは進行中のセッションも含める
+  const dayKeySel = ui.logDay;
+  const selLogs = state.logs.filter((l) => dateKey(l.doneAt) === dayKeySel);
+  const selSessions = state.sessions.filter((r) => dateKey(r.startedAt) === dayKeySel);
+  let maxCombo = selSessions.reduce((m, r) => Math.max(m, r.maxCombo || 0), 0);
+  let workSec = selSessions.reduce((sum, r) => sum + (r.durationSec || 0), 0);
   const live = state.session;
-  if (live && live.startedAt && dateKey(live.startedAt) === today && live.phase !== 'summary') {
+  if (dayKeySel === today && live && live.startedAt && dateKey(live.startedAt) === today && live.phase !== 'summary') {
     maxCombo = Math.max(maxCombo, live.maxCombo || 0);
     workSec += Math.round(secondsSince(live.startedAt));
   }
-  document.getElementById('log-today-stats').innerHTML = [
-    [todayLogs.length, '完了'],
+  document.getElementById('log-day-stats').innerHTML = [
+    [selLogs.length, '完了'],
     [maxCombo, '最大コンボ'],
-    [todayLogs.reduce((sum, l) => sum + l.xp, 0), 'XP'],
+    [selLogs.reduce((sum, l) => sum + l.xp, 0), 'XP'],
     [formatDuration(workSec), '作業'],
   ].map(([v, l]) => `<span class="week-stat"><strong>${v}</strong>${l}</span>`).join('');
 
@@ -111,8 +120,7 @@ function renderLog() {
 
   // 選んだ日の記録
   const dayLogs = (byDay[ui.logDay] || []).slice().sort((a, b) => (a.doneAt < b.doneAt ? 1 : -1));
-  const sel = new Date(`${ui.logDay}T00:00:00`);
-  const dayLabel = ui.logDay === today ? '今日' : `${sel.getMonth() + 1}月${sel.getDate()}日（${WEEKDAYS[(sel.getDay() + 6) % 7]}）`;
+  const dayLabel = logDayLabel(ui.logDay, today);
   const titleOf = (log) => {
     const task = state.tasks.find((t) => t.id === log.taskId);
     return task ? task.title : '（削除されたやること）';

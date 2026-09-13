@@ -106,18 +106,15 @@
   <header class="header">
     <div class="header-inner">
     <h1 class="visually-hidden">やることクエスト</h1>
-    <div class="hd-row">
-      <span class="lv-gauge" id="level-gauge" role="progressbar" aria-label="経験値">
+    <nav class="hd-row" id="tabbar" aria-label="画面の切り替え">
+      <button class="tab is-active" data-tab="categories" aria-label="クエスト一覧" title="クエスト一覧"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button>
+      <button class="lv-gauge tab" id="level-gauge" data-tab="log" aria-label="記録を見る" title="記録">
         <span class="lv-gauge-fill" id="xp-fill"></span>
         <span class="lv-gauge-text" id="level-badge"></span>
         <span class="xp-now"><strong id="xp-now"></strong><span id="xp-next"></span></span>
-      </span>
-      <nav class="hd-nav" id="tabbar">
-        <button class="tab is-active" data-tab="categories" aria-label="クエスト" title="クエスト"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-scroll"/></svg></span></button>
-        <button class="tab" data-tab="log" aria-label="記録" title="記録"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-calendar"/></svg></span></button>
-        <button class="tab" data-tab="settings" aria-label="設定" title="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button>
-      </nav>
-    </div>
+      </button>
+      <button class="tab" data-tab="settings" aria-label="設定" title="設定"><span class="tab-icon"><svg class="icon tab-svg" aria-hidden="true"><use href="#i-gear"/></svg></span></button>
+    </nav>
     <button class="timer-mini" id="timer-mini" hidden></button>
     </div>
   </header>
@@ -150,12 +147,8 @@
       </section>
 
       <section class="log-section">
-        <h2 class="log-heading">今日のまとめ</h2>
-        <div class="week-stats" id="log-today-stats"></div>
-      </section>
-
-      <section class="log-section">
         <h2 class="log-heading" id="log-day-title"></h2>
+        <div class="week-stats" id="log-day-stats"></div>
         <ul class="log-list" id="log-day-list"></ul>
       </section>
 
