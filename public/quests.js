@@ -266,7 +266,7 @@ function renderFocusCard(entry, categoryName, now) {
     sub = `<button class="btn qt-small" data-defer="${task.id}" ${canDefer ? '' : 'disabled'}>スキップ</button>`;
   } else {
     const canComplete = phase === 'running' || phase === 'paused';
-    main = `<button class="btn btn-primary qt-main" data-qt="complete" ${canComplete ? '' : 'disabled'}><svg class="icon" aria-hidden="true"><use href="#i-check-box"/></svg> やること完了</button>`;
+    main = `<button class="btn btn-primary qt-main" data-qt="complete" ${canComplete ? '' : 'disabled'}><svg class="icon" aria-hidden="true"><use href="#i-check-box"/></svg> できた！</button>`;
     // 「× やめる」の右に「スキップ」（いまのやることをひとつ後ろに回し、入れ替わったやることで待ち直す）
     const canSkip = canDeferTask(task, now); // 同じクエストにひとつ後ろの候補がなければ押せない
     sub = `<button class="btn qt-small qt-quit" data-qt="quit">× やめる</button><button class="btn qt-small" data-qt="skip" ${canSkip ? '' : 'disabled'}>スキップ</button>`;
